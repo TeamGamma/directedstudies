@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import eventlet
-from transaction_commands import *
+from transaction_commands import echo, uppercase
+from transaction_commands import CommandError
 
 class TransactionServer(object):
     commands = {
         'ECHO': echo,
         'UPPERCASE': uppercase,
-        'WHOAMI': whoami,
     }
 
     def handle(self, client, address):
@@ -39,6 +39,7 @@ class TransactionServer(object):
             except Exception, e:
                 print 'Unexpected error: %s' % e
                 self.error(client, 'Server Error')
+                return
 
             client.sendall(response)
 
