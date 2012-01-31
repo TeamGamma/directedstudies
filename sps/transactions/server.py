@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import eventlet
-from transaction_commands import echo, uppercase
-from transaction_commands import CommandError
+from sps.transactions import commands
 
 class TransactionServer(object):
     commands = {
-        'ECHO': echo,
-        'UPPERCASE': uppercase,
+        'ECHO': commands.echo,
+        'UPPERCASE': commands.uppercase,
     }
 
     def handle(self, client, address):
