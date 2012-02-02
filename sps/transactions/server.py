@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 import eventlet
+import eventlet.patcher
+eventlet.patcher.monkey_patch()
+
 from sps.transactions import commands
+from sps.transactions import database
 
 class TransactionServer(object):
+    # TODO: make CommandHandler and use method lookup instead
     commands = {
         'ECHO': commands.echo,
         'UPPERCASE': commands.uppercase,
@@ -32,7 +37,7 @@ class TransactionServer(object):
             except KeyError:
                 self.error(client, 'Command does not exist')
                 return
-            except CommandError, e:
+            except commands.CommandError, e:
                 self.error(client, e)
                 return
             except Exception, e:
@@ -47,10 +52,15 @@ class TransactionServer(object):
         client.sendall('ERROR: %s' % (msg,))
 
 
+def run():
+    # Setup server
+    server = eventlet.listen(('0.0.0.0', 6000))
+    transaction_server = TransactionServer()
 
-server = eventlet.listen(('0.0.0.0', 6000))
-pool = eventlet.GreenPool(10000)
-transaction_server = TransactionServer()
+    # Setup database pool
+    session = database.get_session()
+    all_stocks = session.query("id", "name").from_statement("SELECT id, name FROM stocks").all()
+    print all_stocks
 
-eventlet.serve(server, transaction_server.handle)
+    eventlet.serve(server, transaction_server.handle)
 
