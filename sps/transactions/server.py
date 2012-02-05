@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import eventlet
 import eventlet.patcher
 eventlet.patcher.monkey_patch()
@@ -52,15 +53,14 @@ class TransactionServer(object):
         client.sendall('ERROR: %s' % (msg,))
 
 
-def run():
+def run_server(port):
     # Setup server
-    server = eventlet.listen(('0.0.0.0', 6000))
+    server = eventlet.listen(('0.0.0.0', port))
     transaction_server = TransactionServer()
 
     # Setup database pool
     session = database.get_session()
-    all_stocks = session.query("id", "name").from_statement("SELECT id, name FROM stocks").all()
-    print all_stocks
 
+    print >> sys.stderr, 'Running transaction server on port %d' % port
     eventlet.serve(server, transaction_server.handle)
 
