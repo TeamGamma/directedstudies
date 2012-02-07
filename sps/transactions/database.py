@@ -16,9 +16,8 @@ def _get_session_maker():
         pool_size=pool.max_size
     )
 
-    # TODO: figure out actual values for options
     return sessionmaker(bind=engine,
-        autocommit=True,
+        autocommit=False,
         expire_on_commit=True)
 
     
