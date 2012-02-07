@@ -1,1 +1,3 @@
 Vagrantfile
+.DS_Store
+*.pyc

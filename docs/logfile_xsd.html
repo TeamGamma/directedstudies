@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	color: #000000;
+}
+.sc0 {
+	font-weight: bold;
+}
+.sc1 {
+	color: #0000FF;
+}
+.sc3 {
+	color: #FF0000;
+}
+.sc6 {
+	font-weight: bold;
+	color: #8000FF;
+}
+.sc8 {
+}
+.sc9 {
+	color: #008000;
+}
+.sc11 {
+	color: #0000FF;
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #FFFFFF; "><span class="sc1">&lt;xsd:schema</span><span class="sc8"> </span><span class="sc3">xmlns:xsd</span><span class="sc8">=</span><span class="sc6">"http://www.w3.org/2001/XMLSchema"</span><span class="sc1">&gt;</span><span class="sc0">
+
+    </span><span class="sc1">&lt;xsd:annotation&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:documentation</span><span class="sc8"> </span><span class="sc3">xml:lang</span><span class="sc8">=</span><span class="sc6">"en"</span><span class="sc1">&gt;</span><span class="sc0">
+            Log file schema for SEng 462 at the University of Victoria.
+        </span><span class="sc1">&lt;/xsd:documentation&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:annotation&gt;</span><span class="sc0">
+
+    </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"log"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"LogType"</span><span class="sc11">/&gt;</span><span class="sc0"> 
+
+</span><span class="sc9">&lt;!-- The log file created by the students consists of user commands, quote server
+    hits, account changes, system events, error messages and debug messages --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"LogType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:choice</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc8"> </span><span class="sc3">maxOccurs</span><span class="sc8">=</span><span class="sc6">"unbounded"</span><span class="sc1">&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"userCommand"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"UserCommandType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"quoteServer"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"QuoteServerType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"accountTransaction"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"AccountTransactionType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"systemEvent"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"SystemEventType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"errorEvent"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"ErrorEventType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"debugEvent"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"DebugType"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:choice&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- User commands come from the user command files or from manual entries in 
+the students' web forms --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"UserCommandType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"command"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"commandType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbol"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"filename"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"funds"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Every hit to the quote server requires a log entry with the results. The 
+price, symbol, username, timestamp and cryptokey are as returned by the quote server --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"QuoteServerType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"price"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbol"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"quoteServerTime"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:integer"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"cryptokey"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Any time a user's account is touched, an account message is printed.  
+Appropriate actions are "add" or "remove". --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"AccountTransactionType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"action"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"accountAction"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0"> 
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"funds"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- System events can be current user commands, interserver communications, 
+or the execution of previously set triggers --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"SystemEventType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"command"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"commandType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbol"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"filename"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"funds"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Error messages contain all the information of user commands, in 
+addition to an optional error message --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"ErrorEventType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"command"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"commandType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbol"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"filename"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"funds"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"errorMessage"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0"> 
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Debugging messages contain all the information of user commands, in 
+addition to an optional debug message --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:complexType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"DebugType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:all&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"timestamp"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"server"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"transactionNum"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:positiveInteger"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"command"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"commandType"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"username"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbol"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"filename"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"funds"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:decimal"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:element</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"debugMessage"</span><span class="sc8"> </span><span class="sc3">type</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc8"> </span><span class="sc3">minOccurs</span><span class="sc8">=</span><span class="sc6">"0"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:all&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:complexType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- All Unix timestamps provided must be within the current semester --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:simpleType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"unixTimeLimits"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:restriction</span><span class="sc8"> </span><span class="sc3">base</span><span class="sc8">=</span><span class="sc6">"xsd:integer"</span><span class="sc1">&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:minInclusive</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"1293861600000"</span><span class="sc11">/&gt;</span><span class="sc0"> </span><span class="sc9">&lt;!-- Jan 1, 2011 --&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:maxInclusive</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"1304139600000"</span><span class="sc11">/&gt;</span><span class="sc0"> </span><span class="sc9">&lt;!-- April 30, 2011 --&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:restriction&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:simpleType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- The only possible actions on a user's existing account are adding and removing money --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:simpleType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"accountAction"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:restriction</span><span class="sc8"> </span><span class="sc3">base</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc1">&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"add"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"remove"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:restriction&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:simpleType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Stock symbols are always three or fewer letters long --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:simpleType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"stockSymbolType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:restriction</span><span class="sc8"> </span><span class="sc3">base</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc1">&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:maxLength</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"3"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:restriction&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:simpleType&gt;</span><span class="sc0">
+
+</span><span class="sc9">&lt;!-- Enumeration of the very specific commands accepted in the system --&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;xsd:simpleType</span><span class="sc8"> </span><span class="sc3">name</span><span class="sc8">=</span><span class="sc6">"commandType"</span><span class="sc1">&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;xsd:restriction</span><span class="sc8"> </span><span class="sc3">base</span><span class="sc8">=</span><span class="sc6">"xsd:string"</span><span class="sc1">&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"ADD"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"QUOTE"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"BUY"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"COMMIT_BUY"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"CANCEL_BUY"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"SELL"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"COMMIT_SELL"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"CANCEL_SELL"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"SET_BUY_AMOUNT"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"CANCEL_SET_BUY"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"SET_BUY_TRIGGER"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"SET_SELL_AMOUNT"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"SET_SELL_TRIGGER"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"CANCEL_SET_SELL"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"DUMPLOG"</span><span class="sc11">/&gt;</span><span class="sc0">
+            </span><span class="sc1">&lt;xsd:enumeration</span><span class="sc8"> </span><span class="sc3">value</span><span class="sc8">=</span><span class="sc6">"DISPLAY_SUMMARY"</span><span class="sc11">/&gt;</span><span class="sc0">
+        </span><span class="sc1">&lt;/xsd:restriction&gt;</span><span class="sc0">
+    </span><span class="sc1">&lt;/xsd:simpleType&gt;</span><span class="sc0">
+
+</span><span class="sc1">&lt;/xsd:schema&gt;</span><span class="sc0">
+</span></div></body>
+</html>
