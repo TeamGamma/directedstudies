@@ -32,6 +32,12 @@ class CommandHandler(object):
         cls.commands[label] = command
 
 
+################################################################################
+
+# Command Classes
+
+################################################################################
+
 class EchoCommand(CommandHandler):
     """ Echoes a single argument back to the client """
     def run(self, message):

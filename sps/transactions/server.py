@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import re
 import eventlet
 import eventlet.patcher
 eventlet.patcher.monkey_patch()
@@ -9,12 +10,13 @@ from sps.transactions.commands import CommandHandler, CommandError, UnknownComma
 from sps.transactions import database
 
 class TransactionServer(object):
-    def handle(self, client, address):
-        """ Handles a single client """
+
+    def handle_connection(self, client, address):
+        """ Handle a single client connection. """
 
         print 'New client:', address
 
-        # Read multiple lines from client and parse command
+        # Read multiple lines from client and parse commands
         while True:
             line = client.recv(1000)
 
@@ -22,30 +24,34 @@ class TransactionServer(object):
                 print 'Client disconnected'
                 return
 
-            print 'Received: %s' % repr(line)
-            tokens = line[:-1].split(' ')
-            command = tokens[0]
-            args = tokens[1:]
+            print 'Request: %s' % repr(line)
+            response = self.handle_line(line)
 
-            try:
-                handler = CommandHandler.get_handler(command)
-                response = handler.run(*args)
-            except UnknownCommandError:
-                self.error(client, 'Command does not exist')
-                return
-            except TypeError, e:
-                self.error(client, 'Incorrect arguments for command "%s"' % command)
-                return
-            except Exception, e:
-                print 'Unexpected error: %s' % e
-                self.error(client, 'Server Error')
-                return
-
+            print 'Response: %s' % repr(response)
             client.sendall(response)
 
-    def error(self, client, msg):
-        print msg
-        client.sendall('ERROR: %s' % (msg,))
+
+    def handle_line(self, line):
+        """ Handle a single line of input from a client """
+
+        # Split by spaces or commas (Postel's Law!)
+        tokens = re.split('[ ,]+', line[:-1])
+        command = tokens[0]
+        args = tokens[1:]
+
+        try:
+            handler = CommandHandler.get_handler(command)
+            response = handler.run(*args)
+        except UnknownCommandError:
+            return 'Command does not exist'
+        except TypeError, e:
+            return 'Incorrect arguments for command "%s"' % command
+        except Exception, e:
+            print 'Unexpected error: %s' % e
+            return 'Server Error'
+
+        return response
+
 
 
 def run_server(port):
@@ -54,5 +60,5 @@ def run_server(port):
     transaction_server = TransactionServer()
 
     print >> sys.stderr, 'Running transaction server on port %d' % port
-    eventlet.serve(server, transaction_server.handle)
+    eventlet.serve(server, transaction_server.handle_connection)
 
