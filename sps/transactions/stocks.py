@@ -17,5 +17,6 @@ class User(Base):
         self.funds = funds
 
     def __repr__(self):
-       return "<User('%s','%s', '%s')>" % (self.username, self.password)
+       return "<User('%s','%s', '%s')>" % (self.username, self.password, self.funds)
+
 
