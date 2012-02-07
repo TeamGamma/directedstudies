@@ -43,12 +43,12 @@ class TransactionServer(object):
             handler = CommandHandler.get_handler(command)
             response = handler.run(*args)
         except UnknownCommandError:
-            return 'Command does not exist'
+            return 'Command does not exist\n'
         except TypeError, e:
-            return 'Incorrect arguments for command "%s"' % command
+            return 'Incorrect arguments for command "%s"\n' % command
         except Exception, e:
-            print 'Unexpected error: %s' % e
-            return 'Server Error'
+            print 'Unexpected error: %s\n' % e
+            return 'Server Error\n'
 
         return response
 
