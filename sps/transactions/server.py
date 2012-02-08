@@ -2,19 +2,35 @@
 
 import sys
 import re
+import time
 import eventlet
 import eventlet.patcher
 eventlet.patcher.monkey_patch()
 
-from sps.transactions.commands import CommandHandler, CommandError, UnknownCommandError
+from sps.transactions.commands import CommandHandler, UnknownCommandError
 from sps.transactions import database
 
 class TransactionServer(object):
+    def __init__(self, address):
+        self.address = address
+
+        self.server = eventlet.listen(address)
+        self.pool = eventlet.GreenPool()
+
+    def start(self):
+        eventlet.serve(self.server, self.handle_connection)
+
+    def timer_test(self, timeout):
+        time.sleep(timeout)
+        print '%d seconds since connection started!' % timeout
 
     def handle_connection(self, client, address):
-        """ Handle a single client connection. """
+        """
+        Handle a single client connection.
+        """
 
         print 'New client:', address
+        self.pool.spawn_n(self.timer_test, 10)
 
         # Read multiple lines from client and parse commands
         while True:
@@ -29,7 +45,6 @@ class TransactionServer(object):
 
             print 'Response: %s' % repr(response)
             client.sendall(response)
-
 
     def handle_line(self, line):
         """ Handle a single line of input from a client """
@@ -55,10 +70,8 @@ class TransactionServer(object):
 
 
 def run_server(port):
-    # Setup server
-    server = eventlet.listen(('0.0.0.0', port))
-    transaction_server = TransactionServer()
+    print >> sys.stderr, 'Starting transaction server on port %d' % port
+    transaction_server = TransactionServer(('0.0.0.0', port))
+    transaction_server.start()
 
-    print >> sys.stderr, 'Running transaction server on port %d' % port
-    eventlet.serve(server, transaction_server.handle_connection)
 
