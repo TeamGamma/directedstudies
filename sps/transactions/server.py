@@ -69,9 +69,21 @@ class TransactionServer(object):
 
 
 
-def run_server(port):
+def run_server(port, autoreload=False):
+    if(autoreload):
+        from sps.utils.autoreload_eventlet import autoreload
+        try:
+            autoreload()
+        except:
+            exit(0)
+
     print >> sys.stderr, 'Starting transaction server on port %d' % port
     transaction_server = TransactionServer(('0.0.0.0', port))
-    transaction_server.start()
+    try:
+        transaction_server.start()
+    except KeyboardInterrupt:
+        print >> sys.stderr, '\nInterrupted'
 
+if __name__ == '__main__':
+    run_server(6000)
 
