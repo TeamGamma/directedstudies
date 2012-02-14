@@ -6,14 +6,19 @@ app = Flask(__name__)
 @app.route("/", methods=['GET', 'POST'])
 def hello():
     if request.method == "POST":
-        return  ( """your name is %s  <br>
-                   your password is %s <br>
-                   your fruits are %s <br>
-                    you're from %s <br>""" % (
-                    request.form['username'], 
-                    request.form['password'],
-                    request.form['foods'],
-                    request.form['continent'] ))
+
+
+        return  ( 	"""method: %s <br><br>
+			input monetary value: %s <br>
+                   	stock quantity: %s <br>
+			stock set point: %s <br>
+                  	stock symbol %s <br> """ % (
+                    	
+			request.form['action'],
+			request.form['money value'],
+                    	request.form['stock quantity'],
+                    	request.form['set point'],
+			request.form['stock symbol'] ))
         # put what they submitted here
 
     else:
