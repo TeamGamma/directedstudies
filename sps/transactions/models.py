@@ -1,5 +1,9 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
+from collections import namedtuple
+
+# Used to represent money in the system without floating point errors
+Money = namedtuple('Money', 'dollars cents')
 
 Base = declarative_base()
 

@@ -1,4 +1,30 @@
 import socket, sys
+from random import randrange
+from sps.transactions.models import Money
+
+class QuoteClient(object):
+    """
+    A client for requesting quotes from a stock quote server.
+    """
+    def str_to_money(self, money_str):
+        """ Converts a string representation of money (e.g. 1.43) into a Money """
+        dollars, cents = map(int, money_str.split('.'))
+        return Money(dollars, cents)
+
+    def money_to_str(self, money):
+        """ Converts a Money object into the string representation used by the server """
+        return '.'.join(map(str, money))
+
+
+
+class RandomQuoteClient(QuoteClient):
+    stock_quote_max = 100
+
+    def get_quote(self, symbol):
+        dollars, cents = randrange(0, self.stock_quote_max), randrange(0, 100)
+        return Money(dollars, cents)
+
+
 
 if __name__ == '__main__':
     # Print info for the user
