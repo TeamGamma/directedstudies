@@ -19,8 +19,10 @@ lib_path = path.abspath(path.dirname(__file__))
 sys.path.insert(0, lib_path)
 
 
-def transaction_server(port=6000):
+def tserver(port=6000, autoreload=True):
     """ Run transaction server in development mode """
     from sps.transactions.server import run_server
-    run_server(int(port))
+    run_server(int(port), autoreload)
+    exit(0)
+
 
