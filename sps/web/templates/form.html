@@ -1,53 +1,58 @@
 <!doctype html>
-<html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <title>My Page</title>
+
+<meta charset="utf-8">
+<title>Client Input Form</title>
+
+
 </head>
 
 <body>
 
-  <form action="/" method="POST" name="my_form">
-    <fieldset>
-      <legend align="center">Important Information</legend>vim 
-      <label for="username">Username:</label><br>
-      <input type="text" name="username" id="username"><br>
-      <label for="password">Password:</label><br>
-      <input type="password" name="password" id="password"><br>
-      <input type="radio" name="gender" value="Male" id="male"><label for="male">Male</label><br>
-      <input type="radio" name="gender" value="Female" id="female"><label for="female">Female</label><br>
-      <input type="checkbox" name="foods" value="Grapes" id="grapes"><label for="grapes">Grapes</label><br>
-      <input type="checkbox" name="foods" value="Apples" id="apples"><label for="apples">Apples</label><br>
-      <input type="checkbox" name="foods" value="Bananas" id="bananas"><label for="bananas">Bananas</label>
-    </fieldset>
-    <br>
-    
-    <fieldset>
-      <legend align="center">Optional Items</legend>
-      <label for="essay">We want to know more about you.<br>Write a short essay about yourself!</label><br>
-      <textarea name="essay" id="essay" rows="10" cols="30">
-      </textarea>
-      <br>
+<form action="/", method="POST", name="client_form">
 
-      <label for="continent">Where are you from?</label><br>
-      <select name="continent" id="continent">
-        <optgroup label="Americas">
-          <option>North America</option>
-          <option>South America</option>
-        </optgroup>
-        <optgroup label="Eurasia">
-          <option>Europe</option>
-          <option>Asia</option>
-        </optgroup>
-        <option>Africa</option>
-        <option>Australia</option>
-        <option>Antarctica</option>
-      </select>
-    </fieldset>
-    <br>
-  
-    <input type="submit" value="Continue">
-  </form>
+	<input type="radio" name="action" value ="add money" id ="add money">
+	<label for="add money"> add money </label><br>
+	<input type="radio" name="action" value ="get quote" id="get quote"> 
+	<label for="get quote"> get quote </label><br>
+	<input type="radio" name="action" value ="buy shares" id= "buy shares"> 
+	<label for="buy shares"> buy shares </label><br>
+	<input type="radio" name="action" value ="sell shares" id="sell shares">
+	<label for="sell shares"> sell shares </label><br>
+	<input type="radio" name="action" value ="set automated point" id="set automated point">
+	<label for="set automated point"> set automated point </label><br>
+	<input type="radio" name="action" value ="review transaction list" id="review transaction point">
+	<label for="review transaction list"> review transaction list </label><br>
+	<input type="radio" name="action" value ="cancel transaction" id ="cancel transaction"> 
+	<label for="cancel transaction"> cancel transaction </label><br>
+	<input type="radio" name="action" value ="commit transaction" id ="commit transaction">
+	<label for="commit transaction"> commit transaction </label><br>
+	<input type="radio" name="action" value ="dump log" id ="dump log">
+	<label for="dump log"> dump log </label><br><br>
+	
+	<fieldset>
+
+		<legend align="center">Inputs</legend>
+		
+		<input type="text" name="money value" id ="money value">
+		<label for="money value"> Input Monetary Value </label><br>
+
+		<input type="text" name="stock quantity" id ="stock quantity">
+		<label for="stock quantity"> Stock Quantity </label><br>
+		
+		<input type="text" name="stock symbol" id ="stock symbol">
+		<label for="stock symbol"> Stock Symbol </label><br>
+		
+		<input type="text" name="set point" id ="set point">
+		<label for="set point"> Stock Set Point (Buy/Sell) </label><br>
+		
+
+	</fieldset>
+
+	<input type="submit" value="Continue">
+
+</form>
 
 </body>
-</html>
+
