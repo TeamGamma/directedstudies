@@ -6,13 +6,26 @@ class QuoteClient(object):
     """
     A client for requesting quotes from a stock quote server.
     """
-    def str_to_money(self, money_str):
-        """ Converts a string representation of money (e.g. 1.43) into a Money """
+    @staticmethod
+    def str_to_money(money_str):
+        """
+        Converts the quote servers representation of money (e.g. "1.43") into a Money
+        >>> money_str = "1.43"
+        >>> money = QuoteClient.str_to_money(money_str)
+        >>> money.dollars, money.cents
+        (1, 43)
+        """
         dollars, cents = map(int, money_str.split('.'))
         return Money(dollars, cents)
 
-    def money_to_str(self, money):
-        """ Converts a Money object into the string representation used by the server """
+    @staticmethod
+    def money_to_str(money):
+        """
+        Converts a Money object into the string representation used by the server
+        >>> money = Money(dollars=45, cents=67)
+        >>> QuoteClient.money_to_str(money)
+        '45.67'
+        """
         return '.'.join(map(str, money))
 
 
