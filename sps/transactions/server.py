@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import os, sys
 import re
 import time
 import eventlet
@@ -85,5 +85,5 @@ def run_server(port, autoreload=False):
         print >> sys.stderr, '\nInterrupted'
 
 if __name__ == '__main__':
-    run_server(6000)
+    run_server(6000, True)
 
