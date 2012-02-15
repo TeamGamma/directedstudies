@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
+from collections import namedtuple
 
 Base = declarative_base()
 
@@ -15,14 +16,14 @@ class Client(Base):
     account_balance = Column(Integer)
     reserve_balance = Column(Integer)
 
-    def __init__(self, username, password, funds=0):
+    def __init__(self, username, password, account_balance=0):
         self.username = username
         self.password = password
-        self.account_balance = funds
+        self.account_balance = account_balance
 	self.reserve_balance = 0
 
     def __repr__(self):
-       return "<User('%s','%s', '%s')>" % (self.username, self.password)
+       return "<Client('%s', balance=%s)>" % (self.username, self.account_balance)
 
 
 class Query(Base):
@@ -31,14 +32,13 @@ class Query(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id  = Column(Integer)
     stock_symbol = Column(String(7))
-    stock_value  = Column(Double)
+    stock_value  = Column(Float)
     crypto_key   = Column(String(50))
-    query_fee    = Column(Double)
+    query_fee    = Column(Float)
     timestamp    = Column(String(50))
 
     def __init__(self):
-
-    def __repr__(self):
+        pass
 
 
 class Transaction(Base):
@@ -47,16 +47,16 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id  = Column(Integer)
     stock_symbol = Column(String(7))
-    stock_value  = Column(Double)
+    stock_value  = Column(Float)
     operation    = Column(String(3))
     quantity     = Column(Integer)
-    broker_fee   = Column(Double)
+    broker_fee   = Column(Float)
     processing_time = Column(String(50))
     timestamp    = Column(String(50))
 
     def __init__(self):
+        pass
 
-    def __repr__(self):
 
 
 class SetTransaction(Base):
@@ -65,15 +65,14 @@ class SetTransaction(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id  = Column(Integer)
     stock_symbol = Column(String(7))
-    stock_value  = Column(Double)
+    stock_value  = Column(Float)
     operation    = Column(String(3))
     quantity     = Column(Integer)
-    broker_fee   = Column(Double)
+    broker_fee   = Column(Float)
     processing_time = Column(String(50))
     query_times  = Column(Integer)
     timestamp    = Column(String(50))
 
     def __init__(self):
-
-    def __repr__(self):
+        pass
 
