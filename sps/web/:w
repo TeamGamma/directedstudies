@@ -11,7 +11,7 @@ def hello():
         			request.form['money value'],
                    	request.form['stock quantity'],
                    	request.form['set point'],
-		        	request.form['stock symbol'])) == True: 
+		        	request.form['stock  symbol']) == True: 
 
         
             return  ( 	""" method: %s <br><br>
@@ -33,18 +33,12 @@ def hello():
         return render_template('form.html')
 
 
-def checkentry(action, money_value, stock_quantity, set_point, stock_symbol):
+def checkentry(action, money_value, stock_quantity, set_point, stock_symobl)
 
     # check each action for constraints
     if action=='add money':
-        if  len(money_value)==0: return False
-        
-        #check to see if they entered a number
-        try:
-            if float(money_value)>0 : return True
-            else: return False
-        except ValueError:
-            return False          
+        if flota(money_value)>0 : return True
+        else: return False
         
     elif action=='get quote':
         if len(stock_symbol)!=0: return True
@@ -64,7 +58,7 @@ def checkentry(action, money_value, stock_quantity, set_point, stock_symbol):
         return True
     else: return True
 
-
+return 
 
 @app.route("/some/other/path/")
 def other_path():
