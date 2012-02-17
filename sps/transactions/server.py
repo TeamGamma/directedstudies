@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys
+import sys
 import re
 import time
 import eventlet
@@ -8,7 +8,7 @@ import eventlet.patcher
 eventlet.patcher.monkey_patch()
 
 from sps.transactions.commands import CommandHandler, UnknownCommandError
-from sps.transactions import database
+
 
 class TransactionServer(object):
     def __init__(self, address):
@@ -68,7 +68,6 @@ class TransactionServer(object):
         return response
 
 
-
 def run_server(port, autoreload=False):
     if(autoreload):
         from sps.utils.autoreload_eventlet import autoreload
@@ -86,4 +85,3 @@ def run_server(port, autoreload=False):
 
 if __name__ == '__main__':
     run_server(6000, True)
-

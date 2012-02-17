@@ -4,13 +4,18 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-_URL = URL('mysql', username='root', password='root', host='127.0.0.1', port=3306, database='sps')
+_URL = URL(
+    'mysql',
+    username='root', password='root',
+    host='127.0.0.1', port=3306, database='sps'
+)
 _SESSION_MAKER = None
 
+
 def _get_session_maker():
+    # TODO: determine optimal pool size
     pool = ConnectionPool(MySQLdb, host=_URL.host, user=_URL.username, passwd=_URL.password, db=_URL.database)
-    
-    # TODO: customize engine
+
     engine = create_engine(_URL,
         creator=pool.create,
         pool_size=pool.max_size
@@ -20,7 +25,6 @@ def _get_session_maker():
         autocommit=False,
         expire_on_commit=True)
 
-    
 
 def get_session():
     global _SESSION_MAKER
@@ -30,4 +34,3 @@ def get_session():
 
     session = _SESSION_MAKER()
     return session
-    
