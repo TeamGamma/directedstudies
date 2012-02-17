@@ -1,5 +1,6 @@
 """
-This file contains simple management and deployment commands used by the Fabric command-line tool.
+This file contains simple management and deployment commands used by the Fabric
+command-line tool.
 
 To see all available commands, run `fab --list` in the same folder
 
@@ -7,7 +8,7 @@ To run a command, run `fab [command]`
 
 """
 
-from fabric.api import *
+from fabric.api import env
 from os import path
 import sys
 
@@ -26,3 +27,20 @@ def tserver(port=6000, autoreload=True):
     exit(0)
 
 
+# TODO: run from files so that we can execute on the server
+def create_tables():
+    """ Creates all database tables. Will fail if tables already exist. """
+    from sps.database.session import get_session
+    from sps.database.models import Base
+    session = get_session()
+    Base.metadata.create_all(bind=session.connection(), checkfirst=False)
+    exit(0)
+
+
+def drop_tables():
+    """ Drops all database tables. Will fail if tables don't exist. """
+    from sps.database.session import get_session
+    from sps.database.models import Base
+    session = get_session()
+    Base.metadata.drop_all(bind=session.connection(), checkfirst=False)
+    exit(0)

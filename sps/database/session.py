@@ -11,6 +11,11 @@ _URL = URL(
 )
 _SESSION_MAKER = None
 
+# Log all statements
+ECHO = True
+# Log all pool check-ins/check-outs
+ECHO_POOL = True
+
 
 def _get_session_maker():
     # TODO: determine optimal pool size
@@ -18,7 +23,8 @@ def _get_session_maker():
 
     engine = create_engine(_URL,
         creator=pool.create,
-        pool_size=pool.max_size
+        pool_size=pool.max_size,
+        echo=ECHO, echo_pool=ECHO_POOL,
     )
 
     return sessionmaker(bind=engine,
