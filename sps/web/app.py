@@ -64,16 +64,28 @@ def checkentry(username, action, money_value, stock_quantity, set_point, stock_s
         else: return False
 
     elif action=='buy shares':
-        return True
+        try:
+            if len(stock_symbol)!=0 and float(money_value)>0 and len(username)!=0:
+                return: "BUY," + username + ',' + stock_symbol + ',' + money_value
+            else: return False
+        except ValueError:
+            return False
+
     elif action=='sell shares':
-        return True
+         try:
+            if len(stock_symbol)!=0 and float(money_value)>0 and len(username)!=0:
+                return: "SELL," + username + ',' + stock_symbol + ',' + money_value
+            else: return False
+        except ValueError:
+            return False
+    
     elif action=='set automated point':
         return True       
     elif action=='review transaction list':
         return True
     elif action=='cancel transaction':
         if len(username)!=0: return 'CANCEL_BUY,' +username
-
+        else: return False
     elif action=='commit transaction':
         if len(username)!=0: return 'COMMIT_BUY,' +username
     else: return False
