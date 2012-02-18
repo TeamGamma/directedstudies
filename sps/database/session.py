@@ -12,22 +12,26 @@ _URL = URL(
 _SESSION_MAKER = None
 
 # Log all statements
-ECHO = True
-# Log all pool check-ins/check-outs
-ECHO_POOL = True
+SQLALCHEMY_ECHO = True
 
 
-def _get_session_maker():
-    # TODO: determine optimal pool size
-    pool = ConnectionPool(MySQLdb, host=_URL.host, user=_URL.username, passwd=_URL.password, db=_URL.database)
+def setup_database(engine=None):
+    global _SESSION_MAKER
 
-    engine = create_engine(_URL,
-        creator=pool.create,
-        pool_size=pool.max_size,
-        echo=ECHO, echo_pool=ECHO_POOL,
-    )
+    if not engine:
+        # TODO: determine optimal pool size
+        pool = ConnectionPool(MySQLdb, host=_URL.host,
+                user=_URL.username, passwd=_URL.password, db=_URL.database)
 
-    return sessionmaker(bind=engine,
+        engine = create_engine(_URL,
+            creator=pool.create,
+            pool_size=pool.max_size,
+            echo=SQLALCHEMY_ECHO
+        )
+    else:
+        engine = engine
+
+    _SESSION_MAKER = sessionmaker(bind=engine,
         autocommit=False,
         expire_on_commit=True)
 
@@ -36,7 +40,11 @@ def get_session():
     global _SESSION_MAKER
 
     if _SESSION_MAKER is None:
-        _SESSION_MAKER = _get_session_maker()
+        setup_database()
 
     session = _SESSION_MAKER()
+
+    # Force connection now to prevent later errors
+    session.connection()
+
     return session
