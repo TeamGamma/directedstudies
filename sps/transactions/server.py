@@ -50,7 +50,7 @@ class TransactionServer(object):
         """ Handle a single line of input from a client """
 
         # Split by spaces or commas (Postel's Law!)
-        tokens = re.split('[ ,]+', line[:-1])
+        tokens = re.split('[ ,]+', line.rstrip('\n\r'))
         command = tokens[0]
         args = tokens[1:]
 
