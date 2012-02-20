@@ -1,3 +1,4 @@
+import unittest
 from tests.utils import DatabaseTest
 from sps.transactions.commands import ADDCommand, QUOTECommand
 from sps.database.models import User
@@ -18,14 +19,22 @@ class TestADDCommand(DatabaseTest):
         retval = self.command.run(userid='unicorn', amount='100')
         self.assertEqual(retval, 'error: user does not exist\n')
 
-    def test_postconditions(self):
+    def test_postcondition_add(self):
         self.command.run(userid='user', amount='100.60')
         user = self.session.query(User) \
-            .filter_by(userid='user').first() 
+            .filter_by(userid='user').first()
         self.assertEqual(user.account_balance.dollars, 100)
         self.assertEqual(user.account_balance.cents, 60)
 
+    def test_postcondition_increment(self):
+        self.command.run(userid='user2', amount='5.42')
+        user = self.session.query(User) \
+            .filter_by(userid='user2').first()
+        self.assertEqual(user.account_balance.dollars, 105)
+        self.assertEqual(user.account_balance.cents, 92)
 
+
+@unittest.skip("QUOTE command not implemented")
 class TestQUOTECommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
