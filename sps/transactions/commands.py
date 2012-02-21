@@ -1,5 +1,11 @@
+"""
+This file does stuff.
+
+
+"""
 from sps.database.session import get_session
 from sps.database.models import User, Money
+
 
 class CommandError(Exception):
     pass

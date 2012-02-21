@@ -49,10 +49,7 @@ class TransactionServer(object):
     def handle_line(self, line):
         """ Handle a single line of input from a client """
 
-        # Split by spaces or commas (Postel's Law!)
-        tokens = re.split('[ ,]+', line.rstrip('\n\r'))
-        command = tokens[0]
-        args = tokens[1:]
+        command, args = self.parse_line(line)
 
         try:
             handler = CommandHandler.get_handler(command)
@@ -66,6 +63,14 @@ class TransactionServer(object):
             return 'Server Error\n'
 
         return response
+
+    def parse_line(self, line):
+        # Split by spaces or commas (Postel's Law!)
+        tokens = re.split('[ ,]+', line.rstrip('\n\r'))
+        command = tokens[0]
+        args = tokens[1:]
+        return command, args
+
 
 
 def run_server(port, autoreload=False):
