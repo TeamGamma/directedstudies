@@ -18,21 +18,43 @@
 	<input type="radio" name="action" value ="add money" id ="add money">
 	<label for="add money"> add money </label><br>
 	<input type="radio" name="action" value ="get quote" id="get quote"> 
-	<label for="get quote"> get quote </label><br>
+    <label for="get quote"> get quote </label><br><br>
+
 	<input type="radio" name="action" value ="buy shares" id= "buy shares"> 
 	<label for="buy shares"> buy shares </label><br>
 	<input type="radio" name="action" value ="sell shares" id="sell shares">
-	<label for="sell shares"> sell shares </label><br>
-	<input type="radio" name="action" value ="set automated point" id="set automated point">
-	<label for="set automated point"> set automated point </label><br>
-	<input type="radio" name="action" value ="review transaction list" id="review transaction point">
-	<label for="review transaction list"> review transaction list </label><br>
-	<input type="radio" name="action" value ="cancel transaction" id ="cancel transaction"> 
-	<label for="cancel transaction"> cancel transaction </label><br>
-	<input type="radio" name="action" value ="commit transaction" id ="commit transaction">
-	<label for="commit transaction"> commit transaction </label><br>
-	<input type="radio" name="action" value ="dump log" id ="dump log">
-	<label for="dump log"> dump log </label><br><br>
+    <label for="sell shares"> sell shares </label><br>
+    <input type="radio" name="action" value ="cancel buy" id ="cancel buy"> 
+    <label for="cancel buy"> cancel buy </label><br>
+	<input type="radio" name="action" value ="commit buy" id ="commit buy">
+	<label for="commit buy"> commit buy </label><br>
+	<input type="radio" name="action" value ="cancel sell" id ="cancel sell"> 
+	<label for="cancel sell"> cancel sell </label><br>
+	<input type="radio" name="action" value ="commit sell" id ="commit sell">
+    <label for="commit sell"> commit sell </label><br><br>
+
+
+    <input type="radio" name="action" value ="set buy amount" id="set buy amount" >
+    <label for="set buy amount"> set buy amount (#)</label><br>
+    <input type="radio" name="action" value ="set buy trigger" id="set buy trigger" >
+    <label for="set buy trigger"> set buy trigger ($)</label><br>
+    <input type="radio" name="action" value ="cancel set buy" id="cancel set buy">
+    <label for="cancel set buy"> cancel set buy </label><br><br>
+
+    <input type="radio" name="action" value ="set sell amount" id="set sell amount">
+	<label for="set sell amount"> set sell amount (#) </label><br>
+    <input type="radio" name="action" value ="set sell trigger" id="set sell trigger" >
+    <label for="set sell trigger"> set sell trigger ($) </label><br>
+    <input type="radio" name="action" value ="cancel set sell" id="cancel set sell">
+    <label for="cancel set sell"> cancel set sell </label><br><br>
+
+    <input type="radio" name="action" value ="dump log user" id ="dump log user">
+    <label for="dump log user"> dump log (user) </label><br>
+    <input type="radio" name="action" value ="dump log all" id ="dump log all">
+    <label for="dump log all"> dump log (all) </label><br>
+    <input type="radio" name="action" value ="display summary" id ="display summary">
+	<label for="diplay summary"> display summary </label><br><br>
+
 	
 	<fieldset>
 
@@ -47,9 +69,9 @@
 		<input type="text" name="stock symbol" id ="stock symbol">
 		<label for="stock symbol"> Stock Symbol </label><br>
 		
-		<input type="text" name="set point" id ="set point">
-		<label for="set point"> Stock Set Point (Buy/Sell) </label><br>
-		
+        <input type="text" name="filename" id ="filename">
+		<label for="filename"> Output File Name </label><br>
+
 
 	</fieldset>
 
