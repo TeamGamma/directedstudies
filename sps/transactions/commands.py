@@ -1,3 +1,10 @@
+"""
+This file does stuff.
+
+
+"""
+from sps.database.session import get_session
+from sps.database.models import User, Money
 
 
 class CommandError(Exception):
@@ -32,15 +39,15 @@ class CommandHandler(object):
         cls.commands[label] = command
 
 
-################################################################################
+###############################################################################
 
 # Command Classes
 
-################################################################################
+###############################################################################
 
 class EchoCommand(CommandHandler):
     """
-     Echoes a single argument back to the client 
+     Echoes a single argument back to the client
     """
     def run(self, message):
         return message + '\n'
@@ -50,7 +57,7 @@ CommandHandler.register_command('ECHO', EchoCommand)
 
 class UppercaseCommand(CommandHandler):
     """
-     Like ECHO, but returns the message in uppercase 
+     Like ECHO, but returns the message in uppercase
     """
     def run(self, message):
         return message.upper() + '\n'
@@ -63,6 +70,13 @@ class ADDCommand(CommandHandler):
     Add the given amount of money to the user's account
     """
     def run(self, userid, amount):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            return 'error: user does not exist\n'
+        amount = Money.from_string(amount)
+        user.account_balance += amount
+        session.commit()
         return 'success\n'
 
 
@@ -70,15 +84,16 @@ class QUOTECommand(CommandHandler):
     """
     Get the current quote for the stock for the specified user
     """
-    def run(self, userid,StockSymbol):
+    def run(self, userid, stock_symbol):
         return 'success\n'
 
 
 class BUYCommand(CommandHandler):
     """
-    Buy the dollar amount of the stock for the specified user at the current price.
+    Buy the dollar amount of the stock for the specified user at the current
+    price.
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
@@ -100,9 +115,10 @@ class CANCEL_BUYCommand(CommandHandler):
 
 class SELLCommand(CommandHandler):
     """
-    Sell the specified dollar mount of the stock currently held by the specified user at the current price.
+    Sell the specified dollar mount of the stock currently held by the
+    specified user at the current price.
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
@@ -124,9 +140,10 @@ class CANCEL_SELLCommand(CommandHandler):
 
 class SET_BUY_AMOUNTCommand(CommandHandler):
     """
-    Sets a defined amount of the given stock to buy when the current stock price is less than or equal to the BUY_TRIGGER
+    Sets a defined amount of the given stock to buy when the current stock
+    price is less than or equal to the BUY_TRIGGER
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
@@ -134,31 +151,34 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     """
     Cancels a SET_BUY command issued for the given stock
     """
-    def run(self, userid,StockSymbol):
+    def run(self, userid, stock_symbol):
         return 'success\n'
 
 
 class SET_BUY_TRIGGERCommand(CommandHandler):
     """
-    Sets the trigger point base on the current stock price when any SET_BUY will execute.
+    Sets the trigger point base on the current stock price when any SET_BUY
+    will execute.
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
 class SET_SELL_AMOUNTCommand(CommandHandler):
     """
-    Sets a defined amount of the specified stock to sell when the current stock price is equal or greater than the sell trigger point
+    Sets a defined amount of the specified stock to sell when the current stock
+    price is equal or greater than the sell trigger point
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
 class SET_SELL_TRIGGERCommand(CommandHandler):
     """
-    Sets the stock price trigger point for executing any SET_SELL triggers associated with the given stock and user
+    Sets the stock price trigger point for executing any SET_SELL triggers
+    associated with the given stock and user
     """
-    def run(self, userid,StockSymbol,amount):
+    def run(self, userid, stock_symbol, amount):
         return 'success\n'
 
 
@@ -166,21 +186,22 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     """
     Cancels the SET_SELL associated with the given stock and user
     """
-    def run(self, userid,StockSymbol):
+    def run(self, userid, stock_symbol):
         return 'success\n'
 
 
-class DUMPLOGCommand(CommandHandler):
+class DUMPLOG_USERCommand(CommandHandler):
     """
     Print out the history of the users transactions to the user specified file
     """
-    def run(self, userid,filename):
+    def run(self, userid, filename):
         return 'success\n'
 
 
 class DUMPLOGCommand(CommandHandler):
     """
-    Print out to the specified file the complete set of transactions that have occurred in the system.
+    Print out to the specified file the complete set of transactions that have
+    occurred in the system.
     """
     def run(self, filename):
         return 'success\n'
@@ -188,7 +209,9 @@ class DUMPLOGCommand(CommandHandler):
 
 class DISPLAY_SUMMARYCommand(CommandHandler):
     """
-    Provides a summary to the client of the given user's transaction history and the current status of their accounts as well as any set buy or sell triggers and their parameters
+    Provides a summary to the client of the given user's transaction history
+    and the current status of their accounts as well as any set buy or sell
+    triggers and their parameters
     """
     def run(self, userid):
         return 'success\n'
@@ -208,7 +231,7 @@ CommandHandler.register_command('SET_BUY_TRIGGER', SET_BUY_TRIGGERCommand)
 CommandHandler.register_command('SET_SELL_AMOUNT', SET_SELL_AMOUNTCommand)
 CommandHandler.register_command('SET_SELL_TRIGGER', SET_SELL_TRIGGERCommand)
 CommandHandler.register_command('CANCEL_SET_SELL', CANCEL_SET_SELLCommand)
-CommandHandler.register_command('DUMPLOG', DUMPLOGCommand)
+CommandHandler.register_command('DUMPLOG_USER', DUMPLOG_USERCommand)
 CommandHandler.register_command('DUMPLOG', DUMPLOGCommand)
 CommandHandler.register_command('DISPLAY_SUMMARY', DISPLAY_SUMMARYCommand)
 

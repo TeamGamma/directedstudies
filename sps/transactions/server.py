@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys
+import sys
 import re
 import time
 import eventlet
@@ -8,7 +8,7 @@ import eventlet.patcher
 eventlet.patcher.monkey_patch()
 
 from sps.transactions.commands import CommandHandler, UnknownCommandError
-from sps.transactions import database
+
 
 class TransactionServer(object):
     def __init__(self, address):
@@ -49,10 +49,7 @@ class TransactionServer(object):
     def handle_line(self, line):
         """ Handle a single line of input from a client """
 
-        # Split by spaces or commas (Postel's Law!)
-        tokens = re.split('[ ,]+', line[:-1])
-        command = tokens[0]
-        args = tokens[1:]
+        command, args = self.parse_line(line)
 
         try:
             handler = CommandHandler.get_handler(command)
@@ -66,6 +63,13 @@ class TransactionServer(object):
             return 'Server Error\n'
 
         return response
+
+    def parse_line(self, line):
+        # Split by spaces or commas (Postel's Law!)
+        tokens = re.split('[ ,]+', line.rstrip('\n\r'))
+        command = tokens[0]
+        args = tokens[1:]
+        return command, args
 
 
 
@@ -86,4 +90,3 @@ def run_server(port, autoreload=False):
 
 if __name__ == '__main__':
     run_server(6000, True)
-
