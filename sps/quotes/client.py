@@ -1,14 +1,31 @@
 import socket
 import sys
 from random import randrange
-from sps.transactions.models import Money
+from sps.database.models import Money
 
 
 class QuoteClient(object):
     """
     A client for requesting quotes from a stock quote server.
     """
-    pass
+    _QUOTE_CLIENT = None
+
+    def get_quote(self, symbol):
+        raise NotImplementedError('QuoteClient can not be used directly')
+
+    @classmethod
+    def get_quote_client(cls):
+        """
+        Returns a reference to the singleton quote client, creating it if
+        necessary.
+        """
+        if not cls._QUOTE_CLIENT:
+            cls._QUOTE_CLIENT = _DEFAULT_QUOTE_CLIENT()
+        return cls._QUOTE_CLIENT
+
+    @classmethod
+    def set_quote_client(cls, client):
+        cls._QUOTE_CLIENT = client
 
 
 class RandomQuoteClient(QuoteClient):
@@ -17,6 +34,20 @@ class RandomQuoteClient(QuoteClient):
     def get_quote(self, symbol):
         dollars, cents = randrange(0, self.stock_quote_max), randrange(0, 100)
         return Money(dollars, cents)
+
+
+class DummyQuoteClient(QuoteClient):
+    def __init__(self, quote_map, default=Money(0, 0)):
+        self.quote_map = quote_map
+        self.default = default
+
+    def get_quote(self, symbol):
+        if symbol in self.quote_map:
+            return self.quote_map[symbol]
+        return self.default
+
+
+_DEFAULT_QUOTE_CLIENT = RandomQuoteClient
 
 
 if __name__ == '__main__':
