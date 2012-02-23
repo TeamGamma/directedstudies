@@ -5,6 +5,7 @@ This file does stuff.
 """
 from sps.database.session import get_session
 from sps.database.models import User, Money
+from sps.quotes.client import QuoteClient
 
 
 class CommandError(Exception):
@@ -85,7 +86,15 @@ class QUOTECommand(CommandHandler):
     Get the current quote for the stock for the specified user
     """
     def run(self, userid, stock_symbol):
-        return 'success\n'
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            return 'error: user does not exist\n'
+        if len(stock_symbol) > 4:
+            return 'error: invalid input\n'
+        quote_client = QuoteClient.get_quote_client()
+        quote = quote_client.get_quote(stock_symbol)
+        return str(quote)
 
 
 class BUYCommand(CommandHandler):
