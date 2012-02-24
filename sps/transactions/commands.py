@@ -124,6 +124,7 @@ class COMMIT_BUYCommand(CommandHandler):
         price = transaction.stock_value * transaction.quantity
 
         user.account_balance -= price
+        transaction.committed = True
         session.commit()
 
         return 'success\n'

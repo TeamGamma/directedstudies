@@ -73,12 +73,12 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         self._user_fixture()
         self.command = COMMIT_BUYCommand()
 
-        self.session.add_all([
-            # Uncommitted transaction record for user 2 ("user1")
-            Transaction(user_id=2, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=2,
-                stock_value=Money(10, 40)),
-        ])
+        # Uncommitted transaction record for user 2 ("user1")
+        self.trans = Transaction(user_id=2, stock_symbol='AAAA',
+            operation='BUY', committed=False, quantity=2,
+            stock_value=Money(10, 40))
+
+        self.session.add(self.trans)
         self.session.commit()
 
     def test_return_value(self):
@@ -146,5 +146,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         # $100.50 - 2($10.40) = $79.70
         self.assertEqual(user.account_balance.dollars, 79)
         self.assertEqual(user.account_balance.cents, 70)
+
+        self.assertEqual(self.trans.committed, True)
 
 
