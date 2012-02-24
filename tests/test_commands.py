@@ -1,7 +1,10 @@
 import unittest
+from datetime import datetime
 from tests.utils import DatabaseTest
-from sps.transactions.commands import ADDCommand, QUOTECommand
-from sps.database.models import User, Money
+from sps.transactions.commands import (
+    ADDCommand, QUOTECommand, COMMIT_BUYCommand
+)
+from sps.database.models import User, Money, Transaction
 from sps.quotes.client import QuoteClient, DummyQuoteClient
 
 class TestADDCommand(DatabaseTest):
@@ -62,5 +65,86 @@ class TestQUOTECommand(DatabaseTest):
         """ Should return an error if the stock symbol is too long """
         retval = self.command.run(userid='user', stock_symbol='A' * 5)
         self.assertEqual(retval, 'error: invalid input\n')
+
+
+class TestCOMMIT_BUYCommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self._user_fixture()
+        self.command = COMMIT_BUYCommand()
+
+        self.session.add_all([
+            # Uncommitted transaction record for user 2 ("user1")
+            Transaction(user_id=2, stock_symbol='AAAA',
+                operation='BUY', committed=False, quantity=2,
+                stock_value=Money(10, 40)),
+        ])
+        self.session.commit()
+
+    def test_return_value(self):
+        """ Should return "success" """
+        retval = self.command.run(userid='user2')
+        self.assertEqual(retval, 'success\n')
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        retval = self.command.run(userid='unicorn')
+        self.assertEqual(retval, 'error: user does not exist\n')
+
+    def test_nonexistent_buy(self):
+        """ Should return an error message if user has no transactions """
+        retval = self.command.run(userid='user')
+        self.assertEqual(retval, 'error: no BUY transaction is pending\n')
+
+    def test_committed_buy(self):
+        """ Should return an error message if user has only committed
+        transactions """
+
+        # Committed transaction record for user 1
+        self.session.add(
+            Transaction(user_id=1, stock_symbol='AAAA',
+                operation='BUY', committed=True, quantity=1,
+                stock_value=Money(10, 54))
+        )
+        self.session.commit()
+        retval = self.command.run(userid='user')
+        self.assertEqual(retval, 'error: no BUY transaction is pending\n')
+
+    def test_expired_transaction(self):
+        """ Should return error message if user has no valid transactions """
+
+        # Expired transaction record for user 1
+        self.session.add(
+            Transaction(user_id=11, stock_symbol='AAAA',
+                operation='BUY', committed=False, quantity=1,
+                stock_value=Money(10, 54),
+                creation_time=datetime.fromtimestamp(0)),
+        )
+        self.session.commit()
+        retval = self.command.run(userid='user')
+        self.assertEqual(retval, 'error: no BUY transaction is pending\n')
+
+    def test_sell_transaction_only(self):
+        """ Should return error message if user has only SELL transactions """
+
+        # SELL transaction record for user 1
+        self.session.add(
+            Transaction(user_id=12, stock_symbol='AAAA',
+                operation='SELL', committed=False, quantity=1,
+                stock_value=Money(10, 54)),
+        )
+        self.session.commit()
+        retval = self.command.run(userid='user')
+        self.assertEqual(retval, 'error: no BUY transaction is pending\n')
+
+    def test_postconditions(self):
+        """ User account balance should be decremented by the price
+        of the stocks"""
+        self.command.run(userid='user2')
+        user = self.session.query(User) \
+            .filter_by(userid='user2').first()
+        # $100.50 - 2($10.40) = $79.70
+        self.assertEqual(user.account_balance.dollars, 79)
+        self.assertEqual(user.account_balance.cents, 70)
 
 

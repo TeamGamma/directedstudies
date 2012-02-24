@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import func, Column, Integer, String, DateTime
+from sqlalchemy import func, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import composite
 from collections import namedtuple
 from sps.database.utils import InitMixin, ReprMixin
@@ -154,6 +154,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     user_id = Column(Integer)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
     operation = Column(String(3))
+    committed = Column(Boolean)
     quantity = Column(Integer)
     broker_fee = composite(Money, _broker_fee_dollars, _broker_fee_cents)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
@@ -171,9 +172,6 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'set_transactions'
 
-    BUY = 0
-    SELL = 1
-
     _stock_value_dollars = Column(Integer, default=0)
     _stock_value_cents = Column(Integer, default=0)
     _broker_fee_dollars = Column(Integer, default=0)
@@ -183,7 +181,7 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     user_id = Column(Integer)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
-    operation = Column(Integer)
+    operation = Column(String(3))
     quantity = Column(Integer)
     broker_fee = composite(Money, _broker_fee_dollars, _broker_fee_cents)
     processing_time = Column(String(50))
