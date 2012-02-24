@@ -115,7 +115,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
 
         # Expired transaction record for user 1
         self.session.add(
-            Transaction(user_id=11, stock_symbol='AAAA',
+            Transaction(user_id=1, stock_symbol='AAAA',
                 operation='BUY', committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.fromtimestamp(0)),
@@ -129,7 +129,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
 
         # SELL transaction record for user 1
         self.session.add(
-            Transaction(user_id=12, stock_symbol='AAAA',
+            Transaction(user_id=1, stock_symbol='AAAA',
                 operation='SELL', committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
