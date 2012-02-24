@@ -4,7 +4,7 @@ This file does stuff.
 
 """
 from sps.database.session import get_session
-from sps.database.models import User, Money
+from sps.database.models import User, Money, Transaction
 from sps.quotes.client import QuoteClient
 
 
@@ -111,6 +111,21 @@ class COMMIT_BUYCommand(CommandHandler):
     Commits the most recently executed BUY command
     """
     def run(self, userid):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            return 'error: user does not exist\n'
+        transaction = session.query(Transaction).filter_by(
+            user_id=user.id, operation='BUY', committed=False
+        ).first()
+        if not transaction:
+            return 'error: no BUY transaction is pending\n'
+
+        price = transaction.stock_value * transaction.quantity
+
+        user.account_balance -= price
+        session.commit()
+
         return 'success\n'
 
 
