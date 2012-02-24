@@ -155,6 +155,25 @@ class COMMIT_SELLCommand(CommandHandler):
     Commits the most recently executed SELL command
     """
     def run(self, userid):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            return 'error: user does not exist\n'
+        transaction = session.query(Transaction).filter_by(
+            user_id=user.id, operation='SELL', committed=False
+        ).first()
+        if not transaction:
+            return 'error: no SELL transaction is pending\n'
+
+        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+            return 'error: SELL transaction has expired\n'
+
+        price = transaction.stock_value * transaction.quantity
+
+        user.account_balance += price
+        transaction.committed = True
+        session.commit()
+
         return 'success\n'
 
 
