@@ -21,12 +21,14 @@ class DatabaseTest(unittest.TestCase):
         self.session = get_session()
 
         # Re-create the tables before each test
-        Base.metadata.create_all(bind=self.session.connection(), 
+        Base.metadata.drop_all(bind=self.session.connection(),
+                checkfirst=True)
+        Base.metadata.create_all(bind=self.session.connection(),
                 checkfirst=False)
 
     def tearDown(self):
         # Drop the tables after each test to avoid sideaffects
-        Base.metadata.drop_all(bind=self.session.connection(), 
+        Base.metadata.drop_all(bind=self.session.connection(),
                 checkfirst=False)
         self.session.close()
 
