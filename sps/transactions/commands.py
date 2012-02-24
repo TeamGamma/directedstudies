@@ -6,7 +6,7 @@ This file does stuff.
 from sps.database.session import get_session
 from sps.database.models import User, Money, Transaction
 from sps.quotes.client import QuoteClient
-
+from datetime import datetime
 
 class CommandError(Exception):
     pass
@@ -120,6 +120,9 @@ class COMMIT_BUYCommand(CommandHandler):
         ).first()
         if not transaction:
             return 'error: no BUY transaction is pending\n'
+
+        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+            return 'error: BUY transaction has expired\n'
 
         price = transaction.stock_value * transaction.quantity
 

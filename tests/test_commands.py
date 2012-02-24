@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions.commands import (
     ADDCommand, QUOTECommand, COMMIT_BUYCommand
@@ -118,11 +118,11 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='BUY', committed=False, quantity=1,
                 stock_value=Money(10, 54),
-                creation_time=datetime.fromtimestamp(0)),
+                creation_time=datetime.now() - timedelta(seconds=61)),
         )
         self.session.commit()
         retval = self.command.run(userid='user')
-        self.assertEqual(retval, 'error: no BUY transaction is pending\n')
+        self.assertEqual(retval, 'error: BUY transaction has expired\n')
 
     def test_sell_transaction_only(self):
         """ Should return error message if user has only SELL transactions """
