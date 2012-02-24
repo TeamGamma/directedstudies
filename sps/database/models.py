@@ -38,6 +38,18 @@ class Money(namedtuple('Money', 'dollars cents')):
     >>> money = Money.from_string(money_str)
     >>> money.dollars, money.cents
     (65, 0)
+
+    >>> m = Money(1,90) + Money(3,20)
+    >>> m.dollars, m.cents
+    (5, 10)
+
+    >>> m = Money(5,10) - Money(3,20)
+    >>> m.dollars, m.cents
+    (1, 90)
+
+    >>> m = Money(3,30) * 4
+    >>> m.dollars, m.cents
+    (13, 20)
     """
     __slots__ = ()
 
@@ -45,10 +57,20 @@ class Money(namedtuple('Money', 'dollars cents')):
         return (self[0], self[1])
 
     def __add__(self, money):
-        return Money(self.dollars + money.dollars, self.cents + money.cents)
+        cents = self.cents + money.cents
+        return Money(self.dollars + money.dollars + cents / 100,
+                cents % 100)
 
     def __sub__(self, money):
-        return Money(self.dollars - money.dollars, self.cents - money.cents)
+        cents = self.cents - money.cents
+        if cents < 0:
+            return Money(self.dollars - money.dollars + (cents / 100),
+                cents % 100)
+        return Money(self.dollars - money.dollars, cents % 100)
+
+    def __mul__(self, scalar):
+        cents = self.cents * scalar
+        return Money(self.dollars * scalar + cents / 100, cents % 100)
 
     def __str__(self):
         """
