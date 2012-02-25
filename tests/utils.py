@@ -21,22 +21,24 @@ class DatabaseTest(unittest.TestCase):
         self.session = get_session()
 
         # Re-create the tables before each test
-        Base.metadata.create_all(bind=self.session.connection(), 
+        Base.metadata.drop_all(bind=self.session.connection(),
+                checkfirst=True)
+        Base.metadata.create_all(bind=self.session.connection(),
                 checkfirst=False)
 
     def tearDown(self):
         # Drop the tables after each test to avoid sideaffects
-        Base.metadata.drop_all(bind=self.session.connection(), 
+        Base.metadata.drop_all(bind=self.session.connection(),
                 checkfirst=False)
         self.session.close()
 
-    def _user_fixture(self): 
-        """ Inserts user rows into the test database """ 
+    def _user_fixture(self):
+        """ Inserts user rows into the test database """
         self.session.add_all([
-            User(userid='user', password='password'),
-            User(userid='user2', password='password', 
+            User(id=1, userid='user', password='password'),
+            User(id=2, userid='user2', password='password',
                 account_balance=Money(100, 50), reserve_balance=Money(0, 0)),
-        ]) 
+        ])
         self.session.commit()
 
 

@@ -4,8 +4,10 @@ from sps.database.models import User, Money
 
 class TestUserAttributes(unittest.TestCase):
     def setUp(self):
-        self.user = User('user', 'pass',
-                account_balance=Money(10, 50), reserve_balance=Money(20, 25))
+        self.user = User(
+            userid='user', password='pass',
+            account_balance=Money(10, 50), reserve_balance=Money(20, 25)
+        )
 
     def test_basic_attrs(self):
         self.assertEqual(self.user.userid, 'user')
