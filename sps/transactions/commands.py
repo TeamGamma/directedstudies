@@ -9,15 +9,35 @@ from sps.quotes.client import QuoteClient
 from datetime import datetime
 
 class CommandError(Exception):
-    pass
+    """
+    An exception that holds both a message for the user and the original cause
+    """
+    user_message = 'error: System error'
 
+    @property
+    def message(self):
+        return self.user_message
 
 class UnknownCommandError(CommandError):
-    pass
+    user_message = 'error: unknown command'
 
+class UserNotFoundError(CommandError):
+    user_message = 'error: unknown command'
 
-class InvalidCommandArgumentsError(CommandError):
-    pass
+class InvalidInputError(CommandError):
+    user_message = 'error: invalid input'
+
+class NoBuyTransactionError(CommandError):
+    user_message = 'error: no BUY transaction is pending'
+
+class NoSellTransactionError(CommandError):
+    user_message = 'error: no SELL transaction is pending'
+
+class ExpiredBuyTransactionError(CommandError):
+    user_message = 'error: BUY transaction has expired'
+
+class ExpiredSellTransactionError(CommandError):
+    user_message = 'error: SELL transaction has expired'
 
 
 class CommandHandler(object):
@@ -74,7 +94,7 @@ class ADDCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
         if not user:
-            return 'error: user does not exist\n'
+            raise UserNotFoundError(userid)
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
@@ -89,9 +109,10 @@ class QUOTECommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
         if not user:
-            return 'error: user does not exist\n'
+            raise UserNotFoundError(userid)
         if len(stock_symbol) > 4:
-            return 'error: invalid input\n'
+            raise InvalidInputError('stock symbol too long: %d' % \
+                    len(stock_symbol))
         quote_client = QuoteClient.get_quote_client()
         quote = quote_client.get_quote(stock_symbol)
         return str(quote)
@@ -114,15 +135,15 @@ class COMMIT_BUYCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
         if not user:
-            return 'error: user does not exist\n'
+            raise UserNotFoundError(userid)
         transaction = session.query(Transaction).filter_by(
             user_id=user.id, operation='BUY', committed=False
         ).first()
         if not transaction:
-            return 'error: no BUY transaction is pending\n'
+            raise NoBuyTransactionError(userid)
 
         if (datetime.now() - transaction.creation_time).total_seconds() > 60:
-            return 'error: BUY transaction has expired\n'
+            raise ExpiredBuyTransactionError(userid)
 
         price = transaction.stock_value * transaction.quantity
 
@@ -158,15 +179,15 @@ class COMMIT_SELLCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
         if not user:
-            return 'error: user does not exist\n'
+            raise UserNotFoundError(userid)
         transaction = session.query(Transaction).filter_by(
             user_id=user.id, operation='SELL', committed=False
         ).first()
         if not transaction:
-            return 'error: no SELL transaction is pending\n'
+            raise NoSellTransactionError(userid)
 
         if (datetime.now() - transaction.creation_time).total_seconds() > 60:
-            return 'error: SELL transaction has expired\n'
+            raise ExpiredSellTransactionError(userid)
 
         price = transaction.stock_value * transaction.quantity
 
