@@ -147,6 +147,35 @@ class SELLCommand(CommandHandler):
     specified user at the current price.
     """
     def run(self, userid, stock_symbol, amount):
+        # see if user exists
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            return 'error: invalid user id\n'
+        
+        # check to see if stock symbol is valid
+        transaction = session.query(Transaction).filter_by(
+            stock_symbol=stock_symbol).first()
+        if not transaction:
+            return 'error: invalid stock symbol\n'
+        
+        ################
+        #STILL NEED TO MAKE SURE THAT APPROPRIATE AMOUNT IS THERE
+        ################
+
+        # set up client to get quote
+        quote_client = QuoteClient.get_quote_client()
+        quoted_stock_value = quote_client.get_quote(stock_symbol) 
+       
+        # make transaction
+        self.trans = Transaction(user_id=userid, stock_symbol=stock_symbol,
+            operation='SELL', committed=False, quantity=amount,
+            stock_value=quoted_stock_value)
+
+        # commit transaction
+        self.session.add(self.trans)
+        self.session.commit()
+
         return 'success\n'
 
 
