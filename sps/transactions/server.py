@@ -7,7 +7,7 @@ import eventlet
 import eventlet.patcher
 eventlet.patcher.monkey_patch()
 
-from sps.transactions.commands import CommandHandler, UnknownCommandError
+from sps.transactions.commands import CommandHandler, CommandError
 
 
 class TransactionServer(object):
@@ -54,8 +54,9 @@ class TransactionServer(object):
         try:
             handler = CommandHandler.get_handler(command)
             response = handler.run(*args)
-        except UnknownCommandError:
-            return 'Command does not exist\n'
+        except CommandError, e:
+            print e
+            return e.message
         except TypeError, e:
             return 'Incorrect arguments for command "%s"\n' % command
         except Exception, e:
