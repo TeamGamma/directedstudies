@@ -202,14 +202,11 @@ class StockPurchase(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'stock_purchases'
 
-    _value_dollars = Column(Integer, default=0)
-    _value_cents = Column(Integer, default=0)
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", backref=backref('stocks'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
-    value = composite(Money, _value_dollars, _value_cents)
+    quantity = Column(Integer)
 
     # Auto-set timestamp when created
     query_time = Column(DateTime, default=func.now())
