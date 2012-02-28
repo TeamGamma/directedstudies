@@ -1,6 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import func, Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import composite
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import func
+from sqlalchemy.orm import relationship, backref, composite
 from collections import namedtuple
 from sps.database.utils import InitMixin, ReprMixin
 
@@ -8,7 +9,7 @@ from sps.database.utils import InitMixin, ReprMixin
 STOCK_SYMBOL_LENGTH = 8
 
 class Money(namedtuple('Money', 'dollars cents')):
-    """ 
+    """
     Used to represent money in the system without floating point errors.
     Note: Money objects are immutable.
     (you can't assign dollars and cents directly)
@@ -128,6 +129,7 @@ class Query(InitMixin, ReprMixin, Base):
     _query_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # TODO: add a "user" foreign key and backref
     user_id = Column(Integer)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
@@ -151,6 +153,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     _broker_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # TODO: add a "user" foreign key and backref
     user_id = Column(Integer)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
     operation = Column(String(3))
@@ -178,6 +181,7 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     _broker_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # TODO: add a "user" foreign key and backref
     user_id = Column(Integer)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
@@ -189,4 +193,24 @@ class SetTransaction(InitMixin, ReprMixin, Base):
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
+
+
+class StockPurchase(InitMixin, ReprMixin, Base):
+    """
+    Represents the ownership of a quantity of a stock, identified by
+    symbol, by a user.
+    """
+    __tablename__ = 'stock_purchases'
+
+    _value_dollars = Column(Integer, default=0)
+    _value_cents = Column(Integer, default=0)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", backref=backref('stocks'))
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
+    value = composite(Money, _value_dollars, _value_cents)
+
+    # Auto-set timestamp when created
+    query_time = Column(DateTime, default=func.now())
 
