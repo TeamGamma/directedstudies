@@ -4,7 +4,7 @@ This file does stuff.
 
 """
 from sps.database.session import get_session
-from sps.database.models import User, Money, Transaction
+from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes.client import QuoteClient
 from datetime import datetime
 
@@ -149,6 +149,18 @@ class COMMIT_BUYCommand(CommandHandler):
 
         user.account_balance -= price
         transaction.committed = True
+
+        # create or update the StockPurchase for this stock symbol
+        stock = session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=transaction.stock_symbol
+        ).first()
+        if not stock:
+            stock = StockPurchase(user=user,
+                    stock_symbol=transaction.stock_symbol,
+                    quantity=transaction.quantity)
+        else:
+            stock.quantity = stock.quantity + transaction.quantity
+
         session.commit()
 
         return 'success\n'
@@ -192,6 +204,13 @@ class COMMIT_SELLCommand(CommandHandler):
         price = transaction.stock_value * transaction.quantity
 
         user.account_balance += price
+
+        # update the StockPurchase for this stock symbol
+        stock = session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=transaction.stock_symbol
+        ).one()
+        stock.quantity = stock.quantity - transaction.quantity
+
         transaction.committed = True
         session.commit()
 

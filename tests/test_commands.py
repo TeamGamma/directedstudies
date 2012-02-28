@@ -1,8 +1,7 @@
-import unittest
 from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions import commands
-from sps.database.models import User, Money, Transaction
+from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes.client import QuoteClient, DummyQuoteClient
 
 class TestADDCommand(DatabaseTest):
@@ -35,7 +34,7 @@ class TestADDCommand(DatabaseTest):
         self.assertEqual(user.account_balance.dollars, 105)
         self.assertEqual(user.account_balance.cents, 92)
 
-unittest.skip('')
+
 class TestQUOTECommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
@@ -65,7 +64,6 @@ class TestQUOTECommand(DatabaseTest):
                 self.command.run, userid='user', stock_symbol='A' * 5)
 
 
-unittest.skip('')
 class TestCOMMIT_BUYCommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
@@ -136,7 +134,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         self.assertRaises(commands.NoBuyTransactionError, 
                 self.command.run, userid='user')
 
-    def test_postconditions(self):
+    def test_postcondition_balance(self):
         """ User account balance should be decremented by the price
         of the stocks"""
         self.command.run(userid='user2')
@@ -148,8 +146,24 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
 
         self.assertEqual(self.trans.committed, True)
 
+    def test_postcondition_stock(self):
+        """ A single StockPurchase associated with the user should exist with
+        the total quantity of the stock the user owns. """
 
-unittest.skip('')
+        # Existing stock owned by user 2
+        stock = StockPurchase(user_id=2, stock_symbol='AAAA', quantity=10)
+        self.session.add(stock)
+        self.session.commit()
+
+        self.command.run(userid='user2')
+        stock = self.session.query(StockPurchase).filter_by(
+                user_id=2, stock_symbol='AAAA').one()
+
+        self.assertNotEqual(stock, None)
+        # 10 original stocks + 2 new
+        self.assertEqual(stock.quantity, 12, "Number of stocks is wrong")
+
+
 class TestCOMMIT_SELLCommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
@@ -161,7 +175,10 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
             operation='SELL', committed=False, quantity=2,
             stock_value=Money(10, 40))
 
-        self.session.add(self.trans)
+        # Existing stock owned by user 2
+        self.stock = StockPurchase(user_id=2, stock_symbol='AAAA', quantity=10)
+
+        self.session.add_all([self.trans, self.stock])
         self.session.commit()
 
     def test_return_value(self):
@@ -220,7 +237,7 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         self.assertRaises(commands.NoSellTransactionError, 
                 self.command.run, userid='user')
 
-    def test_postconditions(self):
+    def test_postcondition_balance(self):
         """ User account balance should be incremented by the price
         of the stocks"""
         self.command.run(userid='user2')
@@ -231,5 +248,17 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         self.assertEqual(user.account_balance.cents, 30)
 
         self.assertEqual(self.trans.committed, True)
+
+    def test_postcondition_stock(self):
+        """ A single StockPurchase associated with the user should exist with
+        the total quantity of the stock the user owns. """
+
+        self.command.run(userid='user2')
+        stock = self.session.query(StockPurchase).filter_by(
+                user_id=2, stock_symbol='AAAA').one()
+
+        self.assertNotEqual(stock, None)
+        # 10 original stocks - 2
+        self.assertEqual(stock.quantity, 8)
 
 
