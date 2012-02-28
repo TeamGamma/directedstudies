@@ -75,8 +75,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
             operation='BUY', committed=False, quantity=2,
             stock_value=Money(10, 40))
 
-        self.session.add(self.trans)
-        self.session.commit()
+        self.add_all(self.trans)
 
     def test_return_value(self):
         """ Should return "success" """
@@ -98,12 +97,11 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         transactions """
 
         # Committed transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='BUY', committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
-        self.session.commit()
         self.assertRaises(commands.NoBuyTransactionError, 
                 self.command.run, userid='user')
 
@@ -111,13 +109,12 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         """ Should return error message if user has no valid transactions """
 
         # Expired transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='BUY', committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.now() - timedelta(seconds=61)),
         )
-        self.session.commit()
         self.assertRaises(commands.ExpiredBuyTransactionError, 
                 self.command.run, userid='user')
 
@@ -125,12 +122,11 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         """ Should return error message if user has only SELL transactions """
 
         # SELL transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='SELL', committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
-        self.session.commit()
         self.assertRaises(commands.NoBuyTransactionError, 
                 self.command.run, userid='user')
 
@@ -152,8 +148,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
 
         # Existing stock owned by user 2
         stock = StockPurchase(user_id=2, stock_symbol='AAAA', quantity=10)
-        self.session.add(stock)
-        self.session.commit()
+        self.add_all(stock)
 
         self.command.run(userid='user2')
         stock = self.session.query(StockPurchase).filter_by(
@@ -201,12 +196,11 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         transactions """
 
         # Committed transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='SELL', committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
-        self.session.commit()
         self.assertRaises(commands.NoSellTransactionError, 
                 self.command.run, userid='user')
 
@@ -214,13 +208,12 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         """ Should return error message if user has no valid transactions """
 
         # Expired transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='SELL', committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.now() - timedelta(seconds=61)),
         )
-        self.session.commit()
         self.assertRaises(commands.ExpiredSellTransactionError, 
                 self.command.run, userid='user')
 
@@ -228,12 +221,11 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         """ Should return error message if user has only SELL transactions """
 
         # SELL transaction record for user 1
-        self.session.add(
+        self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
                 operation='BUY', committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
-        self.session.commit()
         self.assertRaises(commands.NoSellTransactionError, 
                 self.command.run, userid='user')
 

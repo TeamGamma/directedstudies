@@ -32,6 +32,12 @@ class DatabaseTest(unittest.TestCase):
                 checkfirst=False)
         self.session.close()
 
+    def add_all(self, *objs):
+        """ Adds one or more objects to the session and commits """
+        for obj in objs:
+            self.session.add(obj)
+        self.session.commit()
+
     def _user_fixture(self):
         """ Inserts user rows into the test database """
         self.session.add_all([
