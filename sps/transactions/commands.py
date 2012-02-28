@@ -171,6 +171,22 @@ class CANCEL_BUYCommand(CommandHandler):
     Cancels the most recently executed BUY Command
     """
     def run(self, userid):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            raise UserNotFoundError(userid)
+        transaction = session.query(Transaction).filter_by(
+            user_id=user.id, operation='BUY', committed=False
+        ).first()
+        if not transaction:
+            raise NoBuyTransactionError(userid)
+
+        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+            raise ExpiredBuyTransactionError(userid)
+
+        session.delete(transaction)
+        session.commit()
+
         return 'success\n'
 
 
