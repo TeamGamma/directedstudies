@@ -17,7 +17,7 @@ class TestADDCommand(DatabaseTest):
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError, 
+        self.assertRaises(commands.UserNotFoundError,
                 self.command.run, userid='unicorn', amount='100')
 
     def test_postcondition_add(self):
@@ -69,7 +69,8 @@ class _TransactionCommandTest(object):
     The base test case for any of the four transaction commands:
     COMMIT_BUY, COMMIT_SELL, CANCEL_BUY, CANCEL_SELL
 
-    These tests should only be run by a sub-class.
+    These tests are all shared by TestCOMMIT_BUYCommand,
+    TestCOMMIT_SELLCommand, TestCANCEL_BUYCommand, and TestCANCEL_SELLCommand
     """
     command = None  # The command class to run
     operation = None  # 'BUY' or 'SELL'
@@ -101,7 +102,7 @@ class _TransactionCommandTest(object):
                 operation=self.operation, committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
-        self.assertRaises(self.missing_exception, 
+        self.assertRaises(self.missing_exception,
                 self.command.run, userid='user')
 
     def test_expired_transaction(self):
