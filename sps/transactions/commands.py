@@ -39,6 +39,8 @@ class ExpiredBuyTransactionError(CommandError):
 class ExpiredSellTransactionError(CommandError):
     user_message = 'error: SELL transaction has expired'
 
+class NotEnoughStockAvailable(CommandError):
+    user_message = 'error: not enough stock available for the requested action'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
@@ -171,15 +173,18 @@ class SELLCommand(CommandHandler):
         # see if user exists
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
+        print user
         if not user:
-            return 'error: invalid user id\n'
-        
+            raise UserNotFoundError(userid)
+
         # check to see if stock symbol is valid
         transaction = session.query(Transaction).filter_by(
             stock_symbol=stock_symbol).first()
+        print transaction
         if not transaction:
-            return 'error: invalid stock symbol\n'
-        
+            raise InvalidInputError("no transactions exist for this stock")
+
+
         ################
         #STILL NEED TO MAKE SURE THAT APPROPRIATE AMOUNT IS THERE
         ################
@@ -187,7 +192,8 @@ class SELLCommand(CommandHandler):
         # set up client to get quote
         quote_client = QuoteClient.get_quote_client()
         quoted_stock_value = quote_client.get_quote(stock_symbol) 
-       
+        print quoted_stock_value
+
         # make transaction
         self.trans = Transaction(user_id=userid, stock_symbol=stock_symbol,
             operation='SELL', committed=False, quantity=amount,
