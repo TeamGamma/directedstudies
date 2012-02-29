@@ -4,7 +4,7 @@ This file does stuff.
 
 """
 from sps.database.session import get_session
-from sps.database.models import User, Money, Transaction
+from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes.client import QuoteClient
 from datetime import datetime
 
@@ -151,6 +151,18 @@ class COMMIT_BUYCommand(CommandHandler):
 
         user.account_balance -= price
         transaction.committed = True
+
+        # create or update the StockPurchase for this stock symbol
+        stock = session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=transaction.stock_symbol
+        ).first()
+        if not stock:
+            stock = StockPurchase(user=user,
+                    stock_symbol=transaction.stock_symbol,
+                    quantity=transaction.quantity)
+        else:
+            stock.quantity = stock.quantity + transaction.quantity
+
         session.commit()
 
         return 'success\n'
@@ -161,6 +173,22 @@ class CANCEL_BUYCommand(CommandHandler):
     Cancels the most recently executed BUY Command
     """
     def run(self, userid):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            raise UserNotFoundError(userid)
+        transaction = session.query(Transaction).filter_by(
+            user_id=user.id, operation='BUY', committed=False
+        ).first()
+        if not transaction:
+            raise NoBuyTransactionError(userid)
+
+        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+            raise ExpiredBuyTransactionError(userid)
+
+        session.delete(transaction)
+        session.commit()
+
         return 'success\n'
 
 
@@ -227,6 +255,13 @@ class COMMIT_SELLCommand(CommandHandler):
         price = transaction.stock_value * transaction.quantity
 
         user.account_balance += price
+
+        # update the StockPurchase for this stock symbol
+        stock = session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=transaction.stock_symbol
+        ).one()
+        stock.quantity = stock.quantity - transaction.quantity
+
         transaction.committed = True
         session.commit()
 
@@ -238,6 +273,22 @@ class CANCEL_SELLCommand(CommandHandler):
     Cancels the most recently executed SELL Command
     """
     def run(self, userid):
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            raise UserNotFoundError(userid)
+        transaction = session.query(Transaction).filter_by(
+            user_id=user.id, operation='SELL', committed=False
+        ).first()
+        if not transaction:
+            raise NoSellTransactionError(userid)
+
+        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+            raise ExpiredSellTransactionError(userid)
+
+        session.delete(transaction)
+        session.commit()
+
         return 'success\n'
 
 
