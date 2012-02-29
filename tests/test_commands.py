@@ -64,18 +64,17 @@ class TestQUOTECommand(DatabaseTest):
                 self.command.run, userid='user', stock_symbol='A' * 5)
 
 
-class TestCOMMIT_BUYCommand(DatabaseTest):
-    def setUp(self):
-        DatabaseTest.setUp(self)
-        self._user_fixture()
-        self.command = commands.COMMIT_BUYCommand()
+class _TransactionCommandTest(object):
+    """
+    The base test case for any of the four transaction commands:
+    COMMIT_BUY, COMMIT_SELL, CANCEL_BUY, CANCEL_SELL
 
-        # Uncommitted transaction record for user 2 ("user1")
-        self.trans = Transaction(user_id=2, stock_symbol='AAAA',
-            operation='BUY', committed=False, quantity=2,
-            stock_value=Money(10, 40))
-
-        self.add_all(self.trans)
+    These tests should only be run by a sub-class.
+    """
+    command = None  # The command class to run
+    operation = None  # 'BUY' or 'SELL'
+    missing_exception = None  # e.g. NoBuyTransactionError
+    expired_exception = None  # e.g. ExpiredBuyTransactionError
 
     def test_return_value(self):
         """ Should return "success" """
@@ -84,25 +83,25 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError, 
+        self.assertRaises(commands.UserNotFoundError,
                 self.command.run, userid='unicorn')
 
-    def test_nonexistent_buy(self):
+    def test_nonexistent_transaction(self):
         """ Should return an error message if user has no transactions """
-        self.assertRaises(commands.NoBuyTransactionError, 
+        self.assertRaises(self.missing_exception,
                 self.command.run, userid='user')
 
-    def test_committed_buy(self):
+    def test_committed_transaction(self):
         """ Should return an error message if user has only committed
         transactions """
 
         # Committed transaction record for user 1
         self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=True, quantity=1,
+                operation=self.operation, committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
-        self.assertRaises(commands.NoBuyTransactionError, 
+        self.assertRaises(self.missing_exception, 
                 self.command.run, userid='user')
 
     def test_expired_transaction(self):
@@ -111,24 +110,41 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         # Expired transaction record for user 1
         self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=1,
+                operation=self.operation, committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.now() - timedelta(seconds=61)),
         )
-        self.assertRaises(commands.ExpiredBuyTransactionError, 
+        self.assertRaises(self.expired_exception,
                 self.command.run, userid='user')
 
-    def test_sell_transaction_only(self):
-        """ Should return error message if user has only SELL transactions """
+    def test_other_transaction_only(self):
+        """ Should return error message if user has only the other type of
+        transaction """
+        other = {'BUY': 'SELL', 'SELL': 'BUY'}[self.operation]
 
-        # SELL transaction record for user 1
+        # other transaction record for user 1
         self.add_all(
             Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=False, quantity=1,
+                operation=other, committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
-        self.assertRaises(commands.NoBuyTransactionError, 
+        self.assertRaises(self.missing_exception,
                 self.command.run, userid='user')
+
+
+class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
+    command = commands.COMMIT_BUYCommand()
+    operation = 'BUY'
+    missing_exception = commands.NoBuyTransactionError
+    expired_exception = commands.ExpiredBuyTransactionError
+
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self._user_fixture()
+        self.transaction = Transaction(user_id=2, stock_symbol='AAAA',
+                operation='BUY', committed=False, quantity=2,
+                stock_value=Money(10, 40))
+        self.add_all(self.transaction)
 
     def test_postcondition_balance(self):
         """ User account balance should be decremented by the price
@@ -140,7 +156,7 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         self.assertEqual(user.account_balance.dollars, 79)
         self.assertEqual(user.account_balance.cents, 70)
 
-        self.assertEqual(self.trans.committed, True)
+        self.assertEqual(self.transaction.committed, True)
 
     def test_postcondition_stock(self):
         """ A single StockPurchase associated with the user should exist with
@@ -159,7 +175,12 @@ class TestCOMMIT_BUYCommand(DatabaseTest):
         self.assertEqual(stock.quantity, 12, "Number of stocks is wrong")
 
 
-class TestCOMMIT_SELLCommand(DatabaseTest):
+class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
+    command = commands.COMMIT_SELLCommand()
+    operation = 'SELL'
+    missing_exception = commands.NoSellTransactionError
+    expired_exception = commands.ExpiredSellTransactionError
+
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
@@ -168,7 +189,6 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         # Uncommitted transaction record for user 2 ("user1")
         self.trans = Transaction(user_id=2, stock_symbol='AAAA',
             operation='SELL', committed=False, quantity=2,
-
             stock_value=Money(10, 40))
 
         # Existing stock owned by user 2
@@ -176,59 +196,6 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
 
         self.session.add_all([self.trans, self.stock])
         self.session.commit()
-
-    def test_return_value(self):
-        """ Should return "success" """
-        retval = self.command.run(userid='user2')
-        self.assertEqual(retval, 'success\n')
-
-    def test_nonexistent_user(self):
-        """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError, 
-                self.command.run, userid='unicorn')
-
-    def test_nonexistent_sell(self):
-        """ Should return an error message if user has no transactions """
-        self.assertRaises(commands.NoSellTransactionError, 
-                self.command.run, userid='user')
-
-    def test_committed_sell(self):
-        """ Should return an error message if user has only committed
-        transactions """
-
-        # Committed transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=True, quantity=1,
-                stock_value=Money(10, 54))
-        )
-        self.assertRaises(commands.NoSellTransactionError, 
-                self.command.run, userid='user')
-
-    def test_expired_transaction(self):
-        """ Should return error message if user has no valid transactions """
-
-        # Expired transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=False, quantity=1,
-                stock_value=Money(10, 54),
-                creation_time=datetime.now() - timedelta(seconds=61)),
-        )
-        self.assertRaises(commands.ExpiredSellTransactionError, 
-                self.command.run, userid='user')
-
-    def test_buy_transaction_only(self):
-        """ Should return error message if user has only SELL transactions """
-
-        # SELL transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=1,
-                stock_value=Money(10, 54)),
-        )
-        self.assertRaises(commands.NoSellTransactionError, 
-                self.command.run, userid='user')
 
     def test_postcondition_balance(self):
         """ User account balance should be incremented by the price
@@ -255,7 +222,12 @@ class TestCOMMIT_SELLCommand(DatabaseTest):
         self.assertEqual(stock.quantity, 8)
 
 
-class TestCANCEL_BUYCommand(DatabaseTest):
+class TestCANCEL_BUYCommand(_TransactionCommandTest, DatabaseTest):
+    command = commands.CANCEL_BUYCommand()
+    operation = 'BUY'
+    missing_exception = commands.NoBuyTransactionError
+    expired_exception = commands.ExpiredBuyTransactionError
+
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
@@ -268,59 +240,6 @@ class TestCANCEL_BUYCommand(DatabaseTest):
 
         self.add_all(self.trans)
 
-    def test_return_value(self):
-        """ Should return "success" """
-        retval = self.command.run(userid='user2')
-        self.assertEqual(retval, 'success\n')
-
-    def test_nonexistent_user(self):
-        """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError,
-                self.command.run, userid='unicorn')
-
-    def test_nonexistent_buy(self):
-        """ Should return an error message if user has no transactions """
-        self.assertRaises(commands.NoBuyTransactionError,
-                self.command.run, userid='user')
-
-    def test_committed_buy(self):
-        """ Should return an error message if user has only committed
-        transactions """
-
-        # Committed transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=True, quantity=1,
-                stock_value=Money(10, 54))
-        )
-        self.assertRaises(commands.NoBuyTransactionError,
-                self.command.run, userid='user')
-
-    def test_expired_transaction(self):
-        """ Should return error message if user has no valid transactions """
-
-        # Expired transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=1,
-                stock_value=Money(10, 54),
-                creation_time=datetime.now() - timedelta(seconds=61)),
-        )
-        self.assertRaises(commands.ExpiredBuyTransactionError, 
-                self.command.run, userid='user')
-
-    def test_sell_transaction_only(self):
-        """ Should return error message if user has only SELL transactions """
-
-        # SELL transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=False, quantity=1,
-                stock_value=Money(10, 54)),
-        )
-        self.assertRaises(commands.NoBuyTransactionError, 
-                self.command.run, userid='user')
-
     def test_postcondition_remove(self):
         """ The BUY transaction should be removed from the database """
         self.command.run(userid='user2')
@@ -330,7 +249,12 @@ class TestCANCEL_BUYCommand(DatabaseTest):
         self.assertEqual(transaction, None)
 
 
-class TestCANCEL_SELLCommand(DatabaseTest):
+class TestCANCEL_SELLCommand(_TransactionCommandTest, DatabaseTest):
+    command = commands.CANCEL_SELLCommand()
+    operation = 'SELL'
+    missing_exception = commands.NoSellTransactionError
+    expired_exception = commands.ExpiredSellTransactionError
+
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
@@ -342,59 +266,6 @@ class TestCANCEL_SELLCommand(DatabaseTest):
             stock_value=Money(10, 40))
 
         self.add_all(self.trans)
-
-    def test_return_value(self):
-        """ Should return "success" """
-        retval = self.command.run(userid='user2')
-        self.assertEqual(retval, 'success\n')
-
-    def test_nonexistent_user(self):
-        """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError,
-                self.command.run, userid='unicorn')
-
-    def test_nonexistent_sell(self):
-        """ Should return an error message if user has no transactions """
-        self.assertRaises(commands.NoSellTransactionError,
-                self.command.run, userid='user')
-
-    def test_committed_sell(self):
-        """ Should return an error message if user has only committed
-        transactions """
-
-        # Committed transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=True, quantity=1,
-                stock_value=Money(10, 54))
-        )
-        self.assertRaises(commands.NoSellTransactionError,
-                self.command.run, userid='user')
-
-    def test_expired_transaction(self):
-        """ Should return error message if user has no valid transactions """
-
-        # Expired transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='SELL', committed=False, quantity=1,
-                stock_value=Money(10, 54),
-                creation_time=datetime.now() - timedelta(seconds=61)),
-        )
-        self.assertRaises(commands.ExpiredSellTransactionError,
-                self.command.run, userid='user')
-
-    def test_buy_transaction_only(self):
-        """ Should return error message if user has only BUY transactions """
-
-        # BUY transaction record for user 1
-        self.add_all(
-            Transaction(user_id=1, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=1,
-                stock_value=Money(10, 54)),
-        )
-        self.assertRaises(commands.NoSellTransactionError,
-                self.command.run, userid='user')
 
     def test_postcondition_remove(self):
         """ The SELL transaction should be removed from the database """
