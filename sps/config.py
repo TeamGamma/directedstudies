@@ -18,7 +18,7 @@ class ConfigObject():
         'echo': True,
     }
 
-    QUOTE_CLIENT = RandomQuoteClient
+    QUOTE_CLIENT = RandomQuoteClient()
 
 
 # The global configuration object
