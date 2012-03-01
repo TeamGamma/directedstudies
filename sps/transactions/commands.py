@@ -1,7 +1,5 @@
 """
-This file does stuff.
-
-
+This file contains the implementations for all transaction server commands.
 """
 from sps.database.session import get_session
 from sps.database.models import User, Money, Transaction, StockPurchase
