@@ -114,7 +114,7 @@ class QUOTECommand(CommandHandler):
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
         quote_client = get_quote_client()
-        quote = quote_client.get_quote(stock_symbol)
+        quote = quote_client.get_quote(stock_symbol, userid)
         return str(quote)
 
 
@@ -196,7 +196,7 @@ class SELLCommand(CommandHandler):
     specified user at the current price.
     """
     def run(self, userid, stock_symbol, amount):
-        
+
         # see if user exists
         session = get_session()
         user = session.query(User).filter_by(userid=userid).first()
@@ -204,17 +204,18 @@ class SELLCommand(CommandHandler):
             raise UserNotFoundError(userid)
 
         #see if the user owns the requested stock and has enough for request                      
-        record = session.query(StockPurchase).filter_by(user_id=userid, stock_symbol=stock_symbol).first()
+        record = session.query(StockPurchase).filter_by(
+                user_id=userid, stock_symbol=stock_symbol).first()
         if not record:
-           raise InvalidInputError("user doesn't own this stock")
+            raise InvalidInputError("user doesn't own this stock")
         elif record.quantity < amount:
             raise NotEnoughStockAvailable()
 
-                
+
         #set up client to get quote
-        quote_client = QuoteClient.get_quote_client()
-        quoted_stock_value = quote_client.get_quote(stock_symbol) 
-               
+        quote_client = get_quote_client()
+        quoted_stock_value = quote_client.get_quote(stock_symbol, userid) 
+
         # make transaction
         self.trans = Transaction(user_id=userid, stock_symbol=stock_symbol,
             operation='SELL', committed=False, quantity=amount,
@@ -223,7 +224,7 @@ class SELLCommand(CommandHandler):
         # modify records
         record.quantity -= amount
 
-        
+
         # commit transaction after all actions for atomicity
         session.add(self.trans)
         session.commit()

@@ -74,15 +74,15 @@ class TestSELLCommand(DatabaseTest):
         self.command = commands.SELLCommand()
 
         # Set the quote client to a dummy that returns predictable results
-        QuoteClient.set_quote_client(DummyQuoteClient({
+        client._QUOTE_CLIENT = client.DummyQuoteClient({
             'AAAA': Money(23, 45),
             'BBBB': Money(85, 39),
-        }))
+        })
 
         #give 'user' 10 units of 'AAAA' stock
         self.add_all(
-                StockPurchase(user_id='user', stock_symbol='AAAA', quantity=10))
-        
+            StockPurchase(user_id='user', stock_symbol='AAAA', quantity=10))
+
 
     def test_successful_return_value(self):
         """ tests to see if normal transaction returns success
@@ -95,7 +95,7 @@ class TestSELLCommand(DatabaseTest):
         """ tests to see if returns error when requested to sell too much"""
         self.assertRaises(commands.NotEnoughStockAvailable, self.command.run,
                 userid='user', stock_symbol='AAAA', amount=100000)
-        
+
     def test_wrong_user_id(self):
         """ tests to see if we have the wrong user id """
         self.assertRaises(commands.UserNotFoundError, self.command.run,

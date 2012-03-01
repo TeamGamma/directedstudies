@@ -53,7 +53,7 @@ class SENGQuoteClient(object):
         # Read and print up to 1k of data.
         data = s.recv(1024)
 
-        # message format: “Quote, Stock Symbol, USER NAME, CryptoKey”
+        # message format: "Quote, Stock Symbol, USER NAME, CryptoKey"
         # '58.17,APP,robodwye,1330546050315,ZcwKUqtHPq/PaprbZRKrFSw+zuIQiYA5XlEfLUkxkUIsWaN0xSiiWw==\n'
         quotes, symbol2, username2, cryptokey = data.split(',')
 
