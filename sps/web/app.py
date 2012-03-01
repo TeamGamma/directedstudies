@@ -22,22 +22,24 @@ def hello():
 
         if trans_server_message != False:
       
-            transaction_interface.send('localhost', 50008, trans_server_message)
+            response = transaction_interface.send('localhost', 50008, trans_server_message)
         
-            return  (	""" 
+            return  (""" 
                             Hi                      %s ! <br><br>
                             Method:                 %s <br><br>
                             Input monetary value:   %s <br>
                             Stock quantity:         %s <br>
                             Stock symbol:           %s <br>
-                            Filename:                %s <br> """ % (
-                            
+                            Filename:                %s <br>
+                            Response: %s <br>""" % (
                             request.form['username'],
                             request.form['action'],
                             request.form['money value'],
                             request.form['stock quantity'],
                             request.form['stock symbol'],
-                            request.form['filename']))
+                            request.form['filename'],
+                            response
+                            ))
                             
         else:
             return ('You fudged it up, big boy <br><br> Go back and try again')
@@ -75,8 +77,8 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
 
     elif action == 'buy shares':
         try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "BUY," + username + ',' + stock_symbol + ',' + money_value
+            if len(stock_symbol) != 0 and float(stock_quantity) > 0 and len(username)!=0:
+                return "BUY," + username + ',' + stock_symbol + ',' + stock_quantity
             else:
                 return False
         except ValueError:
@@ -84,8 +86,8 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
 
     elif action == 'sell shares':
         try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "SELL," + username + ',' + stock_symbol + ',' + money_value
+            if len(stock_symbol) != 0 and float(stock_quantity) > 0 and len(username)!=0:
+                return "SELL," + username + ',' + stock_symbol + ',' + stock_quantity
             else:
                 return False
         except ValueError:

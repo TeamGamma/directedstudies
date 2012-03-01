@@ -15,7 +15,7 @@ class ConfigObject():
         'password': 'root',
     }
     DATABASE_ENGINE_ARGS = {
-        'echo': True,
+        'echo': 'debug',
     }
 
     QUOTE_CLIENT = RandomQuoteClient()

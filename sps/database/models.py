@@ -102,8 +102,8 @@ class User(InitMixin, ReprMixin, Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    userid = Column(String(50))
-    password = Column(String(50))
+    userid = Column(String(50), unique=True, nullable=False)
+    password = Column(String(50), nullable=False)
     _account_balance_dollars = Column(Integer, default=0)
     _account_balance_cents = Column(Integer, default=0)
     _reserve_balance_dollars = Column(Integer, default=0)
@@ -129,12 +129,12 @@ class Query(InitMixin, ReprMixin, Base):
     _query_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # TODO: add a "user" foreign key and backref
-    user_id = Column(Integer)
-    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", backref=backref('queries'))
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
-    crypto_key = Column(String(50))
     query_fee = composite(Money, _query_fee_dollars, _query_fee_cents)
+    crypto_key = Column(String(50), nullable=False)
 
     # Auto-set timestamp when created
     query_time = Column(DateTime, default=func.now())
@@ -149,19 +149,15 @@ class Transaction(InitMixin, ReprMixin, Base):
 
     _stock_value_dollars = Column(Integer, default=0)
     _stock_value_cents = Column(Integer, default=0)
-    _broker_fee_dollars = Column(Integer, default=0)
-    _broker_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # TODO: add a "user" foreign key and backref
-    user_id = Column(Integer)
-    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
-    operation = Column(String(3))
-    committed = Column(Boolean)
-    quantity = Column(Integer)
-    broker_fee = composite(Money, _broker_fee_dollars, _broker_fee_cents)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", backref=backref('transactions'))
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
+    operation = Column(String(4), nullable=False)
+    quantity = Column(Integer, nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
-    processing_time = Column(String(50))
+    committed = Column(Boolean, nullable=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
@@ -177,19 +173,14 @@ class SetTransaction(InitMixin, ReprMixin, Base):
 
     _stock_value_dollars = Column(Integer, default=0)
     _stock_value_cents = Column(Integer, default=0)
-    _broker_fee_dollars = Column(Integer, default=0)
-    _broker_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # TODO: add a "user" foreign key and backref
-    user_id = Column(Integer)
-    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", backref=backref('set_transactions'))
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
-    operation = Column(String(3))
-    quantity = Column(Integer)
-    broker_fee = composite(Money, _broker_fee_dollars, _broker_fee_cents)
-    processing_time = Column(String(50))
-    query_times = Column(Integer)
+    operation = Column(String(3), nullable=False)
+    quantity = Column(Integer, nullable=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
@@ -203,10 +194,10 @@ class StockPurchase(InitMixin, ReprMixin, Base):
     __tablename__ = 'stock_purchases'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("User", backref=backref('stocks'))
-    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH))
-    quantity = Column(Integer)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", backref=backref('stock_purchases'))
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
+    quantity = Column(Integer, nullable=False)
 
     # Auto-set timestamp when created
     query_time = Column(DateTime, default=func.now())

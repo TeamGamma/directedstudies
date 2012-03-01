@@ -16,7 +16,7 @@ def send(HOST, PORT, message):
     s.close()
 
     print 'Received', repr(confirmation_msg)
-    return True
+    return confirmation_msg
 
 if __name__ =='__main__':
     print 'you just ran the transaction interface'

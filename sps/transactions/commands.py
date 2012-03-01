@@ -17,28 +17,28 @@ class CommandError(Exception):
         return self.user_message
 
 class UnknownCommandError(CommandError):
-    user_message = 'error: unknown command'
+    user_message = 'error: unknown command\n'
 
 class UserNotFoundError(CommandError):
-    user_message = 'error: unknown command'
+    user_message = 'error: unknown command\n'
 
 class InvalidInputError(CommandError):
-    user_message = 'error: invalid input'
+    user_message = 'error: invalid input\n'
 
 class NoBuyTransactionError(CommandError):
-    user_message = 'error: no BUY transaction is pending'
+    user_message = 'error: no BUY transaction is pending\n'
 
 class NoSellTransactionError(CommandError):
-    user_message = 'error: no SELL transaction is pending'
+    user_message = 'error: no SELL transaction is pending\n'
 
 class ExpiredBuyTransactionError(CommandError):
-    user_message = 'error: BUY transaction has expired'
+    user_message = 'error: BUY transaction has expired\n'
 
 class ExpiredSellTransactionError(CommandError):
-    user_message = 'error: SELL transaction has expired'
+    user_message = 'error: SELL transaction has expired\n'
 
 class NotEnoughStockAvailable(CommandError):
-    user_message = 'error: not enough stock available for the requested action'
+    user_message = 'error: not enough stock available\n'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
@@ -196,6 +196,7 @@ class SELLCommand(CommandHandler):
     specified user at the current price.
     """
     def run(self, userid, stock_symbol, amount):
+        amount = int(amount)
 
         # see if user exists
         session = get_session()
@@ -205,7 +206,7 @@ class SELLCommand(CommandHandler):
 
         #see if the user owns the requested stock and has enough for request                      
         record = session.query(StockPurchase).filter_by(
-                user_id=userid, stock_symbol=stock_symbol).first()
+                user_id=user.id, stock_symbol=stock_symbol).first()
         if not record:
             raise InvalidInputError("user doesn't own this stock")
         elif record.quantity < amount:
@@ -217,13 +218,9 @@ class SELLCommand(CommandHandler):
         quoted_stock_value = quote_client.get_quote(stock_symbol, userid) 
 
         # make transaction
-        self.trans = Transaction(user_id=userid, stock_symbol=stock_symbol,
+        self.trans = Transaction(user_id=user.id, stock_symbol=stock_symbol,
             operation='SELL', committed=False, quantity=amount,
             stock_value=quoted_stock_value)
-
-        # modify records
-        record.quantity -= amount
-
 
         # commit transaction after all actions for atomicity
         session.add(self.trans)
