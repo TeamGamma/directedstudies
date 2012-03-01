@@ -3,20 +3,15 @@ from eventlet.db_pool import ConnectionPool
 from sqlalchemy.engine.url import URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sps.config import config
 
-_URL = URL(
-    'mysql',
-    username='root', password='root',
-    host='127.0.0.1', port=3306, database='sps'
-)
 _SESSION_MAKER = None
-
-# Log all statements
-SQLALCHEMY_ECHO = True
 
 
 def setup_database(engine=None):
-    global _SESSION_MAKER
+    global _SESSION_MAKER, _URL
+
+    _URL = URL(**config.DATABASE_CONNECTION_ARGS)
 
     if not engine:
         # TODO: determine optimal pool size
@@ -26,7 +21,7 @@ def setup_database(engine=None):
         engine = create_engine(_URL,
             creator=pool.create,
             pool_size=pool.max_size,
-            echo=SQLALCHEMY_ECHO
+            **config.DATABASE_ENGINE_ARGS
         )
     else:
         engine = engine
