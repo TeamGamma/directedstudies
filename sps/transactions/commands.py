@@ -1,11 +1,9 @@
 """
-This file does stuff.
-
-
+This file contains the implementations for all transaction server commands.
 """
 from sps.database.session import get_session
 from sps.database.models import User, Money, Transaction, StockPurchase
-from sps.quotes.client import QuoteClient
+from sps.quotes.client import get_quote_client
 from datetime import datetime
 
 class CommandError(Exception):
@@ -115,7 +113,7 @@ class QUOTECommand(CommandHandler):
         if len(stock_symbol) > 4:
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
-        quote_client = QuoteClient.get_quote_client()
+        quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol)
         return str(quote)
 
