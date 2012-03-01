@@ -37,6 +37,8 @@ class ExpiredBuyTransactionError(CommandError):
 class ExpiredSellTransactionError(CommandError):
     user_message = 'error: SELL transaction has expired'
 
+class NotEnoughStockAvailable(CommandError):
+    user_message = 'error: not enough stock available for the requested action'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
@@ -190,10 +192,42 @@ class CANCEL_BUYCommand(CommandHandler):
 
 class SELLCommand(CommandHandler):
     """
-    Sell the specified dollar mount of the stock currently held by the
+    Sell the specified dollar amount of the stock currently held by the
     specified user at the current price.
     """
     def run(self, userid, stock_symbol, amount):
+        
+        # see if user exists
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            raise UserNotFoundError(userid)
+
+        #see if the user owns the requested stock and has enough for request                      
+        record = session.query(StockPurchase).filter_by(user_id=userid, stock_symbol=stock_symbol).first()
+        if not record:
+           raise InvalidInputError("user doesn't own this stock")
+        elif record.quantity < amount:
+            raise NotEnoughStockAvailable()
+
+                
+        #set up client to get quote
+        quote_client = QuoteClient.get_quote_client()
+        quoted_stock_value = quote_client.get_quote(stock_symbol) 
+               
+        # make transaction
+        self.trans = Transaction(user_id=userid, stock_symbol=stock_symbol,
+            operation='SELL', committed=False, quantity=amount,
+            stock_value=quoted_stock_value)
+
+        # modify records
+        record.quantity -= amount
+
+        
+        # commit transaction after all actions for atomicity
+        session.add(self.trans)
+        session.commit()
+
         return 'success\n'
 
 

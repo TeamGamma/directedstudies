@@ -63,6 +63,38 @@ class TestQUOTECommand(DatabaseTest):
         self.assertRaises(commands.InvalidInputError, 
                 self.command.run, userid='user', stock_symbol='A' * 5)
 
+class TestSELLCommand(DatabaseTest):      
+    def setUp(self):
+        """sets up database and command"""
+        # set up the database as inherited from DatabaseTest
+        DatabaseTest.setUp(self)
+        # call user fixture to populate the database (from DatabaseTest)
+        self._user_fixture()
+        #associate the sell command
+        self.command = commands.SELLCommand()
+
+        ######################
+        #put something here to give 'user' 10 units of 'AAAA' stock
+        #waiting for representation of user's holdings to be implemented
+        ##################
+
+    def test_successful_return_value(self):
+        """ tests to see if normal transaction returns success
+            and check to see if the amounts are successfully modified"""
+        retval = self.command.run(userid='user', stock_symbol='AAAA', \
+                amount='5')
+        self.assertEqual(retval, 'success\n')
+
+    def test_too_little_stock_to_sell(self):
+        """ tests to see if returns error when requested to sell too much"""
+        self.assertRaises(commands.NotEnoughStockAvailable, self.command.run,
+                userid='user', stock_symbol='AAAA', amount='100000')
+        
+    def test_wrong_user_id(self):
+        """ tests to see if we have the wrong user id """
+        self.assertRaises(commands.UserNotFoundError, self.command.run,
+                userid='garbage', stock_symbol='AAAA', amount='5')
+
 
 class _TransactionCommandTest(object):
     """
