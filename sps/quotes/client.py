@@ -1,6 +1,7 @@
 from random import randrange
 from sps.database.models import Money
 from eventlet.green import socket
+from datetime import datetime
 
 _QUOTE_CLIENT = None
 
@@ -42,7 +43,7 @@ class SENGQuoteClient(object):
         self.address = address
 
     def get_quote(self, symbol, username):
-        message = ','.join(symbol, username)
+        message = ','.join((symbol, username)) + '\n'
 
         # Create the socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,38 +52,25 @@ class SENGQuoteClient(object):
         # Send the user's query
         s.sendall(message)
         # Read and print up to 1k of data.
-        data = s.recv(1024)
+        data = s.recv(1024).rstrip()
 
         # message format: "Quote, Stock Symbol, USER NAME, CryptoKey"
         # '58.17,APP,robodwye,1330546050315,ZcwKUqtHPq/PaprbZRKrFSw+zuIQiYA5XlEfLUkxkUIsWaN0xSiiWw==\n'
-        quotes, symbol2, username2, cryptokey = data.split(',')
+        quotes, symbol2, username2, timestamp, cryptokey = data.split(',')
+        response_time = datetime.fromtimestamp(int(timestamp) / 1000)
 
         quote = Money.from_string(quotes)
-        return quote, cryptokey
-
+        return quote, response_time, cryptokey
 
 
 
 if __name__ == '__main__':
-    import socket
     import sys
 
-    # Print info for the user
-    print("\nEnter: StockSYM, userid")
-    print("  Invalid entry will return 'NA' for userid.")
-    print("  Returns: quote,sym,userid,timestamp,cryptokey\n")
+    if len(sys.argv) != 3:
+        print 'usage: python %s stock_symbol username' % __file__
+        exit(1)
 
-    # Get a line of text from the user
-    fromUser = sys.stdin.readline()
-
-    # Create the socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Connect the socket
-    s.connect(('quoteserve.seng.uvic.ca', 4444))
-    # Send the user's query
-    s.send(fromUser)
-    # Read and print up to 1k of data.
-    data = s.recv(1024)
-    print data
-    # close the connection, and the socket
-    s.close()
+    c = SENGQuoteClient(('quoteserve.seng.uvic.ca', 4444))
+    for i in range(10):
+        print c.get_quote(*sys.argv[1:])
