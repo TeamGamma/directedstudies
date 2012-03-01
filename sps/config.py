@@ -6,7 +6,7 @@ class ConfigObject():
     """
     TRANSACTION_SERVER_PORT = 6000
 
-    DATABASE_ARGS = {
+    DATABASE_CONNECTION_ARGS = {
         'drivername': 'mysql',
         'host': '127.0.0.1',
         'port': 3306,
@@ -14,11 +14,16 @@ class ConfigObject():
         'username': 'root',
         'password': 'root',
     }
+    DATABASE_ENGINE_ARGS = {
+        'echo': True,
+    }
 
     QUOTE_CLIENT = sps.quotes.client.RandomQuoteClient
 
+
 # The global configuration object
 config = ConfigObject()
+
 
 def read_config_file(filename):
     """
