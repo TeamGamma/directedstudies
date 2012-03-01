@@ -1,4 +1,4 @@
-import sps.quotes.client
+from sps.quotes.client import RandomQuoteClient
 
 class ConfigObject():
     """
@@ -18,7 +18,7 @@ class ConfigObject():
         'echo': True,
     }
 
-    QUOTE_CLIENT = sps.quotes.client.RandomQuoteClient
+    QUOTE_CLIENT = RandomQuoteClient
 
 
 # The global configuration object

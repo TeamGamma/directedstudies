@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions import commands
 from sps.database.models import User, Money, Transaction, StockPurchase
-from sps.quotes.client import QuoteClient, DummyQuoteClient
+from sps.quotes import client
 
 class TestADDCommand(DatabaseTest):
     def setUp(self):
@@ -42,10 +42,10 @@ class TestQUOTECommand(DatabaseTest):
         self.command = commands.QUOTECommand()
 
         # Set the quote client to a dummy that returns predictable results
-        QuoteClient.set_quote_client(DummyQuoteClient({
+        client._QUOTE_CLIENT = client.DummyQuoteClient({
             'AAAA': Money(23, 45),
             'BBBB': Money(85, 39),
-        }))
+        })
 
     def test_return_value(self):
         """ Should return a decimal value for the stock price """
