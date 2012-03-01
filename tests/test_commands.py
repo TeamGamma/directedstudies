@@ -73,27 +73,33 @@ class TestSELLCommand(DatabaseTest):
         #associate the sell command
         self.command = commands.SELLCommand()
 
-        ######################
-        #put something here to give 'user' 10 units of 'AAAA' stock
-        #waiting for representation of user's holdings to be implemented
-        ##################
+        # Set the quote client to a dummy that returns predictable results
+        QuoteClient.set_quote_client(DummyQuoteClient({
+            'AAAA': Money(23, 45),
+            'BBBB': Money(85, 39),
+        }))
+
+        #give 'user' 10 units of 'AAAA' stock
+        self.add_all(
+                StockPurchase(user_id='user', stock_symbol='AAAA', quantity=10))
+        
 
     def test_successful_return_value(self):
         """ tests to see if normal transaction returns success
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(userid='user', stock_symbol='AAAA', \
-                amount='5')
+                amount=5)
         self.assertEqual(retval, 'success\n')
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
         self.assertRaises(commands.NotEnoughStockAvailable, self.command.run,
-                userid='user', stock_symbol='AAAA', amount='100000')
+                userid='user', stock_symbol='AAAA', amount=100000)
         
     def test_wrong_user_id(self):
         """ tests to see if we have the wrong user id """
         self.assertRaises(commands.UserNotFoundError, self.command.run,
-                userid='garbage', stock_symbol='AAAA', amount='5')
+                userid='garbage', stock_symbol='AAAA', amount=5)
 
 
 class _TransactionCommandTest(object):
@@ -164,7 +170,6 @@ class _TransactionCommandTest(object):
         self.assertRaises(self.missing_exception,
                 self.command.run, userid='user')
 
-
 class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
     command = commands.COMMIT_BUYCommand()
     operation = 'BUY'
@@ -175,8 +180,8 @@ class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
         DatabaseTest.setUp(self)
         self._user_fixture()
         self.transaction = Transaction(user_id=2, stock_symbol='AAAA',
-                operation='BUY', committed=False, quantity=2,
-                stock_value=Money(10, 40))
+            operation='BUY', committed=False, quantity=2,
+            stock_value=Money(10, 40))
         self.add_all(self.transaction)
 
     def test_postcondition_balance(self):
