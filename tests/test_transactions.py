@@ -1,4 +1,4 @@
-import unittest
+from tests.utils import unittest
 from sps.transactions.server import TransactionServer
 
 

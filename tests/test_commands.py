@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from tests.utils import DatabaseTest
+from tests.utils import unittest, DatabaseTest
 from sps.transactions import commands
 from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes import client

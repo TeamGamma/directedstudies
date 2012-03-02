@@ -4,6 +4,7 @@ This file contains the implementations for all transaction server commands.
 from sps.database.session import get_session
 from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes.client import get_quote_client
+from sps.config import config
 from datetime import datetime
 
 class CommandError(Exception):
@@ -142,7 +143,7 @@ class COMMIT_BUYCommand(CommandHandler):
         if not transaction:
             raise NoBuyTransactionError(userid)
 
-        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
             raise ExpiredBuyTransactionError(userid)
 
         price = transaction.stock_value * transaction.quantity
@@ -181,7 +182,7 @@ class CANCEL_BUYCommand(CommandHandler):
         if not transaction:
             raise NoBuyTransactionError(userid)
 
-        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
             raise ExpiredBuyTransactionError(userid)
 
         session.delete(transaction)
@@ -244,7 +245,7 @@ class COMMIT_SELLCommand(CommandHandler):
         if not transaction:
             raise NoSellTransactionError(userid)
 
-        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
             raise ExpiredSellTransactionError(userid)
 
         price = transaction.stock_value * transaction.quantity
@@ -278,7 +279,7 @@ class CANCEL_SELLCommand(CommandHandler):
         if not transaction:
             raise NoSellTransactionError(userid)
 
-        if (datetime.now() - transaction.creation_time).total_seconds() > 60:
+        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
             raise ExpiredSellTransactionError(userid)
 
         session.delete(transaction)

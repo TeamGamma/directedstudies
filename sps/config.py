@@ -1,4 +1,5 @@
 from sps.quotes.client import RandomQuoteClient
+from datetime import timedelta
 
 class ConfigObject():
     """
@@ -19,6 +20,8 @@ class ConfigObject():
     }
 
     QUOTE_CLIENT = RandomQuoteClient()
+
+    TRANSACTION_TIMEOUT = timedelta(seconds=60)
 
 
 # The global configuration object

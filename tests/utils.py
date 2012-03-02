@@ -1,4 +1,4 @@
-import unittest
+import unittest2 as unittest
 from sqlalchemy import create_engine
 from sps.database.session import setup_database, get_session
 from sps.database.models import Base, User, Money
