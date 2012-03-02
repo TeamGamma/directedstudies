@@ -35,6 +35,51 @@ class TestADDCommand(DatabaseTest):
         self.assertEqual(user.account_balance.cents, 92)
 
 
+class TestBUYCommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self._user_fixture()
+        self.command = commands.BUYCommand()
+
+        # Set the quote client to a dummy that returns predictable results
+        client._QUOTE_CLIENT = client.DummyQuoteClient({
+            'AAAA': Money(23, 45),
+            'BBBB': Money(85, 39),
+        })
+        
+    def test_return_value(self):
+        """ Should return current quote stock value """
+        retval = self.command.run(userid='user', amount='100')
+        self.assertEqual(retval, 'success\n')
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError,
+                self.command.run, userid='unicorn', amount='100')
+
+    def test_insufficient_fund(self):
+        """ """
+        pass
+
+    def test_postcondition_buy(self):
+        """ Uncommitted Transaction is created """
+        pass
+
+
+    def test_postcondition_add(self):
+        self.command.run(userid='user', amount='100.60')
+        user = self.session.query(User) \
+            .filter_by(userid='user').first()
+        self.assertEqual(user.account_balance.dollars, 100)
+        self.assertEqual(user.account_balance.cents, 60)
+
+    def test_postcondition_increment(self):
+        self.command.run(userid='user2', amount='5.42')
+        user = self.session.query(User) \
+            .filter_by(userid='user2').first()
+        self.assertEqual(user.account_balance.dollars, 105)
+        self.assertEqual(user.account_balance.cents, 92)
+
 class TestQUOTECommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
