@@ -81,7 +81,7 @@ class TestSELLCommand(DatabaseTest):
 
         #give 'user' 10 units of 'AAAA' stock
         self.add_all(
-            StockPurchase(user_id='user', stock_symbol='AAAA', quantity=10))
+            StockPurchase(user_id=1, stock_symbol='AAAA', quantity=10))
 
 
     def test_successful_return_value(self):
