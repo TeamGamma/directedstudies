@@ -17,11 +17,14 @@ class CommandError(Exception):
     def message(self):
         return self.user_message
 
+class InsufficientFundError(CommandError):
+    user_message = "error: insufficient fund\n"
+
 class UnknownCommandError(CommandError):
     user_message = 'error: unknown command\n'
 
 class UserNotFoundError(CommandError):
-    user_message = 'error: unknown command\n'
+    user_message = 'error: unknown user\n'
 
 class InvalidInputError(CommandError):
     user_message = 'error: invalid input\n'
@@ -125,7 +128,37 @@ class BUYCommand(CommandHandler):
     price.
     """
     def run(self, userid, stock_symbol, amount):
-        return 'success\n'
+        session = get_session()
+        user = session.query(User).filter_by(userid=userid).first()
+        if not user:
+            raise UserNotFoundError(userid)
+
+        # Getting stock quote
+        quote_client = get_quote_client()
+        quote = quote_client.get_quote(stock_symbol, userid)
+
+        # Assume quantity returned Q
+        amount = Money.from_string(amount)
+        Q = self.quantity(quote, amount)
+        if(Q == 0):
+            raise InsufficientFundError() 
+
+        transaction = Transaction(user=user, quantity=Q, operation='BUY', 
+                stock_symbol='AAAA', stock_value=quote, committed=False)
+        session.add(transaction)
+        session.commit()
+        return ','.join([str(quote), str(Q), str(quote * Q)])
+
+    def quantity(self, price, amount):
+        q = 0
+        while(True):
+            amount = amount - price
+            if((amount.dollars < 0) or (amount.cents < 0)):
+                break
+            else:
+                q += 1
+
+        return q
 
 
 class COMMIT_BUYCommand(CommandHandler):

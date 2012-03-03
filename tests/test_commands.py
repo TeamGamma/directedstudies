@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from tests.utils import unittest, DatabaseTest
+from tests.utils import DatabaseTest
 from sps.transactions import commands
 from sps.database.models import User, Money, Transaction, StockPurchase
 from sps.quotes import client
@@ -46,39 +46,40 @@ class TestBUYCommand(DatabaseTest):
             'AAAA': Money(23, 45),
             'BBBB': Money(85, 39),
         })
-        
+
     def test_return_value(self):
         """ Should return current quote stock value """
-        retval = self.command.run(userid='user', amount='100')
-        self.assertEqual(retval, 'success\n')
+        retval = self.command.run(userid='user2', stock_symbol='AAAA',
+                amount='60')
+        # Should return quoted stock value, quantity to be purchased, 
+        # and total price
+        self.assertEqual(retval, '23.45,2,46.90')
+
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
         self.assertRaises(commands.UserNotFoundError,
-                self.command.run, userid='unicorn', amount='100')
+                self.command.run, userid='unicorn', stock_symbol='AAAA',
+                amount='30')
 
     def test_insufficient_fund(self):
-        """ """
-        pass
+        """ Should return an error message if insufficient funds """
+        self.assertRaises(commands.InsufficientFundError,
+                self.command.run, userid='user', stock_symbol='AAAA',
+                amount='2')
 
     def test_postcondition_buy(self):
         """ Uncommitted Transaction is created """
-        pass
+        self.command.run(userid='user2', stock_symbol='AAAA',
+                amount='23.45')
+        transaction = self.session.query(Transaction).filter_by(
+                user_id=2,
+                stock_symbol='AAAA', 
+                committed=False,
+                quantity=1,
+                operation='BUY').first()
+        self.assertNotEqual(transaction, None)
 
-
-    def test_postcondition_add(self):
-        self.command.run(userid='user', amount='100.60')
-        user = self.session.query(User) \
-            .filter_by(userid='user').first()
-        self.assertEqual(user.account_balance.dollars, 100)
-        self.assertEqual(user.account_balance.cents, 60)
-
-    def test_postcondition_increment(self):
-        self.command.run(userid='user2', amount='5.42')
-        user = self.session.query(User) \
-            .filter_by(userid='user2').first()
-        self.assertEqual(user.account_balance.dollars, 105)
-        self.assertEqual(user.account_balance.cents, 92)
 
 class TestQUOTECommand(DatabaseTest):
     def setUp(self):
