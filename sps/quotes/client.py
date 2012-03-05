@@ -12,8 +12,13 @@ def get_quote_client():
     global _QUOTE_CLIENT
 
     if not _QUOTE_CLIENT:
-        from sps.config import config
-        _QUOTE_CLIENT = config.QUOTE_CLIENT
+        from sps.config import config, get_class_by_name
+        if isinstance(config.QUOTE_CLIENT, str):
+            _QUOTE_CLIENT = get_class_by_name(config.QUOTE_CLIENT)
+        else:
+            _QUOTE_CLIENT = config.QUOTE_CLIENT
+
+    print _QUOTE_CLIENT
     return _QUOTE_CLIENT
 
 

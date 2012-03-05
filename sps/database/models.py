@@ -4,6 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import relationship, backref, composite
 from collections import namedtuple
 from sps.database.utils import InitMixin, ReprMixin
+from sps.config import config
 
 # Maximum length of stock symbol string
 STOCK_SYMBOL_LENGTH = 8
@@ -92,7 +93,10 @@ class Money(namedtuple('Money', 'dollars cents')):
 
 
 # Base class for all SQLAlchemy models
-Base = declarative_base()
+class Base(object):
+    __table_args__ = config.DATABASE_TABLE_ARGS
+
+Base = declarative_base(cls=Base)
 
 
 class User(InitMixin, ReprMixin, Base):

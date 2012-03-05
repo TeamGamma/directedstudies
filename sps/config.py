@@ -1,4 +1,10 @@
-from sps.quotes.client import RandomQuoteClient
+"""
+Default configuration and related utilities for the entire system.
+
+NOTE: You can't import ANYTHING from the rest of the codebase here
+(e.g.  sps.*), or a circular dependency will be created.
+
+"""
 from datetime import timedelta
 
 class ConfigObject():
@@ -19,7 +25,11 @@ class ConfigObject():
         'echo': 'debug',
     }
 
-    QUOTE_CLIENT = RandomQuoteClient()
+    DATABASE_TABLE_ARGS = {
+        'mysql_engine': 'InnoDB',
+    }
+
+    QUOTE_CLIENT = 'sps.quotes.client.RandomQuoteClient'
 
     TRANSACTION_TIMEOUT = timedelta(seconds=60)
 
@@ -27,6 +37,10 @@ class ConfigObject():
 # The global configuration object
 config = ConfigObject()
 
+def get_class_by_name(path):
+    module_name, class_name = path.rsplit('.', 1)
+    module = __import__(module_name, fromlist=[class_name])
+    return getattr(module, class_name)
 
 def read_config_file(filename):
     """
