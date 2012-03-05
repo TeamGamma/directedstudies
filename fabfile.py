@@ -41,6 +41,19 @@ def drop_tables():
     session = get_session()
     Base.metadata.drop_all(bind=session.connection(), checkfirst=False)
 
+def setup_database():
+    """
+    Recreates all tables and installs some example fixtures in the database
+    """
+    from sps.database import fixtures
+    session = fixtures.get_session()
+
+    fixtures.drop_tables(session)
+    fixtures.create_tables(session)
+    fixtures.users(session)
+    fixtures.buy_transaction_and_user(session)
+    fixtures.sell_transaction_and_user(session)
+
 
 def shell():
     """ Starts an IPython shell with a session and models imported """
@@ -49,6 +62,7 @@ def shell():
         Base, Money, User, Query, StockPurchase, Transaction, SetTransaction
     )
     from sps.database import models
+    from sps.database import fixtures
     session = get_session()
     Base.metadata.create_all(bind=session.connection(), checkfirst=True)
     from IPython import embed
