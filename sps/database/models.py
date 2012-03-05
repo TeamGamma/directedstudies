@@ -105,8 +105,7 @@ class User(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    userid = Column(String(50), unique=True, nullable=False)
+    username = Column(String(50), primary_key=True, nullable=False)
     password = Column(String(50), nullable=False)
     _account_balance_dollars = Column(Integer, default=0)
     _account_balance_cents = Column(Integer, default=0)
@@ -133,7 +132,7 @@ class Query(InitMixin, ReprMixin, Base):
     _query_fee_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    username = Column(String, ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('queries'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
@@ -155,7 +154,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     _stock_value_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    username = Column(String, ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('transactions'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     operation = Column(String(4), nullable=False)
@@ -179,7 +178,7 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     _stock_value_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    username = Column(String, ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('set_transactions'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
@@ -198,7 +197,7 @@ class StockPurchase(InitMixin, ReprMixin, Base):
     __tablename__ = 'stock_purchases'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    username = Column(String, ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('stock_purchases'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
     quantity = Column(Integer, nullable=False)

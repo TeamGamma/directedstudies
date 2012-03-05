@@ -94,11 +94,11 @@ class ADDCommand(CommandHandler):
     """
     Add the given amount of money to the user's account
     """
-    def run(self, userid, amount):
+    def run(self, username, amount):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
@@ -109,16 +109,16 @@ class QUOTECommand(CommandHandler):
     """
     Get the current quote for the stock for the specified user
     """
-    def run(self, userid, stock_symbol):
+    def run(self, username, stock_symbol):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         if len(stock_symbol) > 4:
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
         quote_client = get_quote_client()
-        quote = quote_client.get_quote(stock_symbol, userid)
+        quote = quote_client.get_quote(stock_symbol, username)
         return str(quote)
 
 
@@ -127,15 +127,15 @@ class BUYCommand(CommandHandler):
     Buy the dollar amount of the stock for the specified user at the current
     price.
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
 
         # Getting stock quote
         quote_client = get_quote_client()
-        quote = quote_client.get_quote(stock_symbol, userid)
+        quote = quote_client.get_quote(stock_symbol, username)
 
         # Assume quantity returned Q
         amount = Money.from_string(amount)
@@ -165,19 +165,19 @@ class COMMIT_BUYCommand(CommandHandler):
     """
     Commits the most recently executed BUY command
     """
-    def run(self, userid):
+    def run(self, username):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
-            user_id=user.id, operation='BUY', committed=False
+            username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
-            raise NoBuyTransactionError(userid)
+            raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredBuyTransactionError(userid)
+            raise ExpiredBuyTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
 
@@ -204,19 +204,19 @@ class CANCEL_BUYCommand(CommandHandler):
     """
     Cancels the most recently executed BUY Command
     """
-    def run(self, userid):
+    def run(self, username):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
-            user_id=user.id, operation='BUY', committed=False
+            username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
-            raise NoBuyTransactionError(userid)
+            raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredBuyTransactionError(userid)
+            raise ExpiredBuyTransactionError(username)
 
         session.delete(transaction)
         session.commit()
@@ -229,18 +229,18 @@ class SELLCommand(CommandHandler):
     Sell the specified dollar amount of the stock currently held by the
     specified user at the current price.
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         amount = int(amount)
 
         # see if user exists
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
 
         #see if the user owns the requested stock and has enough for request                      
         record = session.query(StockPurchase).filter_by(
-                user_id=user.id, stock_symbol=stock_symbol).first()
+                username=user.username, stock_symbol=stock_symbol).first()
         if not record:
             raise InvalidInputError("user doesn't own this stock")
         elif record.quantity < amount:
@@ -249,10 +249,10 @@ class SELLCommand(CommandHandler):
 
         #set up client to get quote
         quote_client = get_quote_client()
-        quoted_stock_value = quote_client.get_quote(stock_symbol, userid) 
+        quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
 
         # make transaction
-        self.trans = Transaction(user_id=user.id, stock_symbol=stock_symbol,
+        self.trans = Transaction(username=user.username, stock_symbol=stock_symbol,
             operation='SELL', committed=False, quantity=amount,
             stock_value=quoted_stock_value)
 
@@ -267,19 +267,19 @@ class COMMIT_SELLCommand(CommandHandler):
     """
     Commits the most recently executed SELL command
     """
-    def run(self, userid):
+    def run(self, username):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
-            user_id=user.id, operation='SELL', committed=False
+            username=user.username, operation='SELL', committed=False
         ).first()
         if not transaction:
-            raise NoSellTransactionError(userid)
+            raise NoSellTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredSellTransactionError(userid)
+            raise ExpiredSellTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
 
@@ -301,19 +301,19 @@ class CANCEL_SELLCommand(CommandHandler):
     """
     Cancels the most recently executed SELL Command
     """
-    def run(self, userid):
+    def run(self, username):
         session = get_session()
-        user = session.query(User).filter_by(userid=userid).first()
+        user = session.query(User).filter_by(username=username).first()
         if not user:
-            raise UserNotFoundError(userid)
+            raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
-            user_id=user.id, operation='SELL', committed=False
+            username=user.username, operation='SELL', committed=False
         ).first()
         if not transaction:
-            raise NoSellTransactionError(userid)
+            raise NoSellTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredSellTransactionError(userid)
+            raise ExpiredSellTransactionError(username)
 
         session.delete(transaction)
         session.commit()
@@ -326,7 +326,7 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
     Sets a defined amount of the given stock to buy when the current stock
     price is less than or equal to the BUY_TRIGGER
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         return 'success\n'
 
 
@@ -334,7 +334,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     """
     Cancels a SET_BUY command issued for the given stock
     """
-    def run(self, userid, stock_symbol):
+    def run(self, username, stock_symbol):
         return 'success\n'
 
 
@@ -343,7 +343,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     Sets the trigger point base on the current stock price when any SET_BUY
     will execute.
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         return 'success\n'
 
 
@@ -352,7 +352,7 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
     Sets a defined amount of the specified stock to sell when the current stock
     price is equal or greater than the sell trigger point
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         return 'success\n'
 
 
@@ -361,7 +361,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
     Sets the stock price trigger point for executing any SET_SELL triggers
     associated with the given stock and user
     """
-    def run(self, userid, stock_symbol, amount):
+    def run(self, username, stock_symbol, amount):
         return 'success\n'
 
 
@@ -369,7 +369,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     """
     Cancels the SET_SELL associated with the given stock and user
     """
-    def run(self, userid, stock_symbol):
+    def run(self, username, stock_symbol):
         return 'success\n'
 
 
@@ -377,7 +377,7 @@ class DUMPLOG_USERCommand(CommandHandler):
     """
     Print out the history of the users transactions to the user specified file
     """
-    def run(self, userid, filename):
+    def run(self, username, filename):
         return 'success\n'
 
 
@@ -396,7 +396,7 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
     and the current status of their accounts as well as any set buy or sell
     triggers and their parameters
     """
-    def run(self, userid):
+    def run(self, username):
         return 'success\n'
 
 

@@ -53,12 +53,11 @@ class DatabaseTest(unittest.TestCase):
 
     def _user_fixture(self):
         """ Inserts user rows into the test database """
-        self.session.add_all([
-            User(id=1, userid='user', password='password'),
-            User(id=2, userid='user2', password='password',
+        self.add_all(
+            User(username='poor_user', password='password'),
+            User(username='rich_user', password='password',
                 account_balance=Money(100, 50), reserve_balance=Money(0, 0)),
-        ])
-        self.session.commit()
+        )
 
 
 
