@@ -9,3 +9,4 @@ eventlet==0.9.16
 greenlet==0.3.4
 nose==1.1.2
 ipython==0.12
+unittest2==0.5.1
