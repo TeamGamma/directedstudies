@@ -13,7 +13,7 @@ class TestADDCommand(DatabaseTest):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='poor_user', amount='100')
-        self.assertEqual(retval, 'success\n')
+        self.assertEqual(retval, 'success')
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -70,7 +70,7 @@ class TestBUYCommand(DatabaseTest):
         total price """
         retval = self.command.run(username='rich_user', stock_symbol='AAAA',
                 amount='60')
-        self.assertEqual(retval, '23.45,2,46.90\n')
+        self.assertEqual(retval, '23.45,2,46.90')
 
     def test_multiple_buy_transaction(self):
         """ Should return an error message if an uncommitted buy transaction
@@ -156,7 +156,7 @@ class TestSELLCommand(DatabaseTest):
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(username='rich_user', stock_symbol='AAAA',
                 amount='5')
-        self.assertEqual(retval, 'success\n')
+        self.assertEqual(retval, 'success')
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
@@ -217,7 +217,7 @@ class TestQUOTECommand(DatabaseTest):
     def test_return_value(self):
         """ Should return a decimal value for the stock price """
         retval = self.command.run(username='poor_user', stock_symbol='AAAA')
-        self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]\n')
+        self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]')
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -246,7 +246,7 @@ class _TransactionCommandTest(object):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='rich_user')
-        self.assertEqual(retval, 'success\n')
+        self.assertEqual(retval, 'success')
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """

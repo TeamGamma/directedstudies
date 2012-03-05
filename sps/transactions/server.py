@@ -56,7 +56,7 @@ class TransactionServer(object):
             response = handler.run(*args)
         except CommandError, e:
             print e
-            return e.message
+            return e.message + '\n'
         except TypeError, e:
             print e
             return 'Incorrect arguments for command "%s"\n' % command
@@ -64,7 +64,7 @@ class TransactionServer(object):
             print 'Unexpected error: %s\n' % e
             return 'Server Error\n'
 
-        return response
+        return response + '\n'
 
     def parse_line(self, line):
         # Split by spaces or commas (Postel's Law!)

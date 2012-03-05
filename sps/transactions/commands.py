@@ -18,37 +18,37 @@ class CommandError(Exception):
         return self.user_message
 
 class InsufficientFundsError(CommandError):
-    user_message = "error: insufficient funds\n"
+    user_message = "error: insufficient funds"
 
 class InsufficientStockError(CommandError):
-    user_message = 'error: insufficient stock quantity\n'
+    user_message = 'error: insufficient stock quantity'
 
 class UnknownCommandError(CommandError):
-    user_message = 'error: unknown command\n'
+    user_message = 'error: unknown command'
 
 class UserNotFoundError(CommandError):
-    user_message = 'error: unknown user\n'
+    user_message = 'error: unknown user'
 
 class InvalidInputError(CommandError):
-    user_message = 'error: invalid input\n'
+    user_message = 'error: invalid input'
 
 class NoBuyTransactionError(CommandError):
-    user_message = 'error: no BUY transaction is pending\n'
+    user_message = 'error: no BUY transaction is pending'
 
 class NoSellTransactionError(CommandError):
-    user_message = 'error: no SELL transaction is pending\n'
+    user_message = 'error: no SELL transaction is pending'
 
 class ExpiredBuyTransactionError(CommandError):
-    user_message = 'error: BUY transaction has expired\n'
+    user_message = 'error: BUY transaction has expired'
 
 class ExpiredSellTransactionError(CommandError):
-    user_message = 'error: SELL transaction has expired\n'
+    user_message = 'error: SELL transaction has expired'
 
 class BuyTransactionActiveError(CommandError):
-    user_message = 'error: a BUY transaction is already active\n'
+    user_message = 'error: a BUY transaction is already active'
 
 class SellTransactionActiveError(CommandError):
-    user_message = 'error: a SELL transaction is already active\n'
+    user_message = 'error: a SELL transaction is already active'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
@@ -81,7 +81,7 @@ class EchoCommand(CommandHandler):
      Echoes a single argument back to the client
     """
     def run(self, message):
-        return message + '\n'
+        return message
 
 CommandHandler.register_command('ECHO', EchoCommand)
 
@@ -91,7 +91,7 @@ class UppercaseCommand(CommandHandler):
      Like ECHO, but returns the message in uppercase
     """
     def run(self, message):
-        return message.upper() + '\n'
+        return message.upper()
 
 CommandHandler.register_command('UPPER', UppercaseCommand)
 
@@ -108,7 +108,7 @@ class ADDCommand(CommandHandler):
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
-        return 'success\n'
+        return 'success'
 
 
 class QUOTECommand(CommandHandler):
@@ -125,7 +125,7 @@ class QUOTECommand(CommandHandler):
                     len(stock_symbol))
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
-        return str(quote) + '\n'
+        return str(quote)
 
 
 class BUYCommand(CommandHandler):
@@ -162,7 +162,7 @@ class BUYCommand(CommandHandler):
                 stock_symbol='AAAA', stock_value=quote, committed=False)
         session.add(transaction)
         session.commit()
-        return ','.join([str(quote), str(quantity), str(quote * quantity)]) + '\n'
+        return ','.join([str(quote), str(quantity), str(quote * quantity)])
 
     def quantity(self, price, amount):
         q = 0
@@ -212,7 +212,7 @@ class COMMIT_BUYCommand(CommandHandler):
 
         session.commit()
 
-        return 'success\n'
+        return 'success'
 
 
 class CANCEL_BUYCommand(CommandHandler):
@@ -236,7 +236,7 @@ class CANCEL_BUYCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
-        return 'success\n'
+        return 'success'
 
 
 class SELLCommand(CommandHandler):
@@ -281,7 +281,7 @@ class SELLCommand(CommandHandler):
         session.add(self.trans)
         session.commit()
 
-        return 'success\n'
+        return 'success'
 
 
 class COMMIT_SELLCommand(CommandHandler):
@@ -315,7 +315,7 @@ class COMMIT_SELLCommand(CommandHandler):
         transaction.committed = True
         session.commit()
 
-        return 'success\n'
+        return 'success'
 
 
 class CANCEL_SELLCommand(CommandHandler):
@@ -339,7 +339,7 @@ class CANCEL_SELLCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
-        return 'success\n'
+        return 'success'
 
 
 class SET_BUY_AMOUNTCommand(CommandHandler):
@@ -348,7 +348,7 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
     price is less than or equal to the BUY_TRIGGER
     """
     def run(self, username, stock_symbol, amount):
-        return 'success\n'
+        return 'success'
 
 
 class CANCEL_SET_BUYCommand(CommandHandler):
@@ -356,7 +356,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     Cancels a SET_BUY command issued for the given stock
     """
     def run(self, username, stock_symbol):
-        return 'success\n'
+        return 'success'
 
 
 class SET_BUY_TRIGGERCommand(CommandHandler):
@@ -365,7 +365,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     will execute.
     """
     def run(self, username, stock_symbol, amount):
-        return 'success\n'
+        return 'success'
 
 
 class SET_SELL_AMOUNTCommand(CommandHandler):
@@ -374,7 +374,7 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
     price is equal or greater than the sell trigger point
     """
     def run(self, username, stock_symbol, amount):
-        return 'success\n'
+        return 'success'
 
 
 class SET_SELL_TRIGGERCommand(CommandHandler):
@@ -383,7 +383,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
     associated with the given stock and user
     """
     def run(self, username, stock_symbol, amount):
-        return 'success\n'
+        return 'success'
 
 
 class CANCEL_SET_SELLCommand(CommandHandler):
@@ -391,7 +391,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     Cancels the SET_SELL associated with the given stock and user
     """
     def run(self, username, stock_symbol):
-        return 'success\n'
+        return 'success'
 
 
 class DUMPLOG_USERCommand(CommandHandler):
@@ -399,7 +399,7 @@ class DUMPLOG_USERCommand(CommandHandler):
     Print out the history of the users transactions to the user specified file
     """
     def run(self, username, filename):
-        return 'success\n'
+        return 'success'
 
 
 class DUMPLOGCommand(CommandHandler):
@@ -408,7 +408,7 @@ class DUMPLOGCommand(CommandHandler):
     occurred in the system.
     """
     def run(self, filename):
-        return 'success\n'
+        return 'success'
 
 
 class DISPLAY_SUMMARYCommand(CommandHandler):
@@ -418,7 +418,7 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
     triggers and their parameters
     """
     def run(self, username):
-        return 'success\n'
+        return 'success'
 
 
 CommandHandler.register_command('ADD', ADDCommand)
