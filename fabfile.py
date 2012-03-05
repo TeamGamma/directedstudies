@@ -45,7 +45,9 @@ def drop_tables():
 def shell():
     """ Starts an IPython shell with a session and models imported """
     from sps.database.session import get_session
-    from sps.database.models import *
+    from sps.database.models import (
+        Base, Money, User, Query, StockPurchase, Transaction, SetTransaction
+    )
     from sps.database import models
     session = get_session()
     Base.metadata.create_all(bind=session.connection(), checkfirst=True)
