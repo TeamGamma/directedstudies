@@ -1,0 +1,50 @@
+<examples>
+
+<!-- A sample error response -->
+<response contents="error">
+    <error>Insufficient Funds</error>
+</response>
+
+<!-- A sample quote response (e.g. from QUOTE or BUY) -->
+<response contents="quote">
+    <quote quantity="1">45.67</quote>
+</response>
+
+<!-- A sample quote response (e.g. from SELL) -->
+<response contents="quote">
+    <quote quantity="15">123.80</quote>
+</response>
+
+<!-- A sample result response (e.g. from ADD, COMMIT_BUY, etc.) -->
+<response contents="result">
+    <result>Successfully committed buy transaction.</result>
+</response>
+
+<!-- A sample DUMPLOG response (printed to file) -->
+<response contents="dumplog">
+    <transactions>
+        <transaction user="user" operation="buy" stock_symbol="AAAA" quantity="10" stock_value="45.60"></transaction>
+        <transaction user="user" operation="sell" stock_symbol="AAAA" quantity="5" stock_value="55.70"></transaction>
+    </transactions>
+</response>
+
+<!-- A sample DISPLAY_SUMMARY response
+
+Provides a summary to the client of the given user's transaction
+history and the current status of their accounts as well as any set
+buy or sell triggers and their parameters
+-->
+<response contents="summary">
+    <transactions>
+        <transaction operation="buy" stock_symbol="AAAA" quantity="10" stock_value="45.60"></transaction>
+        <transaction operation="sell" stock_symbol="AAAA" quantity="5" stock_value="55.70"></transaction>
+    </transactions>
+    <triggers>
+        <trigger operation="buy" stock_symbol="AAAA" quantity="10" stock_value="45.60"></trigger>
+        <trigger operation="sell" stock_symbol="BBBB" quantity="5" stock_value="100.20"></trigger>
+    </triggers>
+    <account_balance>500.25</account_balance>
+    <reserve_balance>50.99</reserve_balance>
+</response>
+
+</examples>
