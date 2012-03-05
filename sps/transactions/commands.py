@@ -139,7 +139,9 @@ class BUYCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
-        if session.query(Transaction).filter_by(user=user, operation='BUY').count() > 0:
+        # Check for existing uncommitted transaction
+        if session.query(Transaction).filter_by(
+                user=user, operation='BUY', committed=False).count() > 0:
             raise BuyTransactionActiveError()
 
         # Getting stock quote
@@ -251,14 +253,20 @@ class SELLCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
-        # see if the user owns the requested stock and has enough for request
-        record = session.query(StockPurchase).filter_by(
-                username=user.username, stock_symbol=stock_symbol).first()
-        if not record:
-            raise InvalidInputError("user doesn't own this stock")
-        elif record.quantity < amount:
-            raise InsufficientStockError()
+        # Check for existing uncommitted transaction
+        if session.query(Transaction).filter_by(
+                user=user, operation='SELL', committed=False).count() > 0:
+            raise SellTransactionActiveError()
 
+        # see if the user owns the requested stock and has enough for request
+        records = session.query(StockPurchase).filter_by(
+                username=user.username, stock_symbol=stock_symbol).all()
+
+        if(len(records) > 1):
+            raise UnknownCommandError('Multiple StockPurchase for user %s: %d', 
+                    username, len(records))
+        if len(records) != 1 or records[0].quantity < amount:
+            raise InsufficientStockError()
 
         #set up client to get quote
         quote_client = get_quote_client()

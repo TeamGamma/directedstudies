@@ -47,13 +47,6 @@ class TestBUYCommand(DatabaseTest):
             'BBBB': Money(85, 39),
         })
 
-    def test_return_value(self):
-        """ Should return quoted stock value, quantity to be purchased, and
-        total price """
-        retval = self.command.run(username='rich_user', stock_symbol='AAAA',
-                amount='60')
-        self.assertEqual(retval, '23.45,2,46.90')
-
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
         self.assertRaises(commands.UserNotFoundError,
@@ -72,6 +65,13 @@ class TestBUYCommand(DatabaseTest):
                 self.command.run, username='poor_user', stock_symbol='AAAA',
                 amount='23.45')
 
+    def test_return_value(self):
+        """ Should return quoted stock value, quantity to be purchased, and
+        total price """
+        retval = self.command.run(username='rich_user', stock_symbol='AAAA',
+                amount='60')
+        self.assertEqual(retval, '23.45,2,46.90')
+
     def test_multiple_buy_transaction(self):
         """ Should return an error message if an uncommitted buy transaction
         already exists """
@@ -83,6 +83,18 @@ class TestBUYCommand(DatabaseTest):
         )
         self.assertRaises(commands.BuyTransactionActiveError,
                 self.command.run, username='rich_user', stock_symbol='AAAA',
+                amount='60')
+
+    def test_no_multiple_buy_transaction(self):
+        """ Should not return an error message if an committed buy transaction
+        exists """
+        self.add_all(
+            Transaction(username='rich_user', stock_symbol='AAAA',
+                operation='BUY', committed=True, quantity=2,
+                stock_value=Money(23, 45),
+                creation_time=datetime.now() - timedelta(seconds=30)),
+        )
+        self.command.run(username='rich_user', stock_symbol='AAAA',
                 amount='60')
 
     def test_postcondition_buy(self):
@@ -118,6 +130,84 @@ class TestBUYCommand(DatabaseTest):
         self.assertEqual(quantity, 0)
 
 
+class TestSELLCommand(DatabaseTest):      
+    def setUp(self):
+        # set up the database as inherited from DatabaseTest
+        DatabaseTest.setUp(self)
+        # call user fixture to populate the database (from DatabaseTest)
+        self._user_fixture()
+        #associate the sell command
+        self.command = commands.SELLCommand()
+
+        # Set the quote client to a dummy that returns predictable results
+        client._QUOTE_CLIENT = client.DummyQuoteClient({
+            'AAAA': Money(23, 45),
+            'BBBB': Money(85, 39),
+        })
+
+        self.add_all(
+            # Give 'rich_user' 10 units of 'AAAA' stock
+            StockPurchase(username='rich_user', stock_symbol='AAAA', quantity=10),
+        )
+
+
+    def test_successful_return_value(self):
+        """ tests to see if normal transaction returns success
+            and check to see if the amounts are successfully modified"""
+        retval = self.command.run(username='rich_user', stock_symbol='AAAA',
+                amount='5')
+        self.assertEqual(retval, 'success\n')
+
+    def test_too_little_stock_to_sell(self):
+        """ tests to see if returns error when requested to sell too much"""
+        self.assertRaises(commands.InsufficientStockError, self.command.run,
+                username='rich_user', stock_symbol='AAAA', amount='100000')
+        self.assertRaises(commands.InsufficientStockError, self.command.run,
+                username='poor_user', stock_symbol='AAAA', amount='100000')
+
+    def test_wrong_user_id(self):
+        """ tests to see if we have the wrong user id """
+        self.assertRaises(commands.UserNotFoundError, self.command.run,
+                username='garbage', stock_symbol='AAAA', amount='5')
+
+    def test_multiple_sell_transaction(self):
+        """ Should return an error message if an uncommitted sell transaction
+        already exists """
+        self.add_all(
+            Transaction(username='rich_user', stock_symbol='AAAA',
+                operation='SELL', committed=False, quantity=8,
+                stock_value=Money(23, 45),
+                creation_time=datetime.now() - timedelta(seconds=30)),
+        )
+        self.assertRaises(commands.SellTransactionActiveError,
+                self.command.run, username='rich_user', stock_symbol='AAAA',
+                amount='5')
+
+    def test_no_multiple_sell_transaction(self):
+        """ Should not return an error message if an committed sell transaction
+        exists """
+        self.add_all(
+            Transaction(username='rich_user', stock_symbol='AAAA',
+                operation='SELL', committed=True, quantity=8,
+                stock_value=Money(23, 45),
+                creation_time=datetime.now() - timedelta(seconds=30)),
+        )
+        self.command.run(username='rich_user', stock_symbol='AAAA',
+                amount='5')
+
+    def test_postcondition_sell(self):
+        """ Uncommitted Transaction is created """
+        self.command.run(username='rich_user', stock_symbol='AAAA',
+                amount='5')
+        transaction = self.session.query(Transaction).filter_by(
+                username='rich_user',
+                stock_symbol='AAAA', 
+                committed=False,
+                quantity=5,
+                operation='SELL').one()
+        self.assertNotEqual(transaction, None)
+
+
 class TestQUOTECommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
@@ -145,44 +235,6 @@ class TestQUOTECommand(DatabaseTest):
         """ Should return an error if the stock symbol is too long """
         self.assertRaises(commands.InvalidInputError, 
                 self.command.run, username='poor_user', stock_symbol='A' * 5)
-
-class TestSELLCommand(DatabaseTest):      
-    def setUp(self):
-        """sets up database and command"""
-        # set up the database as inherited from DatabaseTest
-        DatabaseTest.setUp(self)
-        # call user fixture to populate the database (from DatabaseTest)
-        self._user_fixture()
-        #associate the sell command
-        self.command = commands.SELLCommand()
-
-        # Set the quote client to a dummy that returns predictable results
-        client._QUOTE_CLIENT = client.DummyQuoteClient({
-            'AAAA': Money(23, 45),
-            'BBBB': Money(85, 39),
-        })
-
-        #give 'poor_user' 10 units of 'AAAA' stock
-        self.add_all(
-            StockPurchase(username='poor_user', stock_symbol='AAAA', quantity=10))
-
-
-    def test_successful_return_value(self):
-        """ tests to see if normal transaction returns success
-            and check to see if the amounts are successfully modified"""
-        retval = self.command.run(username='poor_user', stock_symbol='AAAA', \
-                amount=5)
-        self.assertEqual(retval, 'success\n')
-
-    def test_too_little_stock_to_sell(self):
-        """ tests to see if returns error when requested to sell too much"""
-        self.assertRaises(commands.InsufficientStockError, self.command.run,
-                username='poor_user', stock_symbol='AAAA', amount=100000)
-
-    def test_wrong_user_id(self):
-        """ tests to see if we have the wrong user id """
-        self.assertRaises(commands.UserNotFoundError, self.command.run,
-                username='garbage', stock_symbol='AAAA', amount=5)
 
 
 class _TransactionCommandTest(object):
