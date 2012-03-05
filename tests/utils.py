@@ -1,7 +1,9 @@
 import unittest2 as unittest
 from sqlalchemy import create_engine
+from sqlalchemy.engine.url import URL
 from sps.database.session import setup_database, get_session
 from sps.database.models import Base, User, Money
+from sps.config import config
 
 
 class DatabaseTest(unittest.TestCase):
@@ -15,7 +17,18 @@ class DatabaseTest(unittest.TestCase):
     def setUp(self):
         # Re-use the same test database for all tests using this class
         if DatabaseTest._TEST_ENGINE is None:
-            DatabaseTest._TEST_ENGINE = create_engine('sqlite:///:memory:')
+
+            if config.TEST_WITH_SQLITE:
+                # Create an in-memory sqlite database for fast testing
+                DatabaseTest._TEST_ENGINE = create_engine('sqlite:///:memory:')
+            else:
+                # Test with real MySQL database for completeness (much slower)
+                _URL = URL(**config.DATABASE_CONNECTION_ARGS)
+
+                DatabaseTest._TEST_ENGINE = create_engine(
+                    _URL,
+                    **config.DATABASE_ENGINE_ARGS
+                )
 
         setup_database(engine=self._TEST_ENGINE)
         self.session = get_session()

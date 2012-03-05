@@ -33,6 +33,8 @@ class ConfigObject():
 
     TRANSACTION_TIMEOUT = timedelta(seconds=60)
 
+    TEST_WITH_SQLITE = True
+
 
 # The global configuration object
 config = ConfigObject()
