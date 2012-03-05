@@ -125,7 +125,7 @@ class QUOTECommand(CommandHandler):
                     len(stock_symbol))
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
-        return str(quote)
+        return str(quote) + '\n'
 
 
 class BUYCommand(CommandHandler):
@@ -162,7 +162,7 @@ class BUYCommand(CommandHandler):
                 stock_symbol='AAAA', stock_value=quote, committed=False)
         session.add(transaction)
         session.commit()
-        return ','.join([str(quote), str(quantity), str(quote * quantity)])
+        return ','.join([str(quote), str(quantity), str(quote * quantity)]) + '\n'
 
     def quantity(self, price, amount):
         q = 0

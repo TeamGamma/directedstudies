@@ -70,7 +70,7 @@ class TestBUYCommand(DatabaseTest):
         total price """
         retval = self.command.run(username='rich_user', stock_symbol='AAAA',
                 amount='60')
-        self.assertEqual(retval, '23.45,2,46.90')
+        self.assertEqual(retval, '23.45,2,46.90\n')
 
     def test_multiple_buy_transaction(self):
         """ Should return an error message if an uncommitted buy transaction
@@ -214,17 +214,10 @@ class TestQUOTECommand(DatabaseTest):
         self._user_fixture()
         self.command = commands.QUOTECommand()
 
-        # Set the quote client to a dummy that returns predictable results
-        client._QUOTE_CLIENT = client.DummyQuoteClient({
-            'AAAA': Money(23, 45),
-            'BBBB': Money(85, 39),
-        })
-
     def test_return_value(self):
         """ Should return a decimal value for the stock price """
         retval = self.command.run(username='poor_user', stock_symbol='AAAA')
-        self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]')
-        self.assertEqual(retval, '23.45')
+        self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]\n')
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """

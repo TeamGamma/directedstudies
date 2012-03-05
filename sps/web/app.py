@@ -1,5 +1,6 @@
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
+from sps.config import config
 
 import transaction_interface
 
@@ -17,13 +18,16 @@ def hello():
                     request.form['stock quantity'],
                     request.form['stock symbol'],
                     request.form['filename'])
-       
+
 
 
         if trans_server_message != False:
-      
-            response = transaction_interface.send('localhost', 50008, trans_server_message)
-        
+
+            response = transaction_interface.send(
+                    config.TRANSACTION_SERVER_HOST, 
+                    config.TRANSACTION_SERVER_PORT, 
+                    trans_server_message)
+
             return  (""" 
                             Hi                      %s ! <br><br>
                             Method:                 %s <br><br>
@@ -40,10 +44,10 @@ def hello():
                             request.form['filename'],
                             response
                             ))
-                            
+
         else:
             return ('You fudged it up, big boy <br><br> Go back and try again')
-    
+
 
     else:
         return render_template('form.html')
@@ -71,14 +75,14 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
         
     elif action == 'get quote':
         if len(stock_symbol) != 0: 
-            return 'QUOTE' + username + ',' + stock_symbol 
+            return 'QUOTE,' + username + ',' + stock_symbol 
         else:
             return False
 
     elif action == 'buy shares':
         try:
-            if len(stock_symbol) != 0 and float(stock_quantity) > 0 and len(username)!=0:
-                return "BUY," + username + ',' + stock_symbol + ',' + stock_quantity
+            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
+                return "BUY," + username + ',' + stock_symbol + ',' + money_value
             else:
                 return False
         except ValueError:

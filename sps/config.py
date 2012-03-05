@@ -11,6 +11,7 @@ class ConfigObject():
     """
     Provides default values for all possible keys in the configuration file
     """
+    TRANSACTION_SERVER_HOST = 'localhost'
     TRANSACTION_SERVER_PORT = 6000
 
     DATABASE_CONNECTION_ARGS = {

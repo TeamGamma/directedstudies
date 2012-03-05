@@ -58,6 +58,7 @@ class TransactionServer(object):
             print e
             return e.message
         except TypeError, e:
+            print e
             return 'Incorrect arguments for command "%s"\n' % command
         except Exception, e:
             print 'Unexpected error: %s\n' % e
