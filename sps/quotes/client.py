@@ -18,7 +18,6 @@ def get_quote_client():
         else:
             _QUOTE_CLIENT = config.QUOTE_CLIENT
 
-    print _QUOTE_CLIENT
     return _QUOTE_CLIENT
 
 

@@ -150,6 +150,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'transactions'
 
+    # Stock value is the value of a single stock, not the total
     _stock_value_dollars = Column(Integer, default=0)
     _stock_value_cents = Column(Integer, default=0)
 
@@ -174,6 +175,7 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'set_transactions'
 
+    # Stock value is the value of a single stock, not the total
     _stock_value_dollars = Column(Integer, default=0)
     _stock_value_cents = Column(Integer, default=0)
 

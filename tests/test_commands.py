@@ -48,13 +48,11 @@ class TestBUYCommand(DatabaseTest):
         })
 
     def test_return_value(self):
-        """ Should return current quote stock value """
+        """ Should return quoted stock value, quantity to be purchased, and
+        total price """
         retval = self.command.run(username='rich_user', stock_symbol='AAAA',
                 amount='60')
-        # Should return quoted stock value, quantity to be purchased, 
-        # and total price
         self.assertEqual(retval, '23.45,2,46.90')
-
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -62,11 +60,30 @@ class TestBUYCommand(DatabaseTest):
                 self.command.run, username='unicorn', stock_symbol='AAAA',
                 amount='30')
 
-    def test_insufficient_fund(self):
-        """ Should return an error message if insufficient funds """
-        self.assertRaises(commands.InsufficientFundError,
+    def test_insufficient_funds(self):
+        """ Should return an error message if insufficient funds for one stock """
+        self.assertRaises(commands.InsufficientFundsError,
                 self.command.run, username='poor_user', stock_symbol='AAAA',
                 amount='2')
+
+    def test_insufficient_user_funds(self):
+        """ Should return an error message if insufficient account balance """
+        self.assertRaises(commands.InsufficientFundsError,
+                self.command.run, username='poor_user', stock_symbol='AAAA',
+                amount='23.45')
+
+    def test_multiple_buy_transaction(self):
+        """ Should return an error message if an uncommitted buy transaction
+        already exists """
+        self.add_all(
+            Transaction(username='rich_user', stock_symbol='BBBB',
+                operation='BUY', committed=False, quantity=1,
+                stock_value=Money(10, 54),
+                creation_time=datetime.now() - timedelta(seconds=30)),
+        )
+        self.assertRaises(commands.BuyTransactionActiveError,
+                self.command.run, username='rich_user', stock_symbol='AAAA',
+                amount='60')
 
     def test_postcondition_buy(self):
         """ Uncommitted Transaction is created """
@@ -79,6 +96,26 @@ class TestBUYCommand(DatabaseTest):
                 quantity=1,
                 operation='BUY').first()
         self.assertNotEqual(transaction, None)
+
+    def test_quantity_exact(self):
+        quantity = self.command.quantity(Money(25, 60), Money(25, 60))
+        self.assertEqual(quantity, 1)
+
+    def test_quantity_multiple(self):
+        quantity = self.command.quantity(Money(25, 60), Money(102, 40))
+        self.assertEqual(quantity, 4)
+
+    def test_quantity_less(self):
+        quantity = self.command.quantity(Money(25, 60), Money(102, 30))
+        self.assertEqual(quantity, 3)
+
+    def test_quantity_more(self):
+        quantity = self.command.quantity(Money(25, 60), Money(102, 50))
+        self.assertEqual(quantity, 4)
+
+    def test_quantity_less_than_one(self):
+        quantity = self.command.quantity(Money(25, 60), Money(25, 40))
+        self.assertEqual(quantity, 0)
 
 
 class TestQUOTECommand(DatabaseTest):
@@ -139,7 +176,7 @@ class TestSELLCommand(DatabaseTest):
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
-        self.assertRaises(commands.NotEnoughStockAvailable, self.command.run,
+        self.assertRaises(commands.InsufficientStockError, self.command.run,
                 username='poor_user', stock_symbol='AAAA', amount=100000)
 
     def test_wrong_user_id(self):
@@ -215,6 +252,7 @@ class _TransactionCommandTest(object):
         )
         self.assertRaises(self.missing_exception,
                 self.command.run, username='poor_user')
+
 
 class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
     command = commands.COMMIT_BUYCommand()

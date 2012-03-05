@@ -17,8 +17,11 @@ class CommandError(Exception):
     def message(self):
         return self.user_message
 
-class InsufficientFundError(CommandError):
-    user_message = "error: insufficient fund\n"
+class InsufficientFundsError(CommandError):
+    user_message = "error: insufficient funds\n"
+
+class InsufficientStockError(CommandError):
+    user_message = 'error: insufficient stock quantity\n'
 
 class UnknownCommandError(CommandError):
     user_message = 'error: unknown command\n'
@@ -41,8 +44,11 @@ class ExpiredBuyTransactionError(CommandError):
 class ExpiredSellTransactionError(CommandError):
     user_message = 'error: SELL transaction has expired\n'
 
-class NotEnoughStockAvailable(CommandError):
-    user_message = 'error: not enough stock available\n'
+class BuyTransactionActiveError(CommandError):
+    user_message = 'error: a BUY transaction is already active\n'
+
+class SellTransactionActiveError(CommandError):
+    user_message = 'error: a SELL transaction is already active\n'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
@@ -133,27 +139,34 @@ class BUYCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
+        if session.query(Transaction).filter_by(user=user, operation='BUY').count() > 0:
+            raise BuyTransactionActiveError()
+
         # Getting stock quote
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
 
-        # Assume quantity returned Q
+        # Work out quantity of stock to buy, fail if not enough for one stock
         amount = Money.from_string(amount)
-        Q = self.quantity(quote, amount)
-        if(Q == 0):
-            raise InsufficientFundError() 
+        quantity = self.quantity(quote, amount)
+        if quantity == 0:
+            raise InsufficientFundsError()
 
-        transaction = Transaction(user=user, quantity=Q, operation='BUY', 
+        price = quantity * quote
+        if user.account_balance < price:
+            raise InsufficientFundsError()
+
+        transaction = Transaction(user=user, quantity=quantity, operation='BUY', 
                 stock_symbol='AAAA', stock_value=quote, committed=False)
         session.add(transaction)
         session.commit()
-        return ','.join([str(quote), str(Q), str(quote * Q)])
+        return ','.join([str(quote), str(quantity), str(quote * quantity)])
 
     def quantity(self, price, amount):
         q = 0
         while(True):
             amount = amount - price
-            if((amount.dollars < 0) or (amount.cents < 0)):
+            if (amount.dollars < 0) or (amount.cents < 0):
                 break
             else:
                 q += 1
@@ -238,13 +251,13 @@ class SELLCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
-        #see if the user owns the requested stock and has enough for request                      
+        # see if the user owns the requested stock and has enough for request
         record = session.query(StockPurchase).filter_by(
                 username=user.username, stock_symbol=stock_symbol).first()
         if not record:
             raise InvalidInputError("user doesn't own this stock")
         elif record.quantity < amount:
-            raise NotEnoughStockAvailable()
+            raise InsufficientStockError()
 
 
         #set up client to get quote
@@ -252,9 +265,9 @@ class SELLCommand(CommandHandler):
         quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
 
         # make transaction
-        self.trans = Transaction(username=user.username, stock_symbol=stock_symbol,
-            operation='SELL', committed=False, quantity=amount,
-            stock_value=quoted_stock_value)
+        self.trans = Transaction(username=user.username, 
+                stock_symbol=stock_symbol, operation='SELL', committed=False, 
+                quantity=amount, stock_value=quoted_stock_value)
 
         # commit transaction after all actions for atomicity
         session.add(self.trans)
