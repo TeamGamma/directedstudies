@@ -192,6 +192,8 @@ class COMMIT_BUYCommand(CommandHandler):
             raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
+            session.delete(transaction)
+            session.commit()
             raise ExpiredBuyTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
@@ -229,9 +231,6 @@ class CANCEL_BUYCommand(CommandHandler):
         ).first()
         if not transaction:
             raise NoBuyTransactionError(username)
-
-        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredBuyTransactionError(username)
 
         session.delete(transaction)
         session.commit()
@@ -300,6 +299,8 @@ class COMMIT_SELLCommand(CommandHandler):
             raise NoSellTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
+            session.delete(transaction)
+            session.commit()
             raise ExpiredSellTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
@@ -327,14 +328,12 @@ class CANCEL_SELLCommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
+
         transaction = session.query(Transaction).filter_by(
             username=user.username, operation='SELL', committed=False
         ).first()
         if not transaction:
             raise NoSellTransactionError(username)
-
-        if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            raise ExpiredSellTransactionError(username)
 
         session.delete(transaction)
         session.commit()

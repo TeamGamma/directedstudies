@@ -271,18 +271,23 @@ class _TransactionCommandTest(object):
         self.assertRaises(self.missing_exception,
                 self.command.run, username='poor_user')
 
-    def test_expired_transaction(self):
-        """ Should return error message if user has no valid transactions """
+    def test_expired_transaction_remove(self):
+        """ Should delete the transaction if user's transaction has expired """
 
         # Expired transaction record for user 1
-        self.add_all(
-            Transaction(username='poor_user', stock_symbol='AAAA',
-                operation=self.operation, committed=False, quantity=1,
-                stock_value=Money(10, 54),
-                creation_time=datetime.now() - timedelta(seconds=61)),
-        )
-        self.assertRaises(self.expired_exception,
-                self.command.run, username='poor_user')
+        trans = Transaction(username='poor_user', stock_symbol='AAAA',
+            operation=self.operation, committed=False, quantity=1,
+            stock_value=Money(10, 54),
+            creation_time=datetime.now() - timedelta(seconds=61))
+        self.add_all(trans)
+        trans_id = trans.id
+
+        try:
+            self.command.run(username='poor_user')
+        except self.expired_exception:
+            pass
+        count = self.session.query(Transaction).filter_by(id=trans_id).count()
+        self.assertEqual(count, 0, "Expired transaction not removed")
 
     def test_other_transaction_only(self):
         """ Should return error message if user has only the other type of
@@ -341,6 +346,20 @@ class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
         # 10 original stocks + 2 new
         self.assertEqual(stock.quantity, 12, "Number of stocks is wrong")
 
+    def test_expired_transaction(self):
+        """ Should return error message if user's transaction has expired """
+
+        # Expired transaction record for user 1
+        self.add_all(
+            Transaction(username='poor_user', stock_symbol='AAAA',
+                operation=self.operation, committed=False, quantity=1,
+                stock_value=Money(10, 54),
+                creation_time=datetime.now() - timedelta(seconds=61)),
+        )
+        self.assertRaises(self.expired_exception,
+                self.command.run, username='poor_user')
+
+
 
 class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
     command = commands.COMMIT_SELLCommand()
@@ -387,6 +406,19 @@ class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
         self.assertNotEqual(stock, None)
         # 10 original stocks - 2
         self.assertEqual(stock.quantity, 8)
+
+    def test_expired_transaction(self):
+        """ Should return error message if user's transaction has expired """
+
+        # Expired transaction record for user 1
+        self.add_all(
+            Transaction(username='poor_user', stock_symbol='AAAA',
+                operation=self.operation, committed=False, quantity=1,
+                stock_value=Money(10, 54),
+                creation_time=datetime.now() - timedelta(seconds=61)),
+        )
+        self.assertRaises(self.expired_exception,
+                self.command.run, username='poor_user')
 
 
 class TestCANCEL_BUYCommand(_TransactionCommandTest, DatabaseTest):

@@ -50,6 +50,7 @@ class DatabaseTest(unittest.TestCase):
         for obj in objs:
             self.session.add(obj)
         self.session.commit()
+        return objs
 
     def _user_fixture(self):
         """ Inserts user rows into the test database """
