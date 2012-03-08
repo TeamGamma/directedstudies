@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions import commands
-from sps.database.models import User, Money, Transaction, StockPurchase
+from sps.database.models import User, Money, Transaction, StockPurchase, SetTransaction
 from sps.quotes import client
 
 class TestADDCommand(DatabaseTest):
@@ -43,32 +43,32 @@ class TestBUYCommand(DatabaseTest):
 
         # Set the quote client to a dummy that returns predictable results
         client._QUOTE_CLIENT = client.DummyQuoteClient({
-            'AAAA': Money(23, 45),
+            'ABAB': Money(23, 45),
             'BBBB': Money(85, 39),
         })
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
         self.assertRaises(commands.UserNotFoundError,
-                self.command.run, username='unicorn', stock_symbol='AAAA',
+                self.command.run, username='unicorn', stock_symbol='ABAB',
                 amount='30')
 
     def test_insufficient_funds(self):
         """ Should return an error message if insufficient funds for one stock """
         self.assertRaises(commands.InsufficientFundsError,
-                self.command.run, username='poor_user', stock_symbol='AAAA',
+                self.command.run, username='poor_user', stock_symbol='ABAB',
                 amount='2')
 
     def test_insufficient_user_funds(self):
         """ Should return an error message if insufficient account balance """
         self.assertRaises(commands.InsufficientFundsError,
-                self.command.run, username='poor_user', stock_symbol='AAAA',
+                self.command.run, username='poor_user', stock_symbol='ABAB',
                 amount='23.45')
 
     def test_return_value(self):
         """ Should return quoted stock value, quantity to be purchased, and
         total price """
-        retval = self.command.run(username='rich_user', stock_symbol='AAAA',
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='60')
         self.assertEqual(retval, '23.45,2,46.90')
 
@@ -82,28 +82,28 @@ class TestBUYCommand(DatabaseTest):
                 creation_time=datetime.now() - timedelta(seconds=30)),
         )
         self.assertRaises(commands.BuyTransactionActiveError,
-                self.command.run, username='rich_user', stock_symbol='AAAA',
+                self.command.run, username='rich_user', stock_symbol='ABAB',
                 amount='60')
 
     def test_no_multiple_buy_transaction(self):
         """ Should not return an error message if an committed buy transaction
         exists """
         self.add_all(
-            Transaction(username='rich_user', stock_symbol='AAAA',
+            Transaction(username='rich_user', stock_symbol='ABAB',
                 operation='BUY', committed=True, quantity=2,
                 stock_value=Money(23, 45),
                 creation_time=datetime.now() - timedelta(seconds=30)),
         )
-        self.command.run(username='rich_user', stock_symbol='AAAA',
+        self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='60')
 
     def test_postcondition_buy(self):
         """ Uncommitted Transaction is created """
-        self.command.run(username='rich_user', stock_symbol='AAAA',
+        self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='23.45')
         transaction = self.session.query(Transaction).filter_by(
                 username='rich_user',
-                stock_symbol='AAAA', 
+                stock_symbol='ABAB', 
                 committed=False,
                 quantity=1,
                 operation='BUY').first()
@@ -141,67 +141,67 @@ class TestSELLCommand(DatabaseTest):
 
         # Set the quote client to a dummy that returns predictable results
         client._QUOTE_CLIENT = client.DummyQuoteClient({
-            'AAAA': Money(23, 45),
+            'ABAB': Money(23, 45),
             'BBBB': Money(85, 39),
         })
 
         self.add_all(
-            # Give 'rich_user' 10 units of 'AAAA' stock
-            StockPurchase(username='rich_user', stock_symbol='AAAA', quantity=10),
+            # Give 'rich_user' 10 units of 'ABAB' stock
+            StockPurchase(username='rich_user', stock_symbol='ABAB', quantity=10),
         )
 
 
     def test_successful_return_value(self):
         """ tests to see if normal transaction returns success
             and check to see if the amounts are successfully modified"""
-        retval = self.command.run(username='rich_user', stock_symbol='AAAA',
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='5')
         self.assertEqual(retval, 'success')
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
         self.assertRaises(commands.InsufficientStockError, self.command.run,
-                username='rich_user', stock_symbol='AAAA', amount='100000')
+                username='rich_user', stock_symbol='ABAB', amount='100000')
         self.assertRaises(commands.InsufficientStockError, self.command.run,
-                username='poor_user', stock_symbol='AAAA', amount='100000')
+                username='poor_user', stock_symbol='ABAB', amount='100000')
 
     def test_wrong_user_id(self):
         """ tests to see if we have the wrong user id """
         self.assertRaises(commands.UserNotFoundError, self.command.run,
-                username='garbage', stock_symbol='AAAA', amount='5')
+                username='garbage', stock_symbol='ABAB', amount='5')
 
     def test_multiple_sell_transaction(self):
         """ Should return an error message if an uncommitted sell transaction
         already exists """
         self.add_all(
-            Transaction(username='rich_user', stock_symbol='AAAA',
+            Transaction(username='rich_user', stock_symbol='ABAB',
                 operation='SELL', committed=False, quantity=8,
                 stock_value=Money(23, 45),
                 creation_time=datetime.now() - timedelta(seconds=30)),
         )
         self.assertRaises(commands.SellTransactionActiveError,
-                self.command.run, username='rich_user', stock_symbol='AAAA',
+                self.command.run, username='rich_user', stock_symbol='ABAB',
                 amount='5')
 
     def test_no_multiple_sell_transaction(self):
         """ Should not return an error message if an committed sell transaction
         exists """
         self.add_all(
-            Transaction(username='rich_user', stock_symbol='AAAA',
+            Transaction(username='rich_user', stock_symbol='ABAB',
                 operation='SELL', committed=True, quantity=8,
                 stock_value=Money(23, 45),
                 creation_time=datetime.now() - timedelta(seconds=30)),
         )
-        self.command.run(username='rich_user', stock_symbol='AAAA',
+        self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='5')
 
     def test_postcondition_sell(self):
         """ Uncommitted Transaction is created """
-        self.command.run(username='rich_user', stock_symbol='AAAA',
+        self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='5')
         transaction = self.session.query(Transaction).filter_by(
                 username='rich_user',
-                stock_symbol='AAAA', 
+                stock_symbol='ABAB', 
                 committed=False,
                 quantity=5,
                 operation='SELL').one()
@@ -216,7 +216,7 @@ class TestQUOTECommand(DatabaseTest):
 
     def test_return_value(self):
         """ Should return a decimal value for the stock price """
-        retval = self.command.run(username='poor_user', stock_symbol='AAAA')
+        retval = self.command.run(username='poor_user', stock_symbol='ABAB')
         self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]')
 
     def test_nonexistent_user(self):
@@ -264,7 +264,7 @@ class _TransactionCommandTest(object):
 
         # Committed transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='AAAA',
+            Transaction(username='poor_user', stock_symbol='ABAB',
                 operation=self.operation, committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
@@ -275,7 +275,7 @@ class _TransactionCommandTest(object):
         """ Should delete the transaction if user's transaction has expired """
 
         # Expired transaction record for user 1
-        trans = Transaction(username='poor_user', stock_symbol='AAAA',
+        trans = Transaction(username='poor_user', stock_symbol='ABAB',
             operation=self.operation, committed=False, quantity=1,
             stock_value=Money(10, 54),
             creation_time=datetime.now() - timedelta(seconds=61))
@@ -296,7 +296,7 @@ class _TransactionCommandTest(object):
 
         # other transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='AAAA',
+            Transaction(username='poor_user', stock_symbol='ABAB',
                 operation=other, committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
@@ -313,7 +313,7 @@ class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
-        self.transaction = Transaction(username='rich_user', stock_symbol='AAAA',
+        self.transaction = Transaction(username='rich_user', stock_symbol='ABAB',
             operation='BUY', committed=False, quantity=2,
             stock_value=Money(10, 40))
         self.add_all(self.transaction)
@@ -335,12 +335,12 @@ class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
         the total quantity of the stock the user owns. """
 
         # Existing stock owned by user 2
-        stock = StockPurchase(username='rich_user', stock_symbol='AAAA', quantity=10)
+        stock = StockPurchase(username='rich_user', stock_symbol='ABAB', quantity=10)
         self.add_all(stock)
 
         self.command.run(username='rich_user')
         stock = self.session.query(StockPurchase).filter_by(
-                username='rich_user', stock_symbol='AAAA').one()
+                username='rich_user', stock_symbol='ABAB').one()
 
         self.assertNotEqual(stock, None)
         # 10 original stocks + 2 new
@@ -351,7 +351,7 @@ class TestCOMMIT_BUYCommand(_TransactionCommandTest, DatabaseTest):
 
         # Expired transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='AAAA',
+            Transaction(username='poor_user', stock_symbol='ABAB',
                 operation=self.operation, committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.now() - timedelta(seconds=61)),
@@ -373,12 +373,12 @@ class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
         self.command = commands.COMMIT_SELLCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
-        self.trans = Transaction(username='rich_user', stock_symbol='AAAA',
+        self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
             operation='SELL', committed=False, quantity=2,
             stock_value=Money(10, 40))
 
         # Existing stock owned by user 2
-        self.stock = StockPurchase(username='rich_user', stock_symbol='AAAA', quantity=10)
+        self.stock = StockPurchase(username='rich_user', stock_symbol='ABAB', quantity=10)
 
         self.session.add_all([self.trans, self.stock])
         self.session.commit()
@@ -401,7 +401,7 @@ class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
 
         self.command.run(username='rich_user')
         stock = self.session.query(StockPurchase).filter_by(
-                username='rich_user', stock_symbol='AAAA').one()
+                username='rich_user', stock_symbol='ABAB').one()
 
         self.assertNotEqual(stock, None)
         # 10 original stocks - 2
@@ -412,7 +412,7 @@ class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
 
         # Expired transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='AAAA',
+            Transaction(username='poor_user', stock_symbol='ABAB',
                 operation=self.operation, committed=False, quantity=1,
                 stock_value=Money(10, 54),
                 creation_time=datetime.now() - timedelta(seconds=61)),
@@ -433,7 +433,7 @@ class TestCANCEL_BUYCommand(_TransactionCommandTest, DatabaseTest):
         self.command = commands.CANCEL_BUYCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
-        self.trans = Transaction(username='rich_user', stock_symbol='AAAA',
+        self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
             operation='BUY', committed=False, quantity=2,
             stock_value=Money(10, 40))
 
@@ -460,7 +460,7 @@ class TestCANCEL_SELLCommand(_TransactionCommandTest, DatabaseTest):
         self.command = commands.CANCEL_SELLCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
-        self.trans = Transaction(username='rich_user', stock_symbol='AAAA',
+        self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
             operation='SELL', committed=False, quantity=2,
             stock_value=Money(10, 40))
 
@@ -473,4 +473,108 @@ class TestCANCEL_SELLCommand(_TransactionCommandTest, DatabaseTest):
         # Assume there's no committed / expired transactions
         transaction = self.session.query(Transaction).first()
         self.assertEqual(transaction, None)
+
+
+
+
+
+
+
+
+
+
+class TestSET_BUY_AMOUNTCommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self._user_fixture()
+        self.command = commands.SET_BUY_AMOUNTCommand()
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError,
+                self.command.run, username='unicorn', stock_symbol='ABAB',
+                amount='30')
+
+    def test_insufficient_user_funds(self):
+        """ Should return an error message if insufficient account balance """
+        self.assertRaises(commands.InsufficientFundsError,
+                self.command.run, username='poor_user', stock_symbol='ABAB',
+                amount='23.45')
+
+    def test_return_value(self):
+        """ Should return success """
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB',
+                amount='23.45')
+        self.assertEqual(retval, 'success')
+
+    def test_postcondition_transaction(self):
+        """ Inactive SetTransaction is created with the given username,
+        operation, stock, and amount """
+        self.command.run(username='rich_user', stock_symbol='ABAB',
+                amount='23.45')
+        set_transaction = self.session.query(SetTransaction).filter_by(
+                username='rich_user',
+                stock_symbol='ABAB', 
+                active=False,
+                operation='BUY').first()
+        self.assertNotEqual(set_transaction, None)
+        self.assertEqual(set_transaction.amount, Money(23, 45))
+
+    def test_postcondition_reserve(self):
+        """ The required amount is transferred to the user's reserve account """
+        self.command.run(username='rich_user', stock_symbol='ABAB',
+                amount='23.45')
+        user = self.session.query(User) \
+            .filter_by(username='rich_user').first()
+        # $100.50 - 23.45 = $77.05
+        self.assertEqual(user.account_balance, Money(77, 05))
+        self.assertEqual(user.reserve_balance, Money(23, 45))
+
+
+
+class TestSET_SELL_AMOUNT(DatabaseTest):      
+    def setUp(self):
+        # set up the database as inherited from DatabaseTest
+        DatabaseTest.setUp(self)
+        # call user fixture to populate the database (from DatabaseTest)
+        self._user_fixture()
+        #associate the sell command
+        self.command = commands.SET_SELL_AMOUNTCommand()
+
+        self.add_all(
+            # Give 'rich_user' 10 units of 'ABAB' stock
+            StockPurchase(username='rich_user', stock_symbol='ABAB', quantity=10),
+        )
+
+    def test_successful_return_value(self):
+        """ tests to see if normal transaction returns success
+            and check to see if the amounts are successfully modified"""
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB',
+                quantity='1')
+        self.assertEqual(retval, 'success')
+
+    def test_too_little_stock_to_sell(self):
+        """ tests to see if returns error when requested to sell too much"""
+        self.assertRaises(commands.InsufficientStockError, self.command.run,
+                username='rich_user', stock_symbol='ABAB', quantity='100000')
+        self.assertRaises(commands.InsufficientStockError, self.command.run,
+                username='poor_user', stock_symbol='ABAB', quantity='1')
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError, self.command.run, 
+                username='garbage', stock_symbol='ABAB', quantity='1')
+
+    def test_postcondition_transaction(self):
+        """ Inactive SetTransaction is created with the given username,
+        operation, stock, and quantity """
+        self.command.run(username='rich_user', stock_symbol='ABAB',
+                quantity='2')
+        set_transaction = self.session.query(SetTransaction).filter_by(
+                username='rich_user',
+                stock_symbol='ABAB', 
+                active=False,
+                quantity=2,
+                operation='SELL').first()
+        self.assertNotEqual(set_transaction, None)
 

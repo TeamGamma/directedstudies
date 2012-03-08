@@ -2,7 +2,7 @@
 This file contains the implementations for all transaction server commands.
 """
 from sps.database.session import get_session
-from sps.database.models import User, Money, Transaction, StockPurchase
+from sps.database.models import User, Money, Transaction, StockPurchase, SetTransaction
 from sps.quotes.client import get_quote_client
 from sps.config import config
 from datetime import datetime
@@ -159,7 +159,7 @@ class BUYCommand(CommandHandler):
             raise InsufficientFundsError()
 
         transaction = Transaction(user=user, quantity=quantity, operation='BUY', 
-                stock_symbol='AAAA', stock_value=quote, committed=False)
+                stock_symbol=stock_symbol, stock_value=quote, committed=False)
         session.add(transaction)
         session.commit()
         return ','.join([str(quote), str(quantity), str(quote * quantity)])
@@ -347,6 +347,60 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
     price is less than or equal to the BUY_TRIGGER
     """
     def run(self, username, stock_symbol, amount):
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        # Work out quantity of stock to buy, fail if user has insufficient funds
+        amount = Money.from_string(amount)
+        if user.account_balance < amount:
+            raise InsufficientFundsError()
+
+        # Create inactive SetTransaction
+        set_transaction = SetTransaction(user=user, amount=amount,
+                operation='BUY', stock_symbol=stock_symbol, active=False)
+        session.add(set_transaction)
+
+        user.account_balance = user.account_balance - amount
+        user.reserve_balance += amount
+
+        session.commit()
+
+        return 'success'
+
+
+
+class SET_SELL_AMOUNTCommand(CommandHandler):
+    """
+    Sets a defined amount of the specified stock to sell when the current stock
+    price is equal or greater than the sell trigger point
+    """
+    def run(self, username, stock_symbol, quantity):
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        quantity = int(quantity)
+
+        # see if the user owns the requested stock and has enough for request
+        records = session.query(StockPurchase).filter_by(
+                username=user.username, stock_symbol=stock_symbol).all()
+
+        if(len(records) > 1):
+            raise UnknownCommandError('Multiple StockPurchase for user %s: %d', 
+                    username, len(records))
+        if len(records) == 0 or records[0].quantity < quantity:
+            raise InsufficientStockError()
+
+        # Create inactive SetTransaction
+        set_transaction = SetTransaction(user=user, quantity=quantity,
+                operation='SELL', stock_symbol=stock_symbol, active=False)
+        session.add(set_transaction)
+
+        session.commit()
+
         return 'success'
 
 
@@ -362,15 +416,6 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     """
     Sets the trigger point base on the current stock price when any SET_BUY
     will execute.
-    """
-    def run(self, username, stock_symbol, amount):
-        return 'success'
-
-
-class SET_SELL_AMOUNTCommand(CommandHandler):
-    """
-    Sets a defined amount of the specified stock to sell when the current stock
-    price is equal or greater than the sell trigger point
     """
     def run(self, username, stock_symbol, amount):
         return 'success'
