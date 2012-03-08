@@ -1,15 +1,15 @@
 <VirtualHost *:80>
 	ServerAdmin webmaster@localhost
 
-	DocumentRoot /srv/www
-	ErrorLog /srv/www/logs/error.log
-	CustomLog /srv/www/logs/access.log combined
+	DocumentRoot /srv/directedstudies
+	ErrorLog /srv/directedstudies/logs/error.log
+	CustomLog /srv/directedstudies/logs/access.log combined
 	LogLevel warn
 
 	WSGIScriptAlias / /srv/directedstudies/sps/web/app.wsgi
 
-	Alias /robots.txt /srv/www/robots.txt
-	Alias /favicon.ico /srv/www/favicon.ico
-	Alias /images /srv/www/images
-	Alias /static /srv/www/static
+	Alias /robots.txt /srv/directedstudies/robots.txt
+	Alias /favicon.ico /srv/directedstudies/favicon.ico
+	Alias /images /srv/directedstudies/images
+	Alias /static /srv/directedstudies/static
 </VirtualHost>
