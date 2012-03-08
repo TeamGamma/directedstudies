@@ -21,7 +21,7 @@ env.user = 'vagrant'
 env.password = 'vagrant'
 # add remote host addresses here
 env.hosts = ['142.104.215.106:2222']
-
+env.always_use_pty = False
 github_repo_address = 'git://github.com/TeamGamma/directedstudies.git'
 
 
@@ -46,7 +46,7 @@ def deploy(server_type='web'):
             sudo('git pull')
         #python goodies
         sudo('pip install -r directedstudies/requirements.txt')
-        sudo('pip install eventlet sql-alchemy')
+        sudo('pip install eventlet sqlalchemy')
     
     run('cd /srv/directedstudies')
 
@@ -67,10 +67,7 @@ def deploy(server_type='web'):
         #configure our libraries to act as packages?
         with cd('/srv/directedstudies/'):
             sudo('python setup.py develop')
-        
-        #navigate to server and run it. nice and easy right?
-        with cd('/srv/directedstudies/sps/transactions/'):
-            sudo('python server.py')
+            sudo('nohup fab tserver &> transaction_log.txt &')
 
     elif server_type == 'database':
         #start the database server
