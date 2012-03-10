@@ -9,7 +9,7 @@ The fabric file will set up and launch the appropriate server
 
 #The first thing we do is import the fabric libraries
 from __future__ import with_statement
-from fabric.api import env, settings, roles
+from fabric.api import env, settings, roles, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists
@@ -36,6 +36,20 @@ def blank():
     """ Used for testing fabric configuration """
     pass
 
+
+def deploy_all():
+    """ Deploys all servers """
+    execute(deploy_db)
+    execute(deploy_transaction)
+    execute(deploy_web)
+
+def update():
+    """ Updates code and restarts all servers """
+    execute(update_code)
+    execute(restart_transaction_server)
+    execute(restart_web_server)
+
+
 @roles('web', 'db', 'transaction')
 def deploy_base():
     """
@@ -60,9 +74,11 @@ def deploy_base():
         with cd('/srv/directedstudies/'):
             sudo('git pull')
 
-            #python goodies
+            # Install newer pip version since Ubuntu ships with broken one
+            sudo('pip install --upgrade pip')
+
+            # Install python libs
             sudo('pip install -r requirements.txt')
-            sudo('pip install eventlet sqlalchemy')
 
 
 @roles('web')
@@ -106,9 +122,8 @@ def deploy_db():
     sudo('echo "CREATE DATABASE IF NOT EXISTS sps;" | mysql -h127.0.0.1 -uroot -proot')
 
     with cd('/srv/directedstudies/'):
-        with hide('stdout'):
-            #use rob's local fabfile to deal with setting up the tables
-            sudo('fab setup_database')
+        #use rob's local fabfile to deal with setting up the tables
+        sudo('fab setup_database')
 
 
 @roles('transaction')
@@ -121,5 +136,28 @@ def deploy_transaction():
         with settings(warn_only=True): 
             run('supervisord -c supervisord.conf')
             run('supervisorctl restart tserver')
+
+
+@roles('transaction', 'web', 'db')
+def update_code():
+    """ Updates the code on all servers from GitHub """
+    with cd('/srv/directedstudies'):
+        sudo('git pull')
+
+@roles('transaction')
+def restart_transaction_server():
+    """ Restarts the transaction server """
+    with cd('/srv/directedstudies'):
+        run('supervisorctl restart tserver')
+
+@roles('web')
+def restart_web_server():
+    """ Restarts the web server """
+    sudo('service apache2 restart')
+
+@roles('db')
+def restart_db():
+    """ Restarts the database server """
+    sudo('service mysql restart')
 
 

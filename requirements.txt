@@ -1,9 +1,10 @@
 Flask==0.8
 Jinja2==2.6
-SQLAlchemy==0.7.4
 Werkzeug==0.8.2
 supervisor==3.0a12
 greenlet==0.3.4
 nose==1.1.2
 ipython==0.12
 unittest2==0.5.1
+eventlet==0.9.16
+SQLAlchemy==0.7.5
