@@ -7,8 +7,8 @@ Transactions = ElementMaker.transactions
 Transaction = ElementMaker.transaction
 Triggers = ElementMaker.triggers
 Trigger = ElementMaker.trigger
-AccountBalance = ElementMaker.accountbalance
-ReserveAccount = ElementMaker.reserveraccount
+AccountBalance = ElementMaker.account_balance
+ReserveAccount = ElementMaker.reserve_account
 
 class QuoteResponse():
     def __init__(self, value):
@@ -16,7 +16,7 @@ class QuoteResponse():
 
     def __str__(self):
         Quote = ElementMaker.quote
-        xml = Response(Quote(self.value), contents='quote')
+        xml = Response(Quote(str(self.value)), contents='quote')
         return etree.tostring(xml)
 
 class Error():
@@ -44,22 +44,10 @@ class Dumplog():
 
     def __str__(self):
         xml = Response(Transactions(
-            *[
-            Transaction(
-                id=str(t.id),
-                username=t.username,
-                user=t.user,
-                stock_symbol=t.stock_symbol,
-                operation=t.operation,
-                quantity=t.quantity,
-                stock_value=t.stock_value,
-                committed=t.committed,
-                creation_time=t.creation_time
-            )
-            for t in self.transactions
-            ]
+            *[transaction_element(t) for t in self.transactions]
         ))
         return etree.tostring(xml, pretty_print=True)
+
 
 class Summary():
     def __init__(self, transactions, triggers,
@@ -70,47 +58,43 @@ class Summary():
         self.reserve_balance = reserve_balance
 
     def __str__(self):
-        xml = Response(Transactions(
-            *[
-            Transaction(
-                id=str(t.id),
-                username=t.username,
-                user=t.user,
-                stock_symbol=t.stock_symbol,
-                operation=t.operation,
-                quantity=t.quantity,
-                stock_value=t.stock_value,
-                committed=t.committed,
-                creation_time=t.creation_time
-            )
-            for t in self.transactions
-            ]
-        ),
-                    Triggers(
-            *[
-            Trigger(
-                id=str(t.id),
-                username=t.username,
-                user=t.user,
-                stock_symbol=t.stock_symbol,
-                stock_value=t.stock_value,
-                operation=t.operation,
-                quantity=t.quantity,
-                creation_time=t.creation_time
-            )
-            for t in self.triggers
-            ]
-        ),
-                    AccountBalance(
-            self.account_balance
-        ),
-                    ReserveAccount(
-            self.reserve_account
-        )
+        xml = Response(
+            Transactions(
+                *[transaction_element(t) for t in self.transactions]
+            ),
+            Triggers(
+                *[trigger_element(t) for t in self.triggers]
+            ),
+            AccountBalance(str(self.account_balance)),
+            ReserveAccount(str(self.reserve_balance))
         )
         return etree.tostring(xml, pretty_print=True)
 
 
+def transaction_element(t):
+    """ Converts a Transaction to an XML element class """
+    return Transaction(
+        id=str(t.id),
+        username=t.username,
+        stock_symbol=t.stock_symbol,
+        operation=t.operation,
+        quantity=str(t.quantity),
+        stock_value=str(t.stock_value),
+        committed=str(t.committed),
+        creation_time=str(t.creation_time)
+    )
 
+def trigger_element(t):
+    """ Converts a SetTransaction to an XML element class """
+    return Trigger(
+        id=str(t.id),
+        username=t.username,
+        stock_symbol=t.stock_symbol,
+        trigger_value=str(t.trigger_value),
+        amount=str(t.amount),
+        quantity=str(t.quantity),
+        active=str(t.active),
+        operation=t.operation,
+    )
 
 
