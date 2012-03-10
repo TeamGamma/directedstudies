@@ -175,17 +175,23 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     """
     __tablename__ = 'set_transactions'
 
-    # Stock value is the value of a single stock, not the total
-    _stock_value_dollars = Column(Integer, default=0)
-    _stock_value_cents = Column(Integer, default=0)
+    # Trigger value to sell the stock at
+    _trigger_value_dollars = Column(Integer, default=0)
+    _trigger_value_cents = Column(Integer, default=0)
+
+    # Dollar value of the stock to buy or sell
+    _amount_dollars = Column(Integer, default=0)
+    _amount_cents = Column(Integer, default=0)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('set_transactions'))
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
-    stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
+    trigger_value = composite(Money, _trigger_value_dollars, _trigger_value_cents)
+    amount = composite(Money, _amount_dollars, _amount_cents)
+    quantity = Column(Integer, default=0, nullable=False)
+    active = Column(Boolean, nullable=False)
     operation = Column(String(3), nullable=False)
-    quantity = Column(Integer, nullable=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())

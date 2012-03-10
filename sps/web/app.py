@@ -1,14 +1,18 @@
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
+import logging
 from sps.config import config
 
 import transaction_interface
 
 app = Flask(__name__)
 
+log = logging.getLogger(__name__)
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():
+    log.debug('Request for /: %s', request.form)
+
     if request.method == "POST":
 
         trans_server_message = checkentry( 
@@ -23,10 +27,14 @@ def hello():
 
         if trans_server_message != False:
 
+            log.info('Sending to transaction server: ', repr(trans_server_message))
+
             response = transaction_interface.send(
                     config.TRANSACTION_SERVER_HOST, 
                     config.TRANSACTION_SERVER_PORT, 
                     trans_server_message)
+
+            log.info('Received from transaction server: ', repr(response))
 
             return  (""" 
                             Hi                      %s ! <br><br>

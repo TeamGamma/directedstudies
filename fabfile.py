@@ -19,12 +19,6 @@ env.hosts = []
 lib_path = path.abspath(path.dirname(__file__))
 sys.path.insert(0, lib_path)
 
-def tserver(port=6000, autoreload=True):
-    """ Run transaction server in development mode """
-    from sps.transactions.server import run_server
-    run_server(int(port), autoreload)
-
-
 # TODO: run from separate script files so that we can execute on the server
 def create_tables():
     """ Creates all database tables. Will fail if tables already exist. """
