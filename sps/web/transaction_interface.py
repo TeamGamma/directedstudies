@@ -14,6 +14,5 @@ def send(HOST, PORT, message):
     confirmation_msg = s.makefile().readline()
     s.close()
 
-    print 'Received', repr(confirmation_msg)
     return confirmation_msg
 

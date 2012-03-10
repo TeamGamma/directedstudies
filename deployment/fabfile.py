@@ -74,7 +74,8 @@ def deploy_web():
     put(join(fabdir, 'config/apache/wsgi_configuration'),
         '/etc/apache2/sites-available/wsgi_configuration', use_sudo=True)
 
-    #create a link to the enabled directory
+    # create a link to the site config and delete default site config
+    sudo('rm -f /etc/apache2/sites-enabled/*default')
     sudo('ln -s -f /etc/apache2/sites-available/wsgi_configuration /etc/apache2/sites-enabled/wsgi_configuration_link')
 
     # Make log directory to prevent startup error

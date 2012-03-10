@@ -16,9 +16,12 @@ class TransactionServer(object):
         self.address = address
 
         self.server = eventlet.listen(address)
+        log.debug('Listening on %s', address)
+
         self.pool = eventlet.GreenPool()
 
     def start(self):
+        log.debug('Starting server')
         eventlet.serve(self.server, self.handle_connection)
 
     def handle_connection(self, client, address):
