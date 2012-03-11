@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions import commands
 from sps.database.models import User, Money, Transaction, StockPurchase, SetTransaction
+from sps.transactions import xml
 from sps.quotes import client
 
 class TestADDCommand(DatabaseTest):
@@ -13,7 +14,8 @@ class TestADDCommand(DatabaseTest):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='poor_user', amount='100')
-        self.assertEqual(retval, 'success')
+        self.assertIsInstance(retval, xml.Result)
+        self.assertEqual(retval.message, "success")
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -156,7 +158,8 @@ class TestSELLCommand(DatabaseTest):
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='5')
-        self.assertEqual(retval, 'success')
+        self.assertIsInstance(retval, xml.Result)
+        self.assertEqual(retval.message, "success")
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
@@ -246,7 +249,8 @@ class _TransactionCommandTest(object):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='rich_user')
-        self.assertEqual(retval, 'success')
+        self.assertIsInstance(retval, xml.Result)
+        self.assertEqual(retval.message, "success")
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -505,7 +509,8 @@ class TestSET_BUY_AMOUNTCommand(DatabaseTest):
         """ Should return success """
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='23.45')
-        self.assertEqual(retval, 'success')
+        self.assertIsInstance(retval, xml.Result)
+        self.assertEqual(retval.message, "success")
 
     def test_postcondition_transaction(self):
         """ Inactive SetTransaction is created with the given username,
@@ -551,7 +556,8 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 quantity='1')
-        self.assertEqual(retval, 'success')
+        self.assertIsInstance(retval, xml.Result)
+        self.assertEqual(retval.message, "success")
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
