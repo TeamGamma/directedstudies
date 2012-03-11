@@ -109,7 +109,7 @@ class ADDCommand(CommandHandler):
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class QUOTECommand(CommandHandler):
@@ -215,7 +215,7 @@ class COMMIT_BUYCommand(CommandHandler):
 
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class CANCEL_BUYCommand(CommandHandler):
@@ -236,7 +236,7 @@ class CANCEL_BUYCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class SELLCommand(CommandHandler):
@@ -281,7 +281,7 @@ class SELLCommand(CommandHandler):
         session.add(self.trans)
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class COMMIT_SELLCommand(CommandHandler):
@@ -317,7 +317,7 @@ class COMMIT_SELLCommand(CommandHandler):
         transaction.committed = True
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class CANCEL_SELLCommand(CommandHandler):
@@ -339,7 +339,7 @@ class CANCEL_SELLCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class SET_BUY_AMOUNTCommand(CommandHandler):
@@ -368,7 +368,7 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
 
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 
@@ -402,7 +402,7 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
 
         session.commit()
 
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class CANCEL_SET_BUYCommand(CommandHandler):
@@ -410,7 +410,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     Cancels a SET_BUY command issued for the given stock
     """
     def run(self, username, stock_symbol):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class SET_BUY_TRIGGERCommand(CommandHandler):
@@ -419,7 +419,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     will execute.
     """
     def run(self, username, stock_symbol, amount):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class SET_SELL_TRIGGERCommand(CommandHandler):
@@ -428,7 +428,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
     associated with the given stock and user
     """
     def run(self, username, stock_symbol, amount):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class CANCEL_SET_SELLCommand(CommandHandler):
@@ -436,7 +436,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     Cancels the SET_SELL associated with the given stock and user
     """
     def run(self, username, stock_symbol):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class DUMPLOG_USERCommand(CommandHandler):
@@ -444,7 +444,7 @@ class DUMPLOG_USERCommand(CommandHandler):
     Print out the history of the users transactions to the user specified file
     """
     def run(self, username, filename):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class DUMPLOGCommand(CommandHandler):
@@ -453,7 +453,7 @@ class DUMPLOGCommand(CommandHandler):
     occurred in the system.
     """
     def run(self, filename):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 class DISPLAY_SUMMARYCommand(CommandHandler):
@@ -463,7 +463,7 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
     triggers and their parameters
     """
     def run(self, username):
-        return xml.Result('success')
+        return xml.ResultResponse('success')
 
 
 CommandHandler.register_command('ADD', ADDCommand)

@@ -2,6 +2,9 @@ from lxml import etree
 from lxml import objectify
 
 ElementMaker = objectify.ElementMaker(annotate=False)
+Quote = ElementMaker.quote
+Error = ElementMaker.error
+Result = ElementMaker.result
 Response = ElementMaker.response
 Transactions = ElementMaker.transactions
 Transaction = ElementMaker.transaction
@@ -11,34 +14,34 @@ AccountBalance = ElementMaker.account_balance
 ReserveAccount = ElementMaker.reserve_account
 
 class QuoteResponse():
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, quantity, price):
+        self.quantity = quantity
+        self.price = price
 
     def __str__(self):
-        Quote = ElementMaker.quote
-        xml = Response(Quote(str(self.value)), contents='quote')
+        xml = Response(
+            Quote(str(self.price), quantity=self.quantity),
+            contents='quote')
         return etree.tostring(xml)
 
-class Error():
+class ErrorResponse():
     def __init__(self, exception):
         self.exception = exception
 
     def __str__(self):
-        Error = ElementMaker.error
         xml = Response(Error(self.exception.message), contents='error')
         return etree.tostring(xml)
 
-class Result():
+class ResultResponse():
     def __init__(self, message):
         self.message = message
 
     def __str__(self):
-        Result = ElementMaker.result
         xml = Response(Result(self.message), contents='results')
         return etree.tostring(xml)
 
 
-class Dumplog():
+class DumplogResponse():
     def __init__(self, transactions):
         self.transactions = transactions
 
@@ -49,7 +52,7 @@ class Dumplog():
         return etree.tostring(xml, pretty_print=True)
 
 
-class Summary():
+class SummaryResponse():
     def __init__(self, transactions, triggers,
             account_balance, reserve_balance):
         self.transactions = transactions

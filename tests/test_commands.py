@@ -14,7 +14,7 @@ class TestADDCommand(DatabaseTest):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='poor_user', amount='100')
-        self.assertIsInstance(retval, xml.Result)
+        self.assertIsInstance(retval, xml.ResultResponse)
         self.assertEqual(retval.message, "success")
 
     def test_nonexistent_user(self):
@@ -158,7 +158,7 @@ class TestSELLCommand(DatabaseTest):
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='5')
-        self.assertIsInstance(retval, xml.Result)
+        self.assertIsInstance(retval, xml.ResultResponse)
         self.assertEqual(retval.message, "success")
 
     def test_too_little_stock_to_sell(self):
@@ -249,7 +249,7 @@ class _TransactionCommandTest(object):
     def test_return_value(self):
         """ Should return "success" """
         retval = self.command.run(username='rich_user')
-        self.assertIsInstance(retval, xml.Result)
+        self.assertIsInstance(retval, xml.ResultResponse)
         self.assertEqual(retval.message, "success")
 
     def test_nonexistent_user(self):
@@ -509,7 +509,7 @@ class TestSET_BUY_AMOUNTCommand(DatabaseTest):
         """ Should return success """
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='23.45')
-        self.assertIsInstance(retval, xml.Result)
+        self.assertIsInstance(retval, xml.ResultResponse)
         self.assertEqual(retval.message, "success")
 
     def test_postcondition_transaction(self):
@@ -556,7 +556,7 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
             and check to see if the amounts are successfully modified"""
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 quantity='1')
-        self.assertIsInstance(retval, xml.Result)
+        self.assertIsInstance(retval, xml.ResultResponse)
         self.assertEqual(retval.message, "success")
 
     def test_too_little_stock_to_sell(self):
