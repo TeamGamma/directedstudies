@@ -72,7 +72,9 @@ class TestBUYCommand(DatabaseTest):
         total price """
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='60')
-        self.assertEqual(retval, '23.45,2,46.90')
+        self.assertIsInstance(retval, xml.QuoteResponse)
+        self.assertEqual(retval.quantity, 2)
+        self.assertEqual(retval.price, Money(46, 90))
 
     def test_multiple_buy_transaction(self):
         """ Should return an error message if an uncommitted buy transaction
@@ -153,13 +155,15 @@ class TestSELLCommand(DatabaseTest):
         )
 
 
-    def test_successful_return_value(self):
-        """ tests to see if normal transaction returns success
-            and check to see if the amounts are successfully modified"""
+    def test_return_value(self):
+        """ Should return quoted stock value, quantity to be purchased, and
+        total price """
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
-                amount='5')
-        self.assertIsInstance(retval, xml.ResultResponse)
-        self.assertEqual(retval.message, "success")
+                amount='2')
+        self.assertIsInstance(retval, xml.QuoteResponse)
+        self.assertEqual(retval.quantity, 2)
+        self.assertEqual(retval.price, Money(46, 90))
+
 
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""

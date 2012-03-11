@@ -20,7 +20,7 @@ class QuoteResponse():
 
     def __str__(self):
         xml = Response(
-            Quote(str(self.price), quantity=self.quantity),
+            Quote(str(self.price), quantity=str(self.quantity)),
             contents='quote')
         return etree.tostring(xml)
 

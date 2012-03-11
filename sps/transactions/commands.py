@@ -155,7 +155,7 @@ class BUYCommand(CommandHandler):
         if quantity == 0:
             raise InsufficientFundsError()
 
-        price = quantity * quote
+        price = quote * quantity
         if user.account_balance < price:
             raise InsufficientFundsError()
 
@@ -163,7 +163,8 @@ class BUYCommand(CommandHandler):
                 stock_symbol=stock_symbol, stock_value=quote, committed=False)
         session.add(transaction)
         session.commit()
-        return ','.join([str(quote), str(quantity), str(quote * quantity)])
+
+        return xml.QuoteResponse(quantity=quantity, price=price)
 
     def quantity(self, price, amount):
         q = 0
@@ -271,6 +272,7 @@ class SELLCommand(CommandHandler):
         #set up client to get quote
         quote_client = get_quote_client()
         quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
+        price = quoted_stock_value * amount
 
         # make transaction
         self.trans = Transaction(username=user.username, 
@@ -281,7 +283,7 @@ class SELLCommand(CommandHandler):
         session.add(self.trans)
         session.commit()
 
-        return xml.ResultResponse('success')
+        return xml.QuoteResponse(quantity=amount, price=price)
 
 
 class COMMIT_SELLCommand(CommandHandler):
