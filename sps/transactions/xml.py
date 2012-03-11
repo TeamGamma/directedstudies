@@ -49,7 +49,7 @@ class DumplogResponse():
         xml = Response(Transactions(
             *[transaction_element(t) for t in self.transactions]
         ))
-        return etree.tostring(xml, pretty_print=True)
+        return etree.tostring(xml)
 
 
 class SummaryResponse():
@@ -71,7 +71,7 @@ class SummaryResponse():
             AccountBalance(str(self.account_balance)),
             ReserveAccount(str(self.reserve_balance))
         )
-        return etree.tostring(xml, pretty_print=True)
+        return etree.tostring(xml)
 
 
 def transaction_element(t):

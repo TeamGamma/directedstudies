@@ -8,6 +8,7 @@ eventlet.patcher.monkey_patch()
 import logging
 
 from sps.transactions.commands import CommandHandler, CommandError
+from sps.transactions import xml
 
 log = logging.getLogger(__name__)
 
@@ -43,29 +44,33 @@ class TransactionServer(object):
             response = self.handle_line(line)
 
             log.debug('Response: %s' % repr(response))
-            client.sendall(response)
+            client.sendall(response + '\n')
 
-    def handle_line(self, line):
-        """ Handle a single line of input from a client """
+    @staticmethod
+    def handle_line(line):
+        """ Handle a single line of input from a client and returns the string
+        response. """
 
-        command, args = self.parse_line(line)
+        command, args = TransactionServer.parse_line(line)
 
         try:
             handler = CommandHandler.get_handler(command)
             response = handler.run(*args)
         except CommandError, e:
             log.error(e)
-            return e.message + '\n'
+            response = xml.ErrorResponse(e)
         except TypeError, e:
             log.error(e)
-            return 'Incorrect arguments for command "%s"\n' % command
+            response = xml.ErrorResponse(
+                TypeError('Incorrect arguments for command "%s"' % command))
         except Exception, e:
-            log.error('Unexpected error: %s\n' % e)
-            return 'Server Error\n'
+            log.error('Unexpected error: %s' % e)
+            response = xml.ErrorResponse(CommandError(e))
 
-        return response + '\n'
+        return str(response)
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_line(line):
         # Split by spaces or commas (Postel's Law!)
         tokens = re.split('[ ,]+', line.rstrip('\n\r'))
         command = tokens[0]

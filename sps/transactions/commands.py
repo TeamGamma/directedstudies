@@ -12,44 +12,44 @@ class CommandError(Exception):
     """
     An exception that holds both a message for the user and the original cause
     """
-    user_message = 'error: System error'
+    user_message = 'System error'
 
     @property
     def message(self):
         return self.user_message
 
 class InsufficientFundsError(CommandError):
-    user_message = "error: insufficient funds"
+    user_message = 'Insufficient funds'
 
 class InsufficientStockError(CommandError):
-    user_message = 'error: insufficient stock quantity'
+    user_message = 'Insufficient stock quantity'
 
 class UnknownCommandError(CommandError):
-    user_message = 'error: unknown command'
+    user_message = 'Unknown command'
 
 class UserNotFoundError(CommandError):
-    user_message = 'error: unknown user'
+    user_message = 'Unknown user'
 
 class InvalidInputError(CommandError):
-    user_message = 'error: invalid input'
+    user_message = 'Invalid input'
 
 class NoBuyTransactionError(CommandError):
-    user_message = 'error: no BUY transaction is pending'
+    user_message = 'No BUY transaction is pending'
 
 class NoSellTransactionError(CommandError):
-    user_message = 'error: no SELL transaction is pending'
+    user_message = 'No SELL transaction is pending'
 
 class ExpiredBuyTransactionError(CommandError):
-    user_message = 'error: BUY transaction has expired'
+    user_message = 'BUY transaction has expired'
 
 class ExpiredSellTransactionError(CommandError):
-    user_message = 'error: SELL transaction has expired'
+    user_message = 'SELL transaction has expired'
 
 class BuyTransactionActiveError(CommandError):
-    user_message = 'error: a BUY transaction is already active'
+    user_message = 'A BUY transaction is already active'
 
 class SellTransactionActiveError(CommandError):
-    user_message = 'error: a SELL transaction is already active'
+    user_message = 'A SELL transaction is already active'
 
 class CommandHandler(object):
     # Associates command labels (e.g. BUY) to subclasses of CommandHandler
