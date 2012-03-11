@@ -1,3 +1,4 @@
 Vagrantfile
 .DS_Store
 *.pyc
+*.egg-info
