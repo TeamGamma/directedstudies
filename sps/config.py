@@ -36,6 +36,8 @@ class ConfigObject():
 
     TEST_WITH_SQLITE = True
 
+    DUMPLOG_DIR = '/tmp/'
+
 
 # The global configuration object
 config = ConfigObject()

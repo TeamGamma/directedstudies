@@ -588,3 +588,43 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
                 operation='SELL').first()
         self.assertNotEqual(set_transaction, None)
 
+
+class TestDISPLAY_SUMMARY(DatabaseTest):      
+    def setUp(self):
+        # set up the database as inherited from DatabaseTest
+        DatabaseTest.setUp(self)
+
+        #associate the sell command
+        self.command = commands.DISPLAY_SUMMARYCommand()
+
+        self.user = User(username='a', password='', 
+            account_balance=Money(10, 20), reserve_balance=Money(30, 40))
+        self.add_all(
+            self.user,
+            Transaction(user=self.user, stock_symbol='AAAA', operation='BUY',
+                committed=False, quantity=1, stock_value=Money(10, 54)),
+            Transaction(user=self.user, stock_symbol='BBBB', operation='SELL',
+                committed=True, quantity=1, stock_value=Money(10, 54)),
+            SetTransaction(user=self.user, amount=Money(10, 54),
+                    operation='BUY', stock_symbol='AAAA', active=False),
+            SetTransaction(user=self.user, amount=Money(10, 54),
+                    operation='BUY', stock_symbol='AAAA', active=True),
+        )
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError, self.command.run, 
+                username='garbage')
+
+    def test_successful_return_value(self):
+        """ Return value should be a SummaryResponse and should contain
+        committed transactions, active triggers, and the correct
+        account/reserve balances. """
+        res = self.command.run(username='a')
+
+        self.assertIsInstance(res, xml.SummaryResponse)
+        self.assertEqual(len(res.transactions), 1)
+        self.assertEqual(len(res.triggers), 1)
+        self.assertEqual(res.account_balance, self.user.account_balance)
+        self.assertEqual(res.reserve_balance, self.user.reserve_balance)
+

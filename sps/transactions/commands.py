@@ -7,6 +7,7 @@ from sps.quotes.client import get_quote_client
 from sps.transactions import xml
 from sps.config import config
 from datetime import datetime
+from os import path
 
 class CommandError(Exception):
     """
@@ -449,15 +450,6 @@ class DUMPLOG_USERCommand(CommandHandler):
         return xml.ResultResponse('success')
 
 
-class DUMPLOGCommand(CommandHandler):
-    """
-    Print out to the specified file the complete set of transactions that have
-    occurred in the system.
-    """
-    def run(self, filename):
-        return xml.ResultResponse('success')
-
-
 class DISPLAY_SUMMARYCommand(CommandHandler):
     """
     Provides a summary to the client of the given user's transaction history
@@ -465,7 +457,69 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
     triggers and their parameters
     """
     def run(self, username):
-        return xml.ResultResponse('success')
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        # Get this users transactions
+        transactions = session.query(Transaction).filter_by(user=user).all()
+
+        # Get this users triggers
+        triggers = session.query(SetTransaction).filter_by(user=user).all()
+
+        return xml.SummaryResponse(
+            transactions=transactions, triggers=triggers,
+            account_balance=user.account_balance,
+            reserve_balance=user.reserve_balance)
+
+
+class DUMPLOGCommand(CommandHandler):
+    """
+    Provides a summary to the client of the given user's transaction history
+    and the current status of their accounts as well as any set buy or sell
+    triggers and their parameters
+    """
+    def run(self, *args):
+        if len(args) == 2:
+            username, filename = args
+            return self.dumplog_user(username, filename)
+        elif len(args) == 1:
+            filename = args[0]
+            return self.dumplog_admin(filename)
+        else:
+            raise TypeError('Incorrect arguments for command DUMPLOG')
+
+    def dumplog_user(self, username, filename):
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        # Get this users transactions
+        transactions = session.query(Transaction).filter_by(user=user).all()
+
+        # Note: this is not secure against directory traversal
+        full_path = path.join(config.DUMPLOG_DIR, filename)
+        with open(full_path, 'w') as f:
+            res = xml.DumplogResponse(transactions)
+            f.write(str(res))
+
+        return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
+
+    def dumplog_admin(self, filename):
+        # TODO: implement security for admin dumplog
+
+        session = get_session()
+        transactions = session.query(Transaction).all()
+
+        # Note: this is not secure against directory traversal
+        full_path = path.join(config.DUMPLOG_DIR, filename)
+        with open(full_path, 'w') as f:
+            res = xml.DumplogResponse(transactions)
+            f.write(str(res))
+
+        return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
 
 
 CommandHandler.register_command('ADD', ADDCommand)
