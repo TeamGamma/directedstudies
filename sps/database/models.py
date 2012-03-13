@@ -52,6 +52,9 @@ class Money(namedtuple('Money', 'dollars cents')):
     >>> m = Money(3,30) * 4
     >>> m.dollars, m.cents
     (13, 20)
+
+    >>> Money(4,20) > Money(4,10) and Money(3,30) < Money(4,20)
+    True
     """
     __slots__ = ()
 
@@ -161,7 +164,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     operation = Column(String(4), nullable=False)
     quantity = Column(Integer, nullable=False)
     stock_value = composite(Money, _stock_value_dollars, _stock_value_cents)
-    committed = Column(Boolean, nullable=False)
+    committed = Column(Boolean, nullable=False, default=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
@@ -186,12 +189,21 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('set_transactions'))
-    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
-    trigger_value = composite(Money, _trigger_value_dollars, _trigger_value_cents)
-    amount = composite(Money, _amount_dollars, _amount_cents)
-    quantity = Column(Integer, default=0, nullable=False)
-    active = Column(Boolean, nullable=False)
     operation = Column(String(3), nullable=False)
+    stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
+
+    # Dollar value of stock to BUY when the trigger point is reached
+    amount = composite(Money, _amount_dollars, _amount_cents)
+
+    # The trigger value for the stock to execute the BUY or SELL at
+    trigger_value = composite(Money, _trigger_value_dollars, _trigger_value_cents)
+
+    # Quantity of stock to SELL when the trigger point is reached
+    quantity = Column(Integer, default=0, nullable=False)
+
+    # True if the trigger is currently running, False if waiting for a SET_TRIGGER command
+    # Note: the SetTransaction will be replaced with a Transaction when the actual transaction happens
+    active = Column(Boolean, nullable=False, default=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
