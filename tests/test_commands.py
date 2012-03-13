@@ -623,8 +623,10 @@ class TestDISPLAY_SUMMARY(DatabaseTest):
         res = self.command.run(username='a')
 
         self.assertIsInstance(res, xml.SummaryResponse)
-        self.assertEqual(len(res.transactions), 1)
-        self.assertEqual(len(res.triggers), 1)
+        self.assertEqual(len(res.transactions), 2)
+        self.assertEqual(len(res.triggers), 2)
         self.assertEqual(res.account_balance, self.user.account_balance)
         self.assertEqual(res.reserve_balance, self.user.reserve_balance)
+
+
 
