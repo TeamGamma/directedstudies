@@ -23,7 +23,7 @@ class ConfigObject():
         'password': 'root',
     }
     DATABASE_ENGINE_ARGS = {
-        'echo': 'debug',
+        'echo': False,
     }
 
     DATABASE_TABLE_ARGS = {
@@ -37,6 +37,9 @@ class ConfigObject():
     TEST_WITH_SQLITE = True
 
     DUMPLOG_DIR = '/tmp/'
+
+    # Interval between trigger checks in seconds
+    TRIGGER_INTERVAL = 3
 
 
 # The global configuration object
