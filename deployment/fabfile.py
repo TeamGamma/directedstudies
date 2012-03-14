@@ -18,7 +18,7 @@ from os.path import join, abspath, dirname
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
 fabdir = abspath(dirname(__file__))
 
-vm_address = '142.104.103.30:2222'
+vm_address = '127.0.0.1:2222'
 env.roledefs = {
     'db': [vm_address],
     'web': [vm_address],
