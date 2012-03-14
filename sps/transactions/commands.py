@@ -7,7 +7,11 @@ from sps.quotes.client import get_quote_client
 from sps.transactions import xml
 from sps.config import config
 from datetime import datetime
+import eventlet
 from os import path
+
+from logging import getLogger
+log = getLogger(__name__)
 
 class CommandError(Exception):
     """
@@ -39,6 +43,9 @@ class NoBuyTransactionError(CommandError):
 
 class NoSellTransactionError(CommandError):
     user_message = 'No SELL transaction is pending'
+
+class NoTriggerError(CommandError):
+    user_message = 'No trigger is pending'
 
 class ExpiredBuyTransactionError(CommandError):
     user_message = 'BUY transaction has expired'
@@ -152,7 +159,7 @@ class BUYCommand(CommandHandler):
 
         # Work out quantity of stock to buy, fail if not enough for one stock
         amount = Money.from_string(amount)
-        quantity = self.quantity(quote, amount)
+        quantity = amount_to_quantity(quote, amount)
         if quantity == 0:
             raise InsufficientFundsError()
 
@@ -166,17 +173,6 @@ class BUYCommand(CommandHandler):
         session.commit()
 
         return xml.QuoteResponse(quantity=quantity, price=price)
-
-    def quantity(self, price, amount):
-        q = 0
-        while(True):
-            amount = amount - price
-            if (amount.dollars < 0) or (amount.cents < 0):
-                break
-            else:
-                q += 1
-
-        return q
 
 
 class COMMIT_BUYCommand(CommandHandler):
@@ -413,7 +409,23 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     Cancels a SET_BUY command issued for the given stock
     """
     def run(self, username, stock_symbol):
-        return xml.ResultResponse('success')
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        trigger = session.query(SetTransaction).filter_by(
+            username=user.username, operation='BUY', stock_symbol=stock_symbol,
+            cancelled=False
+        ).first()
+        if not trigger:
+            raise NoTriggerError(username, stock_symbol)
+
+        trigger.cancelled = True
+        session.commit()
+
+        return xml.ResultResponse('trigger cancelled')
+
 
 
 class SET_BUY_TRIGGERCommand(CommandHandler):
@@ -422,7 +434,88 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     will execute.
     """
     def run(self, username, stock_symbol, amount):
-        return xml.ResultResponse('success')
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        amount = Money.from_string(amount)
+
+        trigger = session.query(SetTransaction).filter_by(
+            username=user.username, operation='BUY', stock_symbol=stock_symbol,
+            active=False
+        ).first()
+        if not trigger:
+            raise NoTriggerError(username, stock_symbol)
+
+        trigger.active = True
+        trigger.trigger_value = amount
+        session.commit()
+
+        self.session = session
+        eventlet.spawn(self.check_trigger, trigger)
+
+        return xml.ResultResponse('trigger activated')
+
+    def check_trigger(self, trigger):
+        while True:
+            log.debug('Trigger %d checking for stock %s < %s',
+                    trigger.id, trigger.stock_symbol, trigger.trigger_value)
+
+            # TODO: why is commit required here?
+            self.session.refresh(trigger)
+            self.session.commit()
+
+            if trigger.cancelled:
+                log.debug('Trigger %d cancelled!', trigger.id)
+                self.session.delete(trigger)
+                self.session.commit()
+                return
+
+            # Get a new quote for the stock
+            quote_client = get_quote_client()
+            quote = quote_client.get_quote(trigger.stock_symbol, 
+                    trigger.username)
+            log.debug('Trigger %d: %s => %s', 
+                    trigger.id, trigger.stock_symbol, quote)
+
+            # If quote is less than trigger value, buy stock and remove trigger
+            if quote < trigger.trigger_value:
+                # buy the stock and update reserve balance
+                log.debug("Trigger %d activated: %s < %s", 
+                        trigger.id, quote, trigger.trigger_value)
+
+                return self.process_transaction(quote, trigger)
+
+            eventlet.sleep(config.TRIGGER_INTERVAL)
+
+    def process_transaction(self, quote, trigger):
+        # Calculate real price of stock purchase based on current quote
+        user = trigger.user
+        quantity = amount_to_quantity(quote, trigger.amount)
+        real_amount = quote * quantity
+
+        log.debug('Buying %d units of %s (%s total) for %s', 
+                quantity, trigger.stock_symbol, real_amount, user.username)
+
+        user.reserve_balance -= trigger.amount
+
+        # create or update the StockPurchase for this stock symbol
+        stock = self.session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=trigger.stock_symbol
+        ).first()
+        if not stock:
+            log.debug('%s owns no %s yet, buying %d units...', 
+                    user.username, trigger.stock_symbol, quantity)
+            stock = StockPurchase(user=user,
+                    stock_symbol=trigger.stock_symbol,
+                    quantity=quantity)
+        else:
+            stock.quantity = stock.quantity + trigger.quantity
+
+        self.session.delete(trigger)
+
+        self.session.commit()
 
 
 class SET_SELL_TRIGGERCommand(CommandHandler):
@@ -439,7 +532,23 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     Cancels the SET_SELL associated with the given stock and user
     """
     def run(self, username, stock_symbol):
-        return xml.ResultResponse('success')
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        trigger = session.query(SetTransaction).filter_by(
+            username=user.username, operation='SELL', stock_symbol=stock_symbol
+        ).first()
+        if not trigger:
+            raise NoTriggerError(username, stock_symbol)
+
+        session.delete(trigger)
+        session.commit()
+
+        return xml.ResultResponse('trigger cancelled')
+
+
 
 
 class DUMPLOG_USERCommand(CommandHandler):
@@ -520,6 +629,20 @@ class DUMPLOGCommand(CommandHandler):
             f.write(str(res))
 
         return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
+
+
+def amount_to_quantity(price, amount):
+    """ Given the price of a stock and an maximum dollar value to buy, returns
+    the quantity of stock that can be bought. """
+    q = 0
+    while(True):
+        amount = amount - price
+        if (amount.dollars < 0) or (amount.cents < 0):
+            break
+        else:
+            q += 1
+
+    return q
 
 
 CommandHandler.register_command('ADD', ADDCommand)

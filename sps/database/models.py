@@ -205,6 +205,9 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     # Note: the SetTransaction will be replaced with a Transaction when the actual transaction happens
     active = Column(Boolean, nullable=False, default=False)
 
+    # Marker that signals trigger to stop when True
+    cancelled = Column(Boolean, nullable=False, default=False)
+
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
 

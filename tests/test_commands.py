@@ -114,23 +114,23 @@ class TestBUYCommand(DatabaseTest):
         self.assertNotEqual(transaction, None)
 
     def test_quantity_exact(self):
-        quantity = self.command.quantity(Money(25, 60), Money(25, 60))
+        quantity = commands.amount_to_quantity(Money(25, 60), Money(25, 60))
         self.assertEqual(quantity, 1)
 
     def test_quantity_multiple(self):
-        quantity = self.command.quantity(Money(25, 60), Money(102, 40))
+        quantity = commands.amount_to_quantity(Money(25, 60), Money(102, 40))
         self.assertEqual(quantity, 4)
 
     def test_quantity_less(self):
-        quantity = self.command.quantity(Money(25, 60), Money(102, 30))
+        quantity = commands.amount_to_quantity(Money(25, 60), Money(102, 30))
         self.assertEqual(quantity, 3)
 
     def test_quantity_more(self):
-        quantity = self.command.quantity(Money(25, 60), Money(102, 50))
+        quantity = commands.amount_to_quantity(Money(25, 60), Money(102, 50))
         self.assertEqual(quantity, 4)
 
     def test_quantity_less_than_one(self):
-        quantity = self.command.quantity(Money(25, 60), Money(25, 40))
+        quantity = commands.amount_to_quantity(Money(25, 60), Money(25, 40))
         self.assertEqual(quantity, 0)
 
 
@@ -249,6 +249,7 @@ class _TransactionCommandTest(object):
     operation = None  # 'BUY' or 'SELL'
     missing_exception = None  # e.g. NoBuyTransactionError
     expired_exception = None  # e.g. ExpiredBuyTransactionError
+    transaction_type = Transaction
 
     def test_return_value(self):
         """ Should return "success" """
@@ -272,7 +273,7 @@ class _TransactionCommandTest(object):
 
         # Committed transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='ABAB',
+            self.transaction_type(username='poor_user', stock_symbol='ABAB',
                 operation=self.operation, committed=True, quantity=1,
                 stock_value=Money(10, 54))
         )
@@ -283,7 +284,7 @@ class _TransactionCommandTest(object):
         """ Should delete the transaction if user's transaction has expired """
 
         # Expired transaction record for user 1
-        trans = Transaction(username='poor_user', stock_symbol='ABAB',
+        trans = self.transaction_type(username='poor_user', stock_symbol='ABAB',
             operation=self.operation, committed=False, quantity=1,
             stock_value=Money(10, 54),
             creation_time=datetime.now() - timedelta(seconds=61))
@@ -294,7 +295,7 @@ class _TransactionCommandTest(object):
             self.command.run(username='poor_user')
         except self.expired_exception:
             pass
-        count = self.session.query(Transaction).filter_by(id=trans_id).count()
+        count = self.session.query(self.transaction_type).filter_by(id=trans_id).count()
         self.assertEqual(count, 0, "Expired transaction not removed")
 
     def test_other_transaction_only(self):
@@ -304,7 +305,7 @@ class _TransactionCommandTest(object):
 
         # other transaction record for user 1
         self.add_all(
-            Transaction(username='poor_user', stock_symbol='ABAB',
+            self.transaction_type(username='poor_user', stock_symbol='ABAB',
                 operation=other, committed=False, quantity=1,
                 stock_value=Money(10, 54)),
         )
@@ -378,7 +379,6 @@ class TestCOMMIT_SELLCommand(_TransactionCommandTest, DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
-        self.command = commands.COMMIT_SELLCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
         self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
@@ -438,7 +438,6 @@ class TestCANCEL_BUYCommand(_TransactionCommandTest, DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
-        self.command = commands.CANCEL_BUYCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
         self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
@@ -465,7 +464,6 @@ class TestCANCEL_SELLCommand(_TransactionCommandTest, DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
         self._user_fixture()
-        self.command = commands.CANCEL_SELLCommand()
 
         # Uncommitted transaction record for user 2 ("user1")
         self.trans = Transaction(username='rich_user', stock_symbol='ABAB',
@@ -481,13 +479,6 @@ class TestCANCEL_SELLCommand(_TransactionCommandTest, DatabaseTest):
         # Assume there's no committed / expired transactions
         transaction = self.session.query(Transaction).first()
         self.assertEqual(transaction, None)
-
-
-
-
-
-
-
 
 
 
@@ -587,6 +578,102 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
                 quantity=2,
                 operation='SELL').first()
         self.assertNotEqual(set_transaction, None)
+
+
+class TestCANCEL_SET_BUYCommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self.command = commands.CANCEL_SET_BUYCommand()
+
+        self._user_fixture()
+
+        # active BUY trigger for rich_user
+        self.trans = SetTransaction(username='rich_user', stock_symbol='ABAB',
+            operation='BUY', active=False)
+
+        self.add_all(self.trans)
+
+    def test_return_value(self):
+        """ Should return "success" """
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB')
+        self.assertIsInstance(retval, xml.ResultResponse)
+        self.assertEqual(retval.message, "trigger cancelled")
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError,
+                self.command.run, username='unicorn', stock_symbol='ABAB')
+
+    def test_nonexistent_trigger(self):
+        """ Should return an error message if user has no matching triggers """
+        self.assertRaises(commands.NoTriggerError,
+                self.command.run, username='poor_user', stock_symbol='ABAB')
+
+    def test_sell_trigger_only(self):
+        """ Should return an error message if user has no matching triggers """
+        # active SELL trigger for poor_user
+        self.add_all(SetTransaction(username='poor_user', stock_symbol='ABAB',
+            operation='SELL', active=False))
+
+        self.assertRaises(commands.NoTriggerError,
+                self.command.run, username='poor_user', stock_symbol='ABAB')
+
+    def test_postcondition_cancelled(self):
+        """ The BUY SetTransaction should be marked as cancelled """
+        self.command.run(username='rich_user', stock_symbol='ABAB')
+
+        transaction = self.session.query(SetTransaction).filter_by(
+                cancelled=False).first()
+        self.assertEqual(transaction, None)
+
+
+class TestCANCEL_SET_SELLCommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self.command = commands.CANCEL_SET_SELLCommand()
+
+        self._user_fixture()
+
+        # active transaction record for rich_user
+        self.trans = SetTransaction(username='rich_user', stock_symbol='ABAB',
+            operation='SELL', active=False, amount=Money(0, 0))
+
+        self.add_all(self.trans)
+
+    def test_return_value(self):
+        """ Should return "success" """
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB')
+        self.assertIsInstance(retval, xml.ResultResponse)
+        self.assertEqual(retval.message, "trigger cancelled")
+
+    def test_nonexistent_user(self):
+        """ Should return an error message if the user does not exist """
+        self.assertRaises(commands.UserNotFoundError,
+                self.command.run, username='unicorn', stock_symbol='ABAB')
+
+    def test_nonexistent_trigger(self):
+        """ Should return an error message if user has no matching triggers """
+        self.assertRaises(commands.NoTriggerError,
+                self.command.run, username='poor_user', stock_symbol='ABAB')
+
+    def test_buy_trigger_only(self):
+        """ Should return an error message if user has no matching triggers """
+        # active BUY trigger for poor_user
+        self.add_all(SetTransaction(username='poor_user', stock_symbol='ABAB',
+            operation='BUY', active=False))
+
+        self.assertRaises(commands.NoTriggerError,
+                self.command.run, username='poor_user', stock_symbol='ABAB')
+
+    def test_postcondition_remove(self):
+        """ The SELL SetTransaction should be removed from the database """
+        self.command.run(username='rich_user', stock_symbol='ABAB')
+
+        # Assume there's no committed / expired transactions
+        transaction = self.session.query(SetTransaction).first()
+        self.assertEqual(transaction, None)
+
+
 
 
 class TestDISPLAY_SUMMARY(DatabaseTest):      
