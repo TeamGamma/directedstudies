@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum
 from sqlalchemy import func
 from sqlalchemy.orm import relationship, backref, composite
 from collections import namedtuple
@@ -176,7 +176,13 @@ class Trigger(InitMixin, ReprMixin, Base):
     A transaction record for a trigger created by the SET_BUY_TRIGGER or
     SET_SELL_TRIGGER commands.
     """
-    __tablename__ = 'set_transactions'
+    __tablename__ = 'triggers'
+
+    # State values
+    class State():
+        INACTIVE = 'INACTIVE'
+        RUNNING = 'RUNNING'
+        CANCELLED = 'INACTIVE'
 
     # Trigger value to sell the stock at
     _trigger_value_dollars = Column(Integer, default=0)
@@ -201,12 +207,8 @@ class Trigger(InitMixin, ReprMixin, Base):
     # Quantity of stock to SELL when the trigger point is reached
     quantity = Column(Integer, default=0, nullable=False)
 
-    # True if the trigger is currently running, False if waiting for a SET_TRIGGER command
-    # Note: the Trigger will be replaced with a Transaction when the actual transaction happens
-    active = Column(Boolean, nullable=False, default=False)
-
-    # Marker that signals trigger to stop when True
-    cancelled = Column(Boolean, nullable=False, default=False)
+    # FSM representing the current state of the trigger
+    state = Column(Enum(State.INACTIVE, State.RUNNING, State.CANCELLED), nullable=False)
 
     # Auto-set timestamp when created
     creation_time = Column(DateTime, default=func.now())
