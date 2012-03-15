@@ -7,11 +7,7 @@ from sps.quotes.client import get_quote_client
 from sps.transactions import xml
 from sps.config import config
 from datetime import datetime
-import eventlet
 from os import path
-
-from logging import getLogger
-log = getLogger(__name__)
 
 class CommandError(Exception):
     """
@@ -43,9 +39,6 @@ class NoBuyTransactionError(CommandError):
 
 class NoSellTransactionError(CommandError):
     user_message = 'No SELL transaction is pending'
-
-class NoTriggerError(CommandError):
-    user_message = 'No trigger is pending'
 
 class ExpiredBuyTransactionError(CommandError):
     user_message = 'BUY transaction has expired'
@@ -114,9 +107,12 @@ class ADDCommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-        amount = Money.from_string(amount)
-        user.account_balance += amount
+            xml.log_error('ADD','username not found')
+        money_amount = Money.from_string(amount)
+        user.account_balance += money_amount
         session.commit()
+        # create log
+        xml.log_event('ADD', username, amount=amount)
         return xml.ResultResponse('success')
 
 
@@ -129,11 +125,18 @@ class QUOTECommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
+            xml.log_error('QUOTE','username not found')
         if len(stock_symbol) > 4:
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
+            xml.log_error('QUOTE','stock symbol too long')
+
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
+
+        #create log
+        xml.log_event('QUOTE', username, stock_symbol)
+
         return str(quote)
 
 
@@ -147,19 +150,20 @@ class BUYCommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-
+            xml.log_error('BUY','username not found')
         # Check for existing uncommitted transaction
         if session.query(Transaction).filter_by(
                 user=user, operation='BUY', committed=False).count() > 0:
             raise BuyTransactionActiveError()
-
+            xml.log_error('BUY','Outstanding Buy Exists')
+            
         # Getting stock quote
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
 
         # Work out quantity of stock to buy, fail if not enough for one stock
         amount = Money.from_string(amount)
-        quantity = amount_to_quantity(quote, amount)
+        quantity = self.quantity(quote, amount)
         if quantity == 0:
             raise InsufficientFundsError()
 
@@ -172,7 +176,19 @@ class BUYCommand(CommandHandler):
         session.add(transaction)
         session.commit()
 
+        xml.log_transaction('BUY', transaction)
         return xml.QuoteResponse(quantity=quantity, price=price)
+
+    def quantity(self, price, amount):
+        q = 0
+        while(True):
+            amount = amount - price
+            if (amount.dollars < 0) or (amount.cents < 0):
+                break
+            else:
+                q += 1
+
+        return q
 
 
 class COMMIT_BUYCommand(CommandHandler):
@@ -426,7 +442,6 @@ class CANCEL_SET_BUYCommand(CommandHandler):
         session.commit()
 
         return xml.ResultResponse('trigger cancelled')
-
 
 
 class SET_BUY_TRIGGERCommand(CommandHandler):
@@ -706,20 +721,6 @@ class DUMPLOGCommand(CommandHandler):
             f.write(str(res))
 
         return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
-
-
-def amount_to_quantity(price, amount):
-    """ Given the price of a stock and an maximum dollar value to buy, returns
-    the quantity of stock that can be bought. """
-    q = 0
-    while(True):
-        amount = amount - price
-        if (amount.dollars < 0) or (amount.cents < 0):
-            break
-        else:
-            q += 1
-
-    return q
 
 
 CommandHandler.register_command('ADD', ADDCommand)
