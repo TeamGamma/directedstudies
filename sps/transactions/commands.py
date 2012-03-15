@@ -129,11 +129,18 @@ class QUOTECommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
+            xml.log_error('QUOTE','username not found')
         if len(stock_symbol) > 4:
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
+            xml.log_error('QUOTE','stock symbol too long')
+
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
+
+        #create log
+        xml.log_event('QUOTE', username, stock_symbol)
+
         return str(quote)
 
 
@@ -147,19 +154,20 @@ class BUYCommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-
+            xml.log_error('BUY','username not found')
         # Check for existing uncommitted transaction
         if session.query(Transaction).filter_by(
                 user=user, operation='BUY', committed=False).count() > 0:
             raise BuyTransactionActiveError()
-
+            xml.log_error('BUY','Outstanding Buy Exists')
+            
         # Getting stock quote
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
 
         # Work out quantity of stock to buy, fail if not enough for one stock
         amount = Money.from_string(amount)
-        quantity = amount_to_quantity(quote, amount)
+        quantity = self.quantity(quote, amount)
         if quantity == 0:
             raise InsufficientFundsError()
 
