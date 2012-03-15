@@ -53,7 +53,7 @@ def shell():
     """ Starts an IPython shell with a session and models imported """
     from sps.database.session import get_session
     from sps.database.models import (
-        Base, Money, User, Query, StockPurchase, Transaction, SetTransaction
+        Base, Money, User, Query, StockPurchase, Transaction, Trigger
     )
     from sps.database import models
     from sps.database import fixtures

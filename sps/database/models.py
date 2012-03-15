@@ -171,7 +171,7 @@ class Transaction(InitMixin, ReprMixin, Base):
 
 
 
-class SetTransaction(InitMixin, ReprMixin, Base):
+class Trigger(InitMixin, ReprMixin, Base):
     """
     A transaction record for a trigger created by the SET_BUY_TRIGGER or
     SET_SELL_TRIGGER commands.
@@ -202,7 +202,7 @@ class SetTransaction(InitMixin, ReprMixin, Base):
     quantity = Column(Integer, default=0, nullable=False)
 
     # True if the trigger is currently running, False if waiting for a SET_TRIGGER command
-    # Note: the SetTransaction will be replaced with a Transaction when the actual transaction happens
+    # Note: the Trigger will be replaced with a Transaction when the actual transaction happens
     active = Column(Boolean, nullable=False, default=False)
 
     # Marker that signals trigger to stop when True

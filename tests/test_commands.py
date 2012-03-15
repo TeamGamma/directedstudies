@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from tests.utils import DatabaseTest
 from sps.transactions import commands
-from sps.database.models import User, Money, Transaction, StockPurchase, SetTransaction
+from sps.database.models import User, Money, Transaction, StockPurchase, Trigger
 from sps.transactions import xml
 from sps.quotes import client
 
@@ -508,11 +508,11 @@ class TestSET_BUY_AMOUNTCommand(DatabaseTest):
         self.assertEqual(retval.message, "success")
 
     def test_postcondition_transaction(self):
-        """ Inactive SetTransaction is created with the given username,
+        """ Inactive Trigger is created with the given username,
         operation, stock, and amount """
         self.command.run(username='rich_user', stock_symbol='ABAB',
                 amount='23.45')
-        set_transaction = self.session.query(SetTransaction).filter_by(
+        set_transaction = self.session.query(Trigger).filter_by(
                 username='rich_user',
                 stock_symbol='ABAB', 
                 active=False,
@@ -567,11 +567,11 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
                 username='garbage', stock_symbol='ABAB', quantity='1')
 
     def test_postcondition_transaction(self):
-        """ Inactive SetTransaction is created with the given username,
+        """ Inactive Trigger is created with the given username,
         operation, stock, and quantity """
         self.command.run(username='rich_user', stock_symbol='ABAB',
                 quantity='2')
-        set_transaction = self.session.query(SetTransaction).filter_by(
+        set_transaction = self.session.query(Trigger).filter_by(
                 username='rich_user',
                 stock_symbol='ABAB', 
                 active=False,
@@ -588,7 +588,7 @@ class TestCANCEL_SET_BUYCommand(DatabaseTest):
         self._user_fixture()
 
         # active BUY trigger for rich_user
-        self.trans = SetTransaction(username='rich_user', stock_symbol='ABAB',
+        self.trans = Trigger(username='rich_user', stock_symbol='ABAB',
             operation='BUY', active=False)
 
         self.add_all(self.trans)
@@ -612,17 +612,17 @@ class TestCANCEL_SET_BUYCommand(DatabaseTest):
     def test_sell_trigger_only(self):
         """ Should return an error message if user has no matching triggers """
         # active SELL trigger for poor_user
-        self.add_all(SetTransaction(username='poor_user', stock_symbol='ABAB',
+        self.add_all(Trigger(username='poor_user', stock_symbol='ABAB',
             operation='SELL', active=False))
 
         self.assertRaises(commands.NoTriggerError,
                 self.command.run, username='poor_user', stock_symbol='ABAB')
 
     def test_postcondition_cancelled(self):
-        """ The BUY SetTransaction should be marked as cancelled """
+        """ The BUY Trigger should be marked as cancelled """
         self.command.run(username='rich_user', stock_symbol='ABAB')
 
-        transaction = self.session.query(SetTransaction).filter_by(
+        transaction = self.session.query(Trigger).filter_by(
                 cancelled=False).first()
         self.assertEqual(transaction, None)
 
@@ -635,7 +635,7 @@ class TestCANCEL_SET_SELLCommand(DatabaseTest):
         self._user_fixture()
 
         # active transaction record for rich_user
-        self.trans = SetTransaction(username='rich_user', stock_symbol='ABAB',
+        self.trans = Trigger(username='rich_user', stock_symbol='ABAB',
             operation='SELL', active=False, amount=Money(0, 0))
 
         self.add_all(self.trans)
@@ -659,18 +659,18 @@ class TestCANCEL_SET_SELLCommand(DatabaseTest):
     def test_buy_trigger_only(self):
         """ Should return an error message if user has no matching triggers """
         # active BUY trigger for poor_user
-        self.add_all(SetTransaction(username='poor_user', stock_symbol='ABAB',
+        self.add_all(Trigger(username='poor_user', stock_symbol='ABAB',
             operation='BUY', active=False))
 
         self.assertRaises(commands.NoTriggerError,
                 self.command.run, username='poor_user', stock_symbol='ABAB')
 
     def test_postcondition_remove(self):
-        """ The SELL SetTransaction should be removed from the database """
+        """ The SELL Trigger should be removed from the database """
         self.command.run(username='rich_user', stock_symbol='ABAB')
 
         # Assume there's no committed / expired transactions
-        transaction = self.session.query(SetTransaction).first()
+        transaction = self.session.query(Trigger).first()
         self.assertEqual(transaction, None)
 
 
@@ -692,9 +692,9 @@ class TestDISPLAY_SUMMARY(DatabaseTest):
                 committed=False, quantity=1, stock_value=Money(10, 54)),
             Transaction(user=self.user, stock_symbol='BBBB', operation='SELL',
                 committed=True, quantity=1, stock_value=Money(10, 54)),
-            SetTransaction(user=self.user, amount=Money(10, 54),
+            Trigger(user=self.user, amount=Money(10, 54),
                     operation='BUY', stock_symbol='AAAA', active=False),
-            SetTransaction(user=self.user, amount=Money(10, 54),
+            Trigger(user=self.user, amount=Money(10, 54),
                     operation='BUY', stock_symbol='AAAA', active=True),
         )
 

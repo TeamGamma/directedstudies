@@ -7,7 +7,7 @@ from .database.models import (
     User,
     Query,
     Transaction,
-    SetTransaction,
+    Trigger,
     StockPurchase,
 )
 

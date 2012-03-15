@@ -2,7 +2,7 @@
 This file contains the implementations for all transaction server commands.
 """
 from sps.database.session import get_session
-from sps.database.models import User, Money, Transaction, StockPurchase, SetTransaction
+from sps.database.models import User, Money, Transaction, StockPurchase, Trigger
 from sps.quotes.client import get_quote_client
 from sps.transactions import xml
 from sps.config import config
@@ -357,8 +357,8 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
         if user.account_balance < amount:
             raise InsufficientFundsError()
 
-        # Create inactive SetTransaction
-        set_transaction = SetTransaction(user=user, amount=amount,
+        # Create inactive Trigger
+        set_transaction = Trigger(user=user, amount=amount,
                 operation='BUY', stock_symbol=stock_symbol, active=False)
         session.add(set_transaction)
 
@@ -394,8 +394,8 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
         if len(records) == 0 or records[0].quantity < quantity:
             raise InsufficientStockError()
 
-        # Create inactive SetTransaction
-        set_transaction = SetTransaction(user=user, quantity=quantity,
+        # Create inactive Trigger
+        set_transaction = Trigger(user=user, quantity=quantity,
                 operation='SELL', stock_symbol=stock_symbol, active=False)
         session.add(set_transaction)
 
@@ -414,7 +414,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
-        trigger = session.query(SetTransaction).filter_by(
+        trigger = session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
             cancelled=False
         ).first()
@@ -441,7 +441,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
 
         amount = Money.from_string(amount)
 
-        trigger = session.query(SetTransaction).filter_by(
+        trigger = session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
             active=False
         ).first()
@@ -537,7 +537,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
         if not user:
             raise UserNotFoundError(username)
 
-        trigger = session.query(SetTransaction).filter_by(
+        trigger = session.query(Trigger).filter_by(
             username=user.username, operation='SELL', stock_symbol=stock_symbol
         ).first()
         if not trigger:
@@ -575,7 +575,7 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
         transactions = session.query(Transaction).filter_by(user=user).all()
 
         # Get this users triggers
-        triggers = session.query(SetTransaction).filter_by(user=user).all()
+        triggers = session.query(Trigger).filter_by(user=user).all()
 
         return xml.SummaryResponse(
             transactions=transactions, triggers=triggers,

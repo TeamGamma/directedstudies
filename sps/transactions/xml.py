@@ -88,7 +88,7 @@ def transaction_element(t):
     )
 
 def trigger_element(t):
-    """ Converts a SetTransaction to an XML element class """
+    """ Converts a Trigger to an XML element class """
     return Trigger(
         id=str(t.id),
         username=t.username,
