@@ -3,8 +3,8 @@
 import re
 import time
 import eventlet
-import eventlet.patcher
-eventlet.patcher.monkey_patch()
+#import eventlet.patcher
+#eventlet.patcher.monkey_patch()
 import logging
 
 from sps.transactions.commands import CommandHandler, CommandError
