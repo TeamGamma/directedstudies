@@ -109,35 +109,39 @@ def trigger_element(t):
 
 def log_transaction(transaction_type, db_transaction, status_message=None):
     if status_message == None:
-        xml = Log(Transaction(transaction_element(db_transaction), transaction_type=transaction_type, time=str(datetime.now()) ))
+        xml = Log(Transaction(transaction_element(db_transaction), transaction_type=transaction_type, time=str(datetime.now())))
     else:
 
-        xml = Log(Transaction(transaction_element(db_transaction),transaction_type=transaction_type, status_message=status_message, time=str(datetime.now())  ))
-        
+        xml = Log(Transaction(transaction_element(db_transaction), transaction_type=transaction_type, status_message=status_message, time=str(datetime.now())))
+
     # write a transaction log message to STDOUT that has the string of the XML tags 
     TransactionLog.info(etree.tostring(xml))
 
-def log_trigger(trigger_type, db_trigger, status_message = None):
-    
+def log_trigger(trigger_type, db_trigger, status_message=None):
+
     if status_message == None:
-        xml = Log(Trigger(trigger_element(db_trigger), trigger_type=trigger_type, time=str(datetime.now())  ))
+        xml = Log(Trigger(trigger_element(db_trigger), trigger_type=trigger_type, time=str(datetime.now())))
     else:
-        xml = Log(Trigger(trigger_element(db_trigger), trigger_type=trigger_type, status_message=status_message, time=str(datetime.now())  ))
-            
+        xml = Log(Trigger(trigger_element(db_trigger), trigger_type=trigger_type, status_message=status_message, time=str(datetime.now())))
+
     # write a transaction log message to STDOUT that has the string of the XML tags 
     TransactionLog.info(etree.tostring(xml))
 
 def log_event(event_type, username, stock_symbol=None, amount=None, status_message=None):
-    
-    xml = Log(Event(event_type=event_type, username=username, stock_symbol=stock_symbol, amount=amount, status_message=status_message, time=str(datetime.now())   ))
-        
+
+    xml = Log(
+        Event(event_type=event_type, username=username, 
+            stock_symbol=str(stock_symbol), amount=str(amount), 
+            status_message=str(status_message), time=str(datetime.now()))
+    )
+
     # write a transaction log message to STDOUT that has the string of the XML tags 
     TransactionLog.info(etree.tostring(xml))
 
 def log_error(command, message):
-    
-    xml = Log(Event(command=command, error_message=message, time=str(datetime.now()) ))
-        
+
+    xml = Log(Event(command=command, error_message=message, time=str(datetime.now())))
+
     # write a transaction log message to STDOUT that has the string of the XML tags 
     TransactionLog.error(etree.tostring(xml))
 
