@@ -167,7 +167,7 @@ class BUYCommand(CommandHandler):
 
         # Work out quantity of stock to buy, fail if not enough for one stock
         amount = Money.from_string(amount)
-        quantity = self.quantity(quote, amount)
+        quantity = amount_to_quantity(quote, amount)
         if quantity == 0:
             raise InsufficientFundsError()
 
