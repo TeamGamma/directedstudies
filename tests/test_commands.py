@@ -515,7 +515,7 @@ class TestSET_BUY_AMOUNTCommand(DatabaseTest):
         set_transaction = self.session.query(Trigger).filter_by(
                 username='rich_user',
                 stock_symbol='ABAB', 
-                active=False,
+                state=Trigger.State.INACTIVE,
                 operation='BUY').first()
         self.assertNotEqual(set_transaction, None)
         self.assertEqual(set_transaction.amount, Money(23, 45))
@@ -574,7 +574,7 @@ class TestSET_SELL_AMOUNT(DatabaseTest):
         set_transaction = self.session.query(Trigger).filter_by(
                 username='rich_user',
                 stock_symbol='ABAB', 
-                active=False,
+                state=Trigger.State.INACTIVE,
                 quantity=2,
                 operation='SELL').first()
         self.assertNotEqual(set_transaction, None)
@@ -589,15 +589,9 @@ class TestCANCEL_SET_BUYCommand(DatabaseTest):
 
         # active BUY trigger for rich_user
         self.trans = Trigger(username='rich_user', stock_symbol='ABAB',
-            operation='BUY', active=False)
+            operation='BUY', state=Trigger.State.INACTIVE)
 
         self.add_all(self.trans)
-
-    def test_return_value(self):
-        """ Should return "success" """
-        retval = self.command.run(username='rich_user', stock_symbol='ABAB')
-        self.assertIsInstance(retval, xml.ResultResponse)
-        self.assertEqual(retval.message, "trigger cancelled")
 
     def test_nonexistent_user(self):
         """ Should return an error message if the user does not exist """
@@ -613,18 +607,25 @@ class TestCANCEL_SET_BUYCommand(DatabaseTest):
         """ Should return an error message if user has no matching triggers """
         # active SELL trigger for poor_user
         self.add_all(Trigger(username='poor_user', stock_symbol='ABAB',
-            operation='SELL', active=False))
+            operation='SELL', state=Trigger.State.INACTIVE))
 
         self.assertRaises(commands.NoTriggerError,
                 self.command.run, username='poor_user', stock_symbol='ABAB')
+
+    def test_return_value(self):
+        """ Should return "success" """
+        retval = self.command.run(username='rich_user', stock_symbol='ABAB')
+        self.assertIsInstance(retval, xml.ResultResponse)
+        self.assertEqual(retval.message, "trigger cancelled")
 
     def test_postcondition_cancelled(self):
         """ The BUY Trigger should be marked as cancelled """
         self.command.run(username='rich_user', stock_symbol='ABAB')
 
         transaction = self.session.query(Trigger).filter_by(
-                cancelled=False).first()
-        self.assertEqual(transaction, None)
+                state=Trigger.State.CANCELLED).first()
+        self.assertNotEqual(transaction, None)
+        self.assertEqual(transaction.state, Trigger.State.CANCELLED)
 
 
 class TestCANCEL_SET_SELLCommand(DatabaseTest):
@@ -634,9 +635,9 @@ class TestCANCEL_SET_SELLCommand(DatabaseTest):
 
         self._user_fixture()
 
-        # active transaction record for rich_user
+        # inactive transaction record for rich_user
         self.trans = Trigger(username='rich_user', stock_symbol='ABAB',
-            operation='SELL', active=False, amount=Money(0, 0))
+            operation='SELL', state=Trigger.State.INACTIVE, amount=Money(0, 0))
 
         self.add_all(self.trans)
 
@@ -660,7 +661,7 @@ class TestCANCEL_SET_SELLCommand(DatabaseTest):
         """ Should return an error message if user has no matching triggers """
         # active BUY trigger for poor_user
         self.add_all(Trigger(username='poor_user', stock_symbol='ABAB',
-            operation='BUY', active=False))
+            operation='BUY', state=Trigger.State.INACTIVE))
 
         self.assertRaises(commands.NoTriggerError,
                 self.command.run, username='poor_user', stock_symbol='ABAB')
@@ -693,9 +694,9 @@ class TestDISPLAY_SUMMARY(DatabaseTest):
             Transaction(user=self.user, stock_symbol='BBBB', operation='SELL',
                 committed=True, quantity=1, stock_value=Money(10, 54)),
             Trigger(user=self.user, amount=Money(10, 54),
-                    operation='BUY', stock_symbol='AAAA', active=False),
+                    operation='BUY', stock_symbol='AAAA', state=Trigger.State.INACTIVE),
             Trigger(user=self.user, amount=Money(10, 54),
-                    operation='BUY', stock_symbol='AAAA', active=True),
+                    operation='BUY', stock_symbol='AAAA', state=Trigger.State.RUNNING),
         )
 
     def test_nonexistent_user(self):

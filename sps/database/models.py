@@ -182,7 +182,7 @@ class Trigger(InitMixin, ReprMixin, Base):
     class State():
         INACTIVE = 'INACTIVE'
         RUNNING = 'RUNNING'
-        CANCELLED = 'INACTIVE'
+        CANCELLED = 'CANCELLED'
 
     # Trigger value to sell the stock at
     _trigger_value_dollars = Column(Integer, default=0)

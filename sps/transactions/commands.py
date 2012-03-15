@@ -359,7 +359,7 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
 
         # Create inactive Trigger
         set_transaction = Trigger(user=user, amount=amount,
-                operation='BUY', stock_symbol=stock_symbol, active=False)
+                operation='BUY', stock_symbol=stock_symbol, state=Trigger.State.INACTIVE)
         session.add(set_transaction)
 
         user.account_balance = user.account_balance - amount
@@ -396,7 +396,7 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
 
         # Create inactive Trigger
         set_transaction = Trigger(user=user, quantity=quantity,
-                operation='SELL', stock_symbol=stock_symbol, active=False)
+                operation='SELL', stock_symbol=stock_symbol, state=Trigger.State.INACTIVE)
         session.add(set_transaction)
 
         session.commit()
@@ -416,12 +416,13 @@ class CANCEL_SET_BUYCommand(CommandHandler):
 
         trigger = session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
-            cancelled=False
+        ).filter(
+            Trigger.state != Trigger.State.CANCELLED,
         ).first()
         if not trigger:
             raise NoTriggerError(username, stock_symbol)
 
-        trigger.cancelled = True
+        trigger.state = Trigger.State.CANCELLED
         session.commit()
 
         return xml.ResultResponse('trigger cancelled')
@@ -443,12 +444,12 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
 
         trigger = session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
-            active=False
+            state=Trigger.State.INACTIVE
         ).first()
         if not trigger:
             raise NoTriggerError(username, stock_symbol)
 
-        trigger.active = True
+        trigger.state = Trigger.State.RUNNING
         trigger.trigger_value = amount
         session.commit()
 
@@ -462,14 +463,12 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
             log.debug('Trigger %d checking for stock %s < %s',
                     trigger.id, trigger.stock_symbol, trigger.trigger_value)
 
-            # TODO: why is commit required here?
+            # TODO: why is commit required here just to refresh an attribute?
             self.session.refresh(trigger)
             self.session.commit()
 
-            if trigger.cancelled:
+            if trigger.state == Trigger.State.CANCELLED:
                 log.debug('Trigger %d cancelled!', trigger.id)
-                self.session.delete(trigger)
-                self.session.commit()
                 return
 
             # Get a new quote for the stock
