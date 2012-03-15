@@ -1,6 +1,7 @@
 from lxml import etree
 from lxml import objectify
 import logging
+from datetime import datetime
 
 ElementMaker = objectify.ElementMaker(annotate=False)
 Quote = ElementMaker.quote
