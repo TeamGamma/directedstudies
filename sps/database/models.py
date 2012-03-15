@@ -195,7 +195,7 @@ class Trigger(InitMixin, ReprMixin, Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), ForeignKey('users.username'), nullable=False)
     user = relationship("User", backref=backref('set_transactions'))
-    operation = Column(String(3), nullable=False)
+    operation = Column(String(4), nullable=False)
     stock_symbol = Column(String(STOCK_SYMBOL_LENGTH), nullable=False)
 
     # Dollar value of stock to BUY when the trigger point is reached

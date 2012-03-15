@@ -494,23 +494,27 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         quantity = amount_to_quantity(quote, trigger.amount)
         real_amount = quote * quantity
 
-        log.debug('Buying %d units of %s (%s total) for %s', 
-                quantity, trigger.stock_symbol, real_amount, user.username)
+        log.debug('Trigger %d: Buying %d units of %s (%s total) for %s', 
+                trigger.id, quantity, trigger.stock_symbol, real_amount, user.username)
 
+        # Use reserve balance to buy stock
         user.reserve_balance -= trigger.amount
+
+        # Put extra money back in users account
+        extra = trigger.amount - real_amount
+        log.debug('Trigger %d: Extra money left over after purchase: %s', extra)
+        user.account_balance += extra
 
         # create or update the StockPurchase for this stock symbol
         stock = self.session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).first()
         if not stock:
-            log.debug('%s owns no %s yet, buying %d units...', 
-                    user.username, trigger.stock_symbol, quantity)
             stock = StockPurchase(user=user,
                     stock_symbol=trigger.stock_symbol,
                     quantity=quantity)
         else:
-            stock.quantity = stock.quantity + trigger.quantity
+            stock.quantity = stock.quantity + quantity
 
         self.session.delete(trigger)
 
@@ -523,7 +527,78 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
     associated with the given stock and user
     """
     def run(self, username, stock_symbol, amount):
-        return xml.ResultResponse('success')
+        session = get_session()
+        user = session.query(User).filter_by(username=username).first()
+        if not user:
+            raise UserNotFoundError(username)
+
+        amount = Money.from_string(amount)
+
+        trigger = session.query(Trigger).filter_by(
+            username=user.username, operation='SELL', stock_symbol=stock_symbol,
+            state=Trigger.State.INACTIVE
+        ).first()
+        if not trigger:
+            raise NoTriggerError(username, stock_symbol)
+
+        trigger.state = Trigger.State.RUNNING
+        trigger.trigger_value = amount
+        session.commit()
+
+        self.session = session
+        eventlet.spawn(self.check_trigger, trigger)
+
+        return xml.ResultResponse('trigger activated')
+
+    def check_trigger(self, trigger):
+        while True:
+            log.debug('Trigger %d checking for stock %s > %s',
+                    trigger.id, trigger.stock_symbol, trigger.trigger_value)
+
+            # TODO: why is commit required here just to refresh an attribute?
+            self.session.refresh(trigger)
+            self.session.commit()
+
+            if trigger.state == Trigger.State.CANCELLED:
+                log.debug('Trigger %d cancelled!', trigger.id)
+                return
+
+            # Get a new quote for the stock
+            quote_client = get_quote_client()
+            quote = quote_client.get_quote(trigger.stock_symbol, 
+                    trigger.username)
+            log.debug('Trigger %d: %s => %s', 
+                    trigger.id, trigger.stock_symbol, quote)
+
+            # If quote is greater than trigger value, buy stock and remove trigger
+            if quote > trigger.trigger_value:
+                # buy the stock and update reserve balance
+                log.debug("Trigger %d activated: %s > %s", 
+                        trigger.id, quote, trigger.trigger_value)
+
+                return self.process_transaction(quote, trigger)
+
+            eventlet.sleep(config.TRIGGER_INTERVAL)
+
+    def process_transaction(self, quote, trigger):
+        # Calculate real price of stock purchase based on current quote
+        user = trigger.user
+        price = quote * trigger.quantity
+
+        log.debug('Trigger %d: Selling %d units of %s (%s total) for %s', 
+                trigger.id, trigger.quantity, trigger.stock_symbol, price, user.username)
+
+        user.account_balance += price
+
+        # update the StockPurchase for this stock symbol
+        stock = self.session.query(StockPurchase).filter_by(
+            user=user, stock_symbol=trigger.stock_symbol
+        ).one()
+        stock.quantity = stock.quantity - trigger.quantity
+
+        self.session.delete(trigger)
+
+        self.session.commit()
 
 
 class CANCEL_SET_SELLCommand(CommandHandler):
@@ -537,12 +612,15 @@ class CANCEL_SET_SELLCommand(CommandHandler):
             raise UserNotFoundError(username)
 
         trigger = session.query(Trigger).filter_by(
-            username=user.username, operation='SELL', stock_symbol=stock_symbol
+            username=user.username, operation='SELL', stock_symbol=stock_symbol,
+        ).filter(
+            Trigger.state != Trigger.State.CANCELLED,
         ).first()
+
         if not trigger:
             raise NoTriggerError(username, stock_symbol)
 
-        session.delete(trigger)
+        trigger.state = Trigger.State.CANCELLED
         session.commit()
 
         return xml.ResultResponse('trigger cancelled')

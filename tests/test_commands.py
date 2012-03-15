@@ -666,14 +666,14 @@ class TestCANCEL_SET_SELLCommand(DatabaseTest):
         self.assertRaises(commands.NoTriggerError,
                 self.command.run, username='poor_user', stock_symbol='ABAB')
 
-    def test_postcondition_remove(self):
-        """ The SELL Trigger should be removed from the database """
+    def test_postcondition_cancelled(self):
+        """ The SELL Trigger should be marked as cancelled """
         self.command.run(username='rich_user', stock_symbol='ABAB')
 
-        # Assume there's no committed / expired transactions
-        transaction = self.session.query(Trigger).first()
-        self.assertEqual(transaction, None)
-
+        transaction = self.session.query(Trigger).filter_by(
+                state=Trigger.State.CANCELLED).first()
+        self.assertNotEqual(transaction, None)
+        self.assertEqual(transaction.state, Trigger.State.CANCELLED)
 
 
 
