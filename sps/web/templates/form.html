@@ -3,56 +3,234 @@
 <head>
 
 <meta charset="utf-8">
-<title>Client Input Form</title>
 
+    <meta charset="utf-8">
+    <title>Stock Paper Scissors - Client Input Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
+    <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+
+    <style>
+        #header-row {
+            margin-bottom: 20px;
+        }
+        #header-row h1 {
+            padding-bottom: 4px;
+        }
+        #header-row p {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #AAA;
+        }
+    </style>
+
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.js"></script>
+    <script src="/static/bootstrap/js/bootstrap-tab.js"></script>
+    <script>
+        $(function() {
+            // Activate tabs
+            $('#command-tabs a:first').tab('show');
+        });
+    </script>
 </head>
 
 <body>
 
-<form action="/", method="POST", name="client_form">
+<div class="container">
+
+    <!-- Header bar -->
+    <div id="header-row" class="row">
+        <div class="span12">
+            <h1>Stock Paper Scissors</h1>
+            <p>Client Interface</p>
+        </div>
+    </div>
+
+    <!-- Command tab sections-->
+    <div id="command-row" class="row">
+        <div class="span4">
+            <ul id="command-tabs" class="nav nav-pills nav-stacked">
+                <li><a href="#ADD" data-toggle="tab">Add</a></li>
+                <li><a href="#QUOTE" data-toggle="tab">Quote</a></li>
+                <li><a href="#BUY" data-toggle="tab">Buy</a></li>
+                <li><a href="#COMMIT_BUY" data-toggle="tab">Commit Buy</a></li>
+                <li><a href="#CANCEL_BUY" data-toggle="tab">Cancel Buy</a></li>
+                <li><a href="#SELL" data-toggle="tab">Sell</a></li>
+                <li><a href="#COMMIT_SELL" data-toggle="tab">Commit Sell</a></li>
+                <li><a href="#CANCEL_SELL" data-toggle="tab">Cancel Sell</a></li>
+                <li><a href="#SET_BUY_AMOUNT" data-toggle="tab">Set Buy Amount</a></li>
+                <li><a href="#CANCEL_SET_BUY" data-toggle="tab">Cancel Set Buy</a></li>
+                <li><a href="#SET_BUY_TRIGGER" data-toggle="tab">Set Buy Trigger</a></li>
+                <li><a href="#SET_SELL_AMOUNT" data-toggle="tab">Set Sell Amount</a></li>
+                <li><a href="#SET_SELL_TRIGGER" data-toggle="tab">Set Sell Trigger</a></li>
+                <li><a href="#CANCEL_SET_SELL" data-toggle="tab">Cancel Set Sell</a></li>
+                <li><a href="#DUMPLOG_USER" data-toggle="tab">Dumplog User</a></li>
+                <li><a href="#DUMPLOG" data-toggle="tab">Dumplog</a></li>
+                <li><a href="#DISPLAY_SUMMARY" data-toggle="tab">Display Summary</a></li>
+            </ul>
+        </div>
+        <div class="span8">
+            <div class="well tab-content">
+                <div class="tab-pane active" id="ADD">
+                    <h2>Add</h2>
+                    <form action="/" method="POST">
+                        <label for="username"> Username </label>
+                        <input type="text" name="username" id ="username" />
+
+                        <label for="money value">Money Value</label>
+                        <input type="text" name="money value" class="span3"/>
+
+                        <p><button type="submit" class="btn" name="submit" value="submit">Submit</button></p>
+                    </form>
+                </div>
+                <div class="tab-pane" id="QUOTE">
+                    <form class="form-horizontal">
+                    <fieldset>
+                        <legend>Get a stock quote</legend>
+                        {% for input in form.QUOTE %}
+                        <div class="control-group">
+                            <label class="control-label" for="{{ input.name }}">{{ input.label }}:</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" name="{{ input.name }}">
+                                {% if input.help %}
+                                <p class="help-block">{{ input.help }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="control-group">
+                            <label class="control-label" for="input01">User ID:</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" name="username">
+                                <p class="help-block">Your username</p>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="input01">Stock Symbol</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge" name="stock_symbol">
+                                <p class="help-block">The stock to query</p>
+                            </div>
+                        </div>
+                    </fieldset>
+                    </form>
+                </div>
+                <div class="tab-pane" id="BUY">
+                    BUY
+                </div>
+                <div class="tab-pane" id="COMMIT_BUY">
+                    COMMIT_BUY
+                </div>
+                <div class="tab-pane" id="CANCEL_BUY">
+                    CANCEL_BUY
+                </div>
+                <div class="tab-pane" id="SELL">
+                    SELL
+                </div>
+                <div class="tab-pane" id="COMMIT_SELL">
+                    COMMIT_SELL
+                </div>
+                <div class="tab-pane" id="CANCEL_SELL">
+                    CANCEL_SELL
+                </div>
+                <div class="tab-pane" id="SET_BUY_AMOUNT">
+                    SET_BUY_AMOUNT
+                </div>
+                <div class="tab-pane" id="CANCEL_SET_BUY">
+                    CANCEL_SET_BUY
+                </div>
+                <div class="tab-pane" id="SET_BUY_TRIGGER">
+                    SET_BUY_TRIGGER
+                </div>
+                <div class="tab-pane" id="SET_SELL_AMOUNT">
+                    SET_SELL_AMOUNT
+                </div>
+                <div class="tab-pane" id="SET_SELL_TRIGGER">
+                    SET_SELL_TRIGGER
+                </div>
+                <div class="tab-pane" id="CANCEL_SET_SELL">
+                    CANCEL_SET_SELL
+                </div>
+                <div class="tab-pane" id="DUMPLOG_USER">
+                    DUMPLOG_USER
+                </div>
+                <div class="tab-pane" id="DUMPLOG">
+                    DUMPLOG
+                </div>
+                <div class="tab-pane" id="DISPLAY_SUMMARY">
+                    DISPLAY_SUMMARY
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <footer>
+    <p>&copy; Team Gamma 2012</p>
+    </footer>
+
+</div>
+
+      <!--
+
+
+
+    </div>
+<form action="/" method="POST" name="client_form">
 
 	<input type="text" name="username" id ="username">
 	<label for="username"> Username </label><br><br>
 	
-	<input type="radio" name="action" value ="add money" id ="add money">
+	<input type="radio" name="action" value ="add money" id ="add_money">
 	<label for="add money"> add money </label><br>
-	<input type="radio" name="action" value ="get quote" id="get quote"> 
+	<input type="radio" name="action" value ="get quote" id="get_quote"> 
     <label for="get quote"> get quote </label><br><br>
 
-	<input type="radio" name="action" value ="buy shares" id= "buy shares"> 
+	<input type="radio" name="action" value ="buy shares" id= "buy_shares"> 
 	<label for="buy shares"> buy shares </label><br>
-	<input type="radio" name="action" value ="sell shares" id="sell shares">
+	<input type="radio" name="action" value ="sell shares" id="sell_shares">
     <label for="sell shares"> sell shares </label><br>
-    <input type="radio" name="action" value ="cancel buy" id ="cancel buy"> 
+    <input type="radio" name="action" value ="cancel buy" id ="cancel_buy"> 
     <label for="cancel buy"> cancel buy </label><br>
-	<input type="radio" name="action" value ="commit buy" id ="commit buy">
+	<input type="radio" name="action" value ="commit buy" id ="commit_buy">
 	<label for="commit buy"> commit buy </label><br>
-	<input type="radio" name="action" value ="cancel sell" id ="cancel sell"> 
+	<input type="radio" name="action" value ="cancel sell" id ="cancel_sell"> 
 	<label for="cancel sell"> cancel sell </label><br>
-	<input type="radio" name="action" value ="commit sell" id ="commit sell">
+	<input type="radio" name="action" value ="commit sell" id ="commit_sell">
     <label for="commit sell"> commit sell </label><br><br>
 
 
-    <input type="radio" name="action" value ="set buy amount" id="set buy amount" >
+    <input type="radio" name="action" value ="set buy amount" id="set_buy_amount" >
     <label for="set buy amount"> set buy amount (#)</label><br>
-    <input type="radio" name="action" value ="set buy trigger" id="set buy trigger" >
+    <input type="radio" name="action" value ="set buy trigger" id="set_buy_trigger" >
     <label for="set buy trigger"> set buy trigger ($)</label><br>
-    <input type="radio" name="action" value ="cancel set buy" id="cancel set buy">
+    <input type="radio" name="action" value ="cancel set buy" id="cancel_set_buy">
     <label for="cancel set buy"> cancel set buy </label><br><br>
 
-    <input type="radio" name="action" value ="set sell amount" id="set sell amount">
+    <input type="radio" name="action" value ="set sell amount" id="set_sell_amount">
 	<label for="set sell amount"> set sell amount (#) </label><br>
-    <input type="radio" name="action" value ="set sell trigger" id="set sell trigger" >
+    <input type="radio" name="action" value ="set sell trigger" id="set_sell_trigger" >
     <label for="set sell trigger"> set sell trigger ($) </label><br>
-    <input type="radio" name="action" value ="cancel set sell" id="cancel set sell">
+    <input type="radio" name="action" value ="cancel set sell" id="cancel_set_sell">
     <label for="cancel set sell"> cancel set sell </label><br><br>
 
-    <input type="radio" name="action" value ="dump log user" id ="dump log user">
+    <input type="radio" name="action" value ="dump log user" id ="dump_log_user">
     <label for="dump log user"> dump log (user) </label><br>
-    <input type="radio" name="action" value ="dump log all" id ="dump log all">
+    <input type="radio" name="action" value ="dump log all" id ="dump_log_all">
     <label for="dump log all"> dump log (all) </label><br>
-    <input type="radio" name="action" value ="display summary" id ="display summary">
+    <input type="radio" name="action" value ="display summary" id ="display_summary">
 	<label for="diplay summary"> display summary </label><br><br>
 
 	
@@ -60,13 +238,13 @@
 
 		<legend align="center">Inputs</legend>
 		
-		<input type="text" name="money value" id ="money value">
+		<input type="text" name="money value" id ="money_value">
 		<label for="money value"> Input Monetary Value </label><br>
 
-		<input type="text" name="stock quantity" id ="stock quantity">
+		<input type="text" name="stock quantity" id ="stock_quantity">
 		<label for="stock quantity"> Stock Quantity </label><br>
 		
-		<input type="text" name="stock symbol" id ="stock symbol">
+		<input type="text" name="stock symbol" id ="stock_symbol">
 		<label for="stock symbol"> Stock Symbol </label><br>
 		
         <input type="text" name="filename" id ="filename">
@@ -78,6 +256,7 @@
 	<input type="submit" value="Continue">
 
 </form>
+-->
 
 </body>
 

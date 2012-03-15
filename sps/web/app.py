@@ -4,6 +4,7 @@ import logging
 from sps.config import config
 
 import transaction_interface
+import command_forms
 
 app = Flask(__name__)
 
@@ -58,7 +59,7 @@ def hello():
 
 
     else:
-        return render_template('form.html')
+        return render_template('form.html', form=command_forms)
 
 
 def checkentry(username, action, money_value, stock_quantity, stock_symbol, filename):
