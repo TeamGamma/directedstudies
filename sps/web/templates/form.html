@@ -117,6 +117,8 @@
                 {% for command in form.COMMANDS %}
                 <div class="tab-pane" id="{{ command }}">
                     <form method="post" action="/" class="form-horizontal">
+                    <input type="hidden" name="action" value="{{ command }}"/>
+
                     <fieldset>
                         <legend>{{ form[command].description }}</legend>
                         {% for input in form[command].inputs %}

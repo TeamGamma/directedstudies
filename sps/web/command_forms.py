@@ -25,12 +25,13 @@ COMMANDS = (
 )
 
 _username_input = dict(name='username', label='User ID', help='Your account login')
-_stock_symbol_input = dict(name='stock_symbol', label='Stock Symbol', help='The stock symbol')
+_stock_symbol_input = dict(name='stock symbol', label='Stock Symbol', help='The stock symbol')
 _money_value_input = dict(name='money value', label='Amount', help='Amount in dollars')
 _quantity_input = dict(name='stock quantity', label='Quantity', help='Quantity of stock')
 _buy_trigger_input = dict(name='money value', label='Trigger Price', help='Buy will be triggered stock price goes below this')
 _sell_trigger_input = dict(name='money value', label='Trigger Price', help='Sell will be triggered stock price goes above this')
 _filename_input = dict(name='filename', label='Output File', help='Write to this file')
+
 
 class ADD():
     description = "Add money to your account"
