@@ -536,7 +536,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
 
         # Put extra money back in users account
         extra = trigger.amount - real_amount
-        log.debug('Trigger %d: Extra money left over after purchase: %s', extra)
+        log.debug('Trigger %d: Extra money left over after purchase: %s', trigger.id, extra)
         user.account_balance += extra
 
         # create or update the StockPurchase for this stock symbol

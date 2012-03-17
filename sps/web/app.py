@@ -113,8 +113,8 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
     
     elif action == 'SET_BUY_AMOUNT':
         try:
-            if len(stock_symbol) != 0 and float(stock_quantity) > 0 and len(username)!=0:
-                return "SET_BUY_AMOUNT," + username + ',' + stock_symbol + ',' + stock_quantity
+            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
+                return "SET_BUY_AMOUNT," + username + ',' + stock_symbol + ',' + money_value
             else:
                 return False
         except ValueError:
