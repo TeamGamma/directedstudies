@@ -103,7 +103,7 @@ def trigger_element(t):
         trigger_value=str(t.trigger_value),
         amount=str(t.amount),
         quantity=str(t.quantity),
-        active=str(t.active),
+        state=str(t.state),
         operation=t.operation,
     )
 

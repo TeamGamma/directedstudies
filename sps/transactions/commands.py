@@ -113,10 +113,15 @@ class ADDCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
         if not user:
+            xml.log_error('ADD', 'invalid username')
             raise UserNotFoundError(username)
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
+        
+        #log event
+        xml.log_event('ADD', username, amount=str(amount)) 
+        
         return xml.ResultResponse('success')
 
 
@@ -180,6 +185,8 @@ class BUYCommand(CommandHandler):
         session.add(transaction)
         session.commit()
 
+        xml.log_transaction('BUY', transaction) 
+
         return xml.QuoteResponse(quantity=quantity, price=price)
 
 
@@ -191,11 +198,13 @@ class COMMIT_BUYCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
         if not user:
+            xml.log_error('COMMIT_BUY','username not found')
             raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
             username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
+            xml.log_error('COMMIT_BUY','no buy tranaction found')
             raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
@@ -220,6 +229,7 @@ class COMMIT_BUYCommand(CommandHandler):
             stock.quantity = stock.quantity + transaction.quantity
 
         session.commit()
+        xml.log_transaction('COMMIT_BUY', transaction, status_message='success')
 
         return xml.ResultResponse('success')
 
@@ -232,6 +242,7 @@ class CANCEL_BUYCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
         if not user:
+            xml.log_error('CANCEL_BUY', 'username not found')
             raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
             username=user.username, operation='BUY', committed=False
@@ -242,6 +253,7 @@ class CANCEL_BUYCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
+        xml.log_transaction('CANCEL_BUY', transaction, status_message='success')
         return xml.ResultResponse('success')
 
 
@@ -288,6 +300,8 @@ class SELLCommand(CommandHandler):
         session.add(self.trans)
         session.commit()
 
+        
+        xml.log_transaction('SELL', self.trans, status_message='success')
         return xml.QuoteResponse(quantity=amount, price=price)
 
 
@@ -324,6 +338,8 @@ class COMMIT_SELLCommand(CommandHandler):
         transaction.committed = True
         session.commit()
 
+        
+        xml.log_transaction('COMMIT_SELL', transaction, status_message='success')
         return xml.ResultResponse('success')
 
 
@@ -346,6 +362,8 @@ class CANCEL_SELLCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
+        
+        xml.log_transaction('CANCEL_SELL', transaction, status_message='success')
         return xml.ResultResponse('success')
 
 
@@ -374,6 +392,8 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
         user.reserve_balance += amount
 
         session.commit()
+        
+        xml.log_trigger('SET_BUY_AMOUNT', set_transaction, status_message='success')
 
         return xml.ResultResponse('success')
 
@@ -409,6 +429,8 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
 
         session.commit()
 
+        xml.log_trigger('SET_SELL_AMOUNT', set_transaction, status_message='success')
+
         return xml.ResultResponse('success')
 
 
@@ -433,6 +455,8 @@ class CANCEL_SET_BUYCommand(CommandHandler):
         trigger.state = Trigger.State.CANCELLED
         session.commit()
 
+        
+        xml.log_trigger('CANCEL_SET_BUY', trigger, status_message='success')
         return xml.ResultResponse('trigger cancelled')
 
 
@@ -464,6 +488,8 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         self.session = session
         eventlet.spawn(self.check_trigger, trigger)
 
+
+        xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='trigger set')
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger):
@@ -528,6 +554,9 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
 
         self.session.commit()
 
+        xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='Trigger item bought')
+
+
 
 class SET_SELL_TRIGGERCommand(CommandHandler):
     """
@@ -556,6 +585,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         self.session = session
         eventlet.spawn(self.check_trigger, trigger)
 
+        xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='trigger set')
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger):
@@ -583,7 +613,6 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
                 # buy the stock and update reserve balance
                 log.debug("Trigger %d activated: %s > %s", 
                         trigger.id, quote, trigger.trigger_value)
-
                 return self.process_transaction(quote, trigger)
 
             eventlet.sleep(config.TRIGGER_INTERVAL)
@@ -608,6 +637,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
 
         self.session.commit()
 
+        xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='Trigger item sold')
 
 class CANCEL_SET_SELLCommand(CommandHandler):
     """
@@ -631,6 +661,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
         trigger.state = Trigger.State.CANCELLED
         session.commit()
 
+        xml.log_trigger('CANCEL_SET_SELL', trigger, status_message='success')
         return xml.ResultResponse('trigger cancelled')
 
 
@@ -641,6 +672,7 @@ class DUMPLOG_USERCommand(CommandHandler):
     Print out the history of the users transactions to the user specified file
     """
     def run(self, username, filename):
+        xml.log_event('DUMPLOG_USER', username, status_message= 'to file %s' % filename)
         return xml.ResultResponse('success')
 
 
@@ -662,6 +694,8 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
         # Get this users triggers
         triggers = session.query(Trigger).filter_by(user=user).all()
 
+        
+        xml.log_event('DISPLAY_SUMMARY', username)
         return xml.SummaryResponse(
             transactions=transactions, triggers=triggers,
             account_balance=user.account_balance,
@@ -699,6 +733,8 @@ class DUMPLOGCommand(CommandHandler):
             res = xml.DumplogResponse(transactions)
             f.write(str(res))
 
+
+        xml.log_event('DUMPLOG', username, status_message='to file %s' % filename)
         return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
 
     def dumplog_admin(self, filename):
@@ -713,6 +749,8 @@ class DUMPLOGCommand(CommandHandler):
             res = xml.DumplogResponse(transactions)
             f.write(str(res))
 
+        
+        xml.log_event('DUMPLOG', username='Admin', status_message='to file %s' % filename)
         return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
 
 
