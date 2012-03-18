@@ -61,7 +61,7 @@ def deploy_base():
         sudo('apt-get update')
 
     # ubuntu goodies
-    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 apache2 libapache2-mod-wsgi python-mysqldb fabric python-lxml")
+    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 python-mysqldb fabric python-lxml")
 
     # Make top-level folder if it doesn't exist
     sudo('mkdir -p /srv')
@@ -86,7 +86,10 @@ def deploy_web():
     """ Deploys the web server """
     deploy_base()
 
-    #configure apache for wsgi by copying the repo config to remote install
+    # Install apache
+    sudo('apt-get -y install apache2 libapache2-mod-wsgi')
+
+    # configure apache for wsgi by copying the repo config to remote install
     put(join(fabdir, 'config/apache/wsgi_configuration'),
         '/etc/apache2/sites-available/wsgi_configuration', use_sudo=True)
 

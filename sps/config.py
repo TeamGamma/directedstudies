@@ -6,11 +6,15 @@ NOTE: You can't import ANYTHING from the rest of the codebase here
 
 """
 from datetime import timedelta
+from os.path import abspath, dirname, join
 
 class ConfigObject():
     """
     Provides default values for all possible keys in the configuration file
     """
+    # Default location of config file is in directory above this one
+    CONFIG_FILE_PATH = join(abspath(dirname(__file__)), '..', 'config.py')
+
     TRANSACTION_SERVER_HOST = 'localhost'
     TRANSACTION_SERVER_PORT = 6000
 
