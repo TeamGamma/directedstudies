@@ -61,7 +61,7 @@ def deploy_base():
         sudo('apt-get update')
 
     # ubuntu goodies
-    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 apache2 libapache2-mod-wsgi python-mysqldb fabric")
+    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 apache2 libapache2-mod-wsgi python-mysqldb fabric python-lxml")
 
     # Make top-level folder if it doesn't exist
     sudo('mkdir -p /srv')
