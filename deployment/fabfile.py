@@ -25,8 +25,8 @@ env.roledefs = {
 }
 
 # password auth
-env.user = 'vagrant'
-env.password = 'vagrant'
+env.user = 'direct'
+env.password = 'direct'
 
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
