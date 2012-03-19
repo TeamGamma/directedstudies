@@ -33,7 +33,16 @@ def drop_tables():
     from sps.database.session import get_session
     from sps.database.models import Base
     session = get_session()
+
+    # Drop all tables except user
+    tables = Base.metadata.tables
+    non_user_tables = [table for tablename, table in tables.items() if tablename != 'users']
+    Base.metadata.drop_all(bind=session.connection(), checkfirst=False,
+        tables=non_user_tables)
+
+    # Now drop the user table
     Base.metadata.drop_all(bind=session.connection(), checkfirst=False)
+
 
 def setup_database():
     """

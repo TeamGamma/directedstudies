@@ -137,8 +137,13 @@ def deploy_db():
     # Restart database server
     sudo('service mysql restart')
 
-    # Create the database
-    sudo('echo "CREATE DATABASE IF NOT EXISTS sps;" | mysql -h127.0.0.1 -uroot -proot')
+    # Create the database (totally insecure)
+    sql = """
+    CREATE DATABASE IF NOT EXISTS sps;
+    CREATE USER 'root'@'%' IDENTIFIED BY 'root';
+    GRANT ALL ON sps.* TO 'root'@'%';
+    """
+    sudo('echo "%s" | mysql -h127.0.0.1 -uroot -proot' % sql)
 
     with cd('/srv/directedstudies/'):
         #use rob's local fabfile to deal with setting up the tables
