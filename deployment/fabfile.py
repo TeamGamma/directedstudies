@@ -12,17 +12,16 @@ from __future__ import with_statement
 from fabric.api import env, settings, roles, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
-from fabric.contrib.files import exists
+from fabric.contrib.files import exists, upload_template
 from os.path import join, abspath, dirname
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
 fabdir = abspath(dirname(__file__))
 
-vm_address = '127.0.0.1:2222'
 env.roledefs = {
-    'db': [vm_address],
-    'web': [vm_address],
-    'transaction': [vm_address],
+    'db': ['a01'],
+    'web': ['a02'],
+    'transaction': ['a03'],
 }
 
 # password auth
@@ -31,6 +30,21 @@ env.password = 'vagrant'
 
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
+
+@roles('transaction', 'web', 'db')
+def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
+    """
+    Updates the remote config file with the local one
+    """
+    # Use fabfile's predefined server names
+    context = {
+        "transaction_server": env.roledefs['transaction'][0].split(':')[0],
+        "database_server": env.roledefs['db'][0].split(':')[0],
+        "quote_client": quote_client
+    }
+    upload_template('config_template.py', 
+        '/srv/directedstudies/config.py', template_dir=join(fabdir, 'config'),
+        use_jinja=True, use_sudo=True, backup=True, context=context)
 
 def blank():
     """ Used for testing fabric configuration """
@@ -79,6 +93,8 @@ def deploy_base():
 
             # Install python libs
             sudo('pip install -r requirements.txt')
+
+    update_config_file()
 
 
 @roles('web')
@@ -146,6 +162,7 @@ def update_code():
     """ Updates the code on all servers from GitHub """
     with cd('/srv/directedstudies'):
         sudo('git pull')
+
 
 @roles('transaction')
 def restart_transaction_server():
