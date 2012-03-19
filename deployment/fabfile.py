@@ -13,10 +13,10 @@ from fabric.api import env, settings, roles, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists, upload_template
-from os.path import join, abspath, dirname
+from os import path
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
-fabdir = abspath(dirname(__file__))
+fabdir = path.abspath(path.dirname(__file__))
 
 env.roledefs = {
     'db': ['a01'],
@@ -43,7 +43,7 @@ def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
         "quote_client": quote_client
     }
     upload_template('config_template.py', 
-        '/srv/directedstudies/config.py', template_dir=join(fabdir, 'config'),
+        '/srv/directedstudies/config.py', template_dir=path.join(fabdir, 'config'),
         use_jinja=True, use_sudo=True, backup=True, context=context)
 
 def blank():
@@ -106,7 +106,7 @@ def deploy_web():
     sudo('apt-get -y install apache2 libapache2-mod-wsgi')
 
     # configure apache for wsgi by copying the repo config to remote install
-    put(join(fabdir, 'config/apache/wsgi_configuration'),
+    put(path.join(fabdir, 'config/apache/wsgi_configuration'),
         '/etc/apache2/sites-available/wsgi_configuration', use_sudo=True)
 
     # create a link to the site config and delete default site config
@@ -132,7 +132,7 @@ def deploy_db():
     sudo('apt-get -y install mysql-server')
 
     # Configure the database server
-    put(join(fabdir, 'config/mysql/my.cnf'), '/etc/mysql/my.cnf', use_sudo=True)
+    put(path.join(fabdir, 'config/mysql/my.cnf'), '/etc/mysql/my.cnf', use_sudo=True)
 
     # Restart database server
     sudo('service mysql restart')
