@@ -1,11 +1,11 @@
 from datetime import timedelta
 
-TRANSACTION_SERVER_HOST = '{{ transaction_server }}'
+TRANSACTION_SERVER_HOST = '192.168.252.{{ transaction_server }}'
 TRANSACTION_SERVER_PORT = 6000
 
 DATABASE_CONNECTION_ARGS = {
     'drivername': 'mysql',
-    'host': '{{ database_server }}',
+    'host': '192.168.252.{{ database_server }}',
     'port': 3306,
     'database': 'sps',
     'username': 'root',

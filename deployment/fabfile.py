@@ -15,6 +15,7 @@ from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists, upload_template
 from deploy_utils import default_roles
 from os import path
+import re
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
 fabdir = path.abspath(path.dirname(__file__))
@@ -50,20 +51,22 @@ def update_network():
         sudo('ifup %s' % interface)
 
 
-@roles('transaction', 'web', 'db')
+@default_roles('transaction', 'web', 'db')
 def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
     """
     Updates the remote config file with the local one
     """
     # Use fabfile's predefined server names
     context = {
-        "transaction_server": env.roledefs['transaction'][0].split(':')[0],
-        "database_server": env.roledefs['db'][0].split(':')[0],
-        "quote_client": quote_client
+        "transaction_server": _machine_num(env.roledefs['transaction'][0]),
+        "database_server": _machine_num(env.roledefs['db'][0]),
+        "quote_client": quote_client,
     }
     upload_template('config_template.py', 
         '/srv/directedstudies/config.py', template_dir=path.join(fabdir, 'config'),
         use_jinja=True, use_sudo=True, backup=True, context=context)
+
+    run('cat /srv/directedstudies/config.py')
 
 def blank():
     """ Used for testing fabric configuration """
@@ -204,4 +207,12 @@ def restart_db():
     """ Restarts the database server """
     sudo('service mysql restart')
 
+
+def _machine_num(servername):
+    """
+    Translates a server DNS name (a01) to an IP address on the internal
+    network
+    """
+    hostname = servername.split(':')[0]
+    return int(re.search('\d+', hostname).group(0))
 

@@ -5,17 +5,17 @@
 auto eth2
 iface eth2 inet dhcp
 
-# ResNet2
+# ResNet2 : Use for internal system traffic
 iface eth3 inet static
 address 192.168.252.{{ machine_number }}
 netmask 255.255.255.0
 
-# ResNet3
+# ResNet3 : Use for load testing
 iface eth0 inet static
 address 192.168.251.{{ machine_number }}
 netmask 255.255.255.0
 
-# ResNet4
+# ResNet4 : Use for transferring funny pictures of kittens
 iface eth1 inet static
 address 192.168.250.{{ machine_number }}
 netmask 255.255.255.0
