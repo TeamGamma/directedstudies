@@ -13,6 +13,7 @@ from fabric.api import env, settings, roles, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists, upload_template
+from deploy_utils import default_roles
 from os import path
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
@@ -22,6 +23,7 @@ env.roledefs = {
     'db': ['a01'],
     'web': ['a02'],
     'transaction': ['a03'],
+    'vm': ['vagrant@127.0.0.1:2222']
 }
 
 # password auth
@@ -30,6 +32,20 @@ env.password = 'direct'
 
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
+
+@default_roles('transaction', 'web', 'db')
+def update_network():
+    """
+    Updates /etc/network/interfaces and brings up the network interfaces.
+    """
+    name = env.host
+    machine_number = int(name[1:])
+    upload_template('network/interfaces', '/etc/network/interfaces', 
+        template_dir=path.join(fabdir, 'config'),
+        use_jinja=True, use_sudo=True, backup=True, 
+        context=dict(machine_number=machine_number))
+    run('cat /etc/network/interfaces')
+
 
 @roles('transaction', 'web', 'db')
 def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):

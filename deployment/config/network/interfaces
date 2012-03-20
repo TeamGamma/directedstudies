@@ -1,0 +1,22 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# ResNet1: Connection to rest of lab and internet - no heavy traffic allowed
+auto eth2
+iface eth2 inet dhcp
+
+# ResNet2
+iface eth3 inet static
+address 192.168.252.{{ machine_number }}
+netmask 255.255.255.0
+
+# ResNet3
+iface eth0 inet static
+address 192.168.251.{{ machine_number }}
+netmask 255.255.255.0
+
+# ResNet4
+iface eth1 inet static
+address 192.168.250.{{ machine_number }}
+netmask 255.255.255.0
+
