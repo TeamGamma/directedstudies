@@ -263,8 +263,7 @@ class SELLCommand(CommandHandler):
     specified user at the current price.
     """
     def run(self, username, stock_symbol, amount):
-        amount = int(amount)
-
+        
         # see if user exists
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
@@ -276,6 +275,17 @@ class SELLCommand(CommandHandler):
                 user=user, operation='SELL', committed=False).count() > 0:
             raise SellTransactionActiveError()
 
+        #set up client to get quote
+        quote_client = get_quote_client()
+        quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
+
+        # Work out quantity of stock to sell, fail if not enough for one stock
+        amount = Money.from_string(amount)
+        quantity_to_sell = amount_to_quantity(quoted_stock_value, amount)
+        if quantity_to_sell == 0:
+            raise InsufficientFundsError()
+
+
         # see if the user owns the requested stock and has enough for request
         records = session.query(StockPurchase).filter_by(
                 username=user.username, stock_symbol=stock_symbol).all()
@@ -283,18 +293,15 @@ class SELLCommand(CommandHandler):
         if(len(records) > 1):
             raise UnknownCommandError('Multiple StockPurchase for user %s: %d', 
                     username, len(records))
-        if len(records) != 1 or records[0].quantity < amount:
+        if len(records) != 1 or records[0].quantity < quantity_to_sell:
             raise InsufficientStockError()
 
-        #set up client to get quote
-        quote_client = get_quote_client()
-        quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
-        price = quoted_stock_value * amount
+        price = quantity_to_sell*quoted_stock_value
 
         # make transaction
         self.trans = Transaction(username=user.username, 
                 stock_symbol=stock_symbol, operation='SELL', committed=False, 
-                quantity=amount, stock_value=quoted_stock_value)
+                quantity=quantity_to_sell, stock_value=quoted_stock_value)
 
         # commit transaction after all actions for atomicity
         session.add(self.trans)
@@ -302,7 +309,7 @@ class SELLCommand(CommandHandler):
 
         
         xml.log_transaction('SELL', self.trans, status_message='success')
-        return xml.QuoteResponse(quantity=amount, price=price)
+        return xml.QuoteResponse(quantity=quantity_to_sell, price=price)
 
 
 class COMMIT_SELLCommand(CommandHandler):
