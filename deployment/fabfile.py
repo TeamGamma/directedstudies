@@ -45,6 +45,9 @@ def update_network():
         use_jinja=True, use_sudo=True, backup=True, 
         context=dict(machine_number=machine_number))
     run('cat /etc/network/interfaces')
+    for interface in ['eth0', 'eth1', 'eth3']:
+        sudo('ifdown %s' % interface)
+        sudo('ifup %s' % interface)
 
 
 @roles('transaction', 'web', 'db')
