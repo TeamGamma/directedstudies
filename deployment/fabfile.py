@@ -188,6 +188,9 @@ def deploy_transaction():
 @_roles('tsung')
 def deploy_tsung():
     """ Deploys the Tsung load-testing servers and updates tsung.xml """
+    with hide('stdout', 'stderr'):
+        sudo('apt-get update')
+
     sudo("apt-get -y install erlang-nox gnuplot-nox libtemplate-perl libhtml-template-perl libhtml-template-expr-perl")
 
     run('wget http://tsung.erlang-projects.org/dist/ubuntu/lucid/tsung_1.4.1-1_all.deb')
