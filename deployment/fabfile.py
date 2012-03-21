@@ -86,6 +86,7 @@ def update():
     execute(update_code)
     execute(restart_transaction_server)
     execute(restart_web_server)
+    execute(restart_db)
 
 
 @_roles('web', 'db', 'transaction')
@@ -222,6 +223,10 @@ def restart_web_server():
 def restart_db():
     """ Restarts the database server """
     sudo('service mysql restart')
+
+    with cd('/srv/directedstudies/'):
+        # Wipe the DB and start afresh
+        sudo('fab setup_database')
 
 
 def _machine_num(servername):

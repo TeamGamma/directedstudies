@@ -48,7 +48,7 @@ def setup_database():
     fixtures.drop_tables(session)
     fixtures.create_tables(session)
     fixtures.users(session)
-    fixtures.buy_transaction_and_user(session)
-    fixtures.sell_transaction_and_user(session)
+    #fixtures.buy_transaction_and_user(session)
+    #fixtures.sell_transaction_and_user(session)
 
 
