@@ -22,10 +22,11 @@ fabdir = path.abspath(path.dirname(__file__))
 
 env.roledefs = {
     'db': ['a01'],
-    'web': ['a02'],
+    'web': ['a02', 'a04', 'a06'],
     'transaction': ['a03'],
     'tsung': ['a10'],
-    'vm': ['vagrant@127.0.0.1:2222']
+    'vm': ['vagrant@127.0.0.1:2222'],
+    'master': ['a09']
 }
 
 # password auth
