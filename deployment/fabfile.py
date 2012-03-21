@@ -41,6 +41,16 @@ env.password = 'direct'
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
 
+def update():
+    """ Updates code and config and restarts all servers """
+    execute(update_code)
+    execute(update_network)
+    execute(update_config_file)
+    execute(restart_transaction_server)
+    execute(restart_web_server)
+    execute(restart_db)
+
+
 @_roles('transaction', 'web', 'db')
 def update_network():
     """
@@ -86,13 +96,6 @@ def deploy_all():
     execute(deploy_transaction)
     execute(deploy_web)
 
-def update():
-    """ Updates code and restarts all servers """
-    execute(update_code)
-    execute(restart_transaction_server)
-    execute(restart_web_server)
-    execute(restart_db)
-
 
 @_roles('web', 'db', 'transaction')
 def deploy_base():
@@ -123,6 +126,8 @@ def deploy_base():
 
             # Install python libs
             sudo('pip install -r requirements.txt')
+
+            sudo('python setup.py develop')
 
     update_config_file()
 
@@ -167,13 +172,14 @@ def deploy_db():
     # Restart database server
     sudo('service mysql restart')
 
-    # Create the database (totally insecure)
+    # Create the database and user (totally insecure)
     sql = """
     CREATE DATABASE IF NOT EXISTS sps;
     CREATE USER 'root'@'%' IDENTIFIED BY 'root';
     GRANT ALL ON sps.* TO 'root'@'%';
     """
-    sudo('echo "%s" | mysql -h127.0.0.1 -uroot -proot' % sql)
+    with settings(warn_only=True): 
+        sudo('echo "%s" | mysql -h127.0.0.1 -uroot -proot' % sql)
 
     with cd('/srv/directedstudies/'):
         #use rob's local fabfile to deal with setting up the tables
@@ -186,7 +192,6 @@ def deploy_transaction():
     deploy_base()
 
     with cd('/srv/directedstudies/'):
-        print sudo('python setup.py develop')
         with settings(warn_only=True): 
             run('supervisord -c supervisord.conf')
             run('supervisorctl restart tserver')
