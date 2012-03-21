@@ -24,6 +24,7 @@ env.roledefs = {
     'db': ['a01'],
     'web': ['a02'],
     'transaction': ['a03'],
+    'tsung': ['a10'],
     'vm': ['vagrant@127.0.0.1:2222']
 }
 
@@ -182,6 +183,17 @@ def deploy_transaction():
         with settings(warn_only=True): 
             run('supervisord -c supervisord.conf')
             run('supervisorctl restart tserver')
+
+
+@_roles('tsung')
+def deploy_tsung():
+    """ Deploys the Tsung load-testing servers and updates tsung.xml """
+    sudo("apt-get -y install erlang-nox gnuplot-nox libtemplate-perl libhtml-template-perl libhtml-template-expr-perl")
+
+    run('wget http://tsung.erlang-projects.org/dist/ubuntu/lucid/tsung_1.4.1-1_all.deb')
+    sudo('dpkg -i tsung_1.4.1-1_all.deb')
+
+    put(path.join(fabdir, 'config/tsung.xml'), '/home/direct/tsung.xml')
 
 
 @_roles('transaction', 'web', 'db')
