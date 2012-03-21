@@ -44,14 +44,13 @@ env.always_use_pty = False
 def update():
     """ Updates code and config and restarts all servers """
     execute(update_code)
-    execute(update_network)
     execute(update_config_file)
     execute(restart_transaction_server)
     execute(restart_web_server)
     execute(restart_db)
 
 
-@_roles('transaction', 'web', 'db')
+@_roles('transaction', 'web', 'db', 'tsung')
 def update_network():
     """
     Updates /etc/network/interfaces and brings up the network interfaces.

@@ -1,7 +1,5 @@
-from flask import Flask, request, session, g, redirect, url_for, \
-     abort, render_template, flash
+from flask import Flask, request, render_template 
 import logging
-import sys
 from os.path import dirname, abspath, join, normpath, exists
 from sps.config import config, read_config_file
 
@@ -22,7 +20,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():
-    log.debug('Request for /: %s', request.form)
+    log.debug('Request for /: %s', repr(dict(request.form)))
 
     if request.method == "POST":
 
@@ -30,9 +28,9 @@ def hello():
             trans_server_message = checkentry( 
                         request.form.get('username', ''),
                         request.form.get('action', ''),
-                        request.form.get('money value', ''),
-                        request.form.get('stock quantity', ''),
-                        request.form.get('stock symbol', ''),
+                        request.form.get('amount', ''),
+                        request.form.get('quantity', ''),
+                        request.form.get('stock_symbol', ''),
                         request.form.get('filename', ''))
         except Exception as e:
             log.error(e)
@@ -60,15 +58,15 @@ def hello():
                             Response: %s <br>""" % (
                             request.form.get('username', ''),
                             request.form.get('action', ''),
-                            request.form.get('money value', ''),
-                            request.form.get('stock quantity', ''),
-                            request.form.get('stock symbol', ''),
+                            request.form.get('amount', ''),
+                            request.form.get('quantity', ''),
+                            request.form.get('stock_symbol', ''),
                             request.form.get('filename', ''),
                             response
                             ))
 
         else:
-            return ('You fudged it up, big boy <br><br> Go back and try again')
+            return ('You fudged it up, big boy <br><br> Go back and try again', 400)
 
 
     else:
@@ -213,9 +211,10 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
         return False
 
 
-@app.route("/some/other/path/")
-def other_path():
-   return "here you go"
+@app.route("/favicon.ico")
+def favicon():
+    return ""
+
 
 if __name__ == "__main__":
     app.run(debug=True)
