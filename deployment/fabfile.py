@@ -9,13 +9,18 @@ The fabric file will set up and launch the appropriate server
 
 #The first thing we do is import the fabric libraries
 from __future__ import with_statement
-from fabric.api import env, settings, execute
+from fabric.api import env, settings
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists, upload_template
 from deploy_utils import default_roles as _roles
 from os import path
 import re
+
+try:
+    from fabric.api import execute
+except ImportError:
+    pass
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
 fabdir = path.abspath(path.dirname(__file__))
