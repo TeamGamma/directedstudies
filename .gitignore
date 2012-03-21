@@ -2,4 +2,4 @@ Vagrantfile
 .DS_Store
 *.pyc
 *.egg-info
-workloads
+config.py

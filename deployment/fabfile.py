@@ -12,25 +12,61 @@ from __future__ import with_statement
 from fabric.api import env, settings, roles, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
-from fabric.contrib.files import exists
-from os.path import join, abspath, dirname
+from fabric.contrib.files import exists, upload_template
+from deploy_utils import default_roles
+from os import path
+import re
 
 github_repo = 'git://github.com/TeamGamma/directedstudies.git'
-fabdir = abspath(dirname(__file__))
+fabdir = path.abspath(path.dirname(__file__))
 
-vm_address = '127.0.0.1:2222'
 env.roledefs = {
-    'db': [vm_address],
-    'web': [vm_address],
-    'transaction': [vm_address],
+    'db': ['a01'],
+    'web': ['a02'],
+    'transaction': ['a03'],
+    'vm': ['vagrant@127.0.0.1:2222']
 }
 
 # password auth
-env.user = 'vagrant'
-env.password = 'vagrant'
+env.user = 'direct'
+env.password = 'direct'
 
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
+
+@default_roles('transaction', 'web', 'db')
+def update_network():
+    """
+    Updates /etc/network/interfaces and brings up the network interfaces.
+    """
+    name = env.host
+    machine_number = int(name[1:])
+    upload_template('network/interfaces', '/etc/network/interfaces', 
+        template_dir=path.join(fabdir, 'config'),
+        use_jinja=True, use_sudo=True, backup=True, 
+        context=dict(machine_number=machine_number))
+    run('cat /etc/network/interfaces')
+    for interface in ['eth0', 'eth1', 'eth3']:
+        sudo('ifdown %s' % interface)
+        sudo('ifup %s' % interface)
+
+
+@default_roles('transaction', 'web', 'db')
+def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
+    """
+    Updates the remote config file with the local one
+    """
+    # Use fabfile's predefined server names
+    context = {
+        "transaction_server": _machine_num(env.roledefs['transaction'][0]),
+        "database_server": _machine_num(env.roledefs['db'][0]),
+        "quote_client": quote_client,
+    }
+    upload_template('config_template.py', 
+        '/srv/directedstudies/config.py', template_dir=path.join(fabdir, 'config'),
+        use_jinja=True, use_sudo=True, backup=True, context=context)
+
+    run('cat /srv/directedstudies/config.py')
 
 def blank():
     """ Used for testing fabric configuration """
@@ -61,7 +97,7 @@ def deploy_base():
         sudo('apt-get update')
 
     # ubuntu goodies
-    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 apache2 libapache2-mod-wsgi python-mysqldb fabric")
+    sudo("apt-get install --assume-yes build-essential python-pip python-dev python-mysqldb git-core sqlite3 python-mysqldb fabric python-lxml")
 
     # Make top-level folder if it doesn't exist
     sudo('mkdir -p /srv')
@@ -80,14 +116,19 @@ def deploy_base():
             # Install python libs
             sudo('pip install -r requirements.txt')
 
+    update_config_file()
+
 
 @roles('web')
 def deploy_web():
     """ Deploys the web server """
     deploy_base()
 
-    #configure apache for wsgi by copying the repo config to remote install
-    put(join(fabdir, 'config/apache/wsgi_configuration'),
+    # Install apache
+    sudo('apt-get -y install apache2 libapache2-mod-wsgi')
+
+    # configure apache for wsgi by copying the repo config to remote install
+    put(path.join(fabdir, 'config/apache/wsgi_configuration'),
         '/etc/apache2/sites-available/wsgi_configuration', use_sudo=True)
 
     # create a link to the site config and delete default site config
@@ -113,13 +154,18 @@ def deploy_db():
     sudo('apt-get -y install mysql-server')
 
     # Configure the database server
-    put(join(fabdir, 'config/mysql/my.cnf'), '/etc/mysql/my.cnf', use_sudo=True)
+    put(path.join(fabdir, 'config/mysql/my.cnf'), '/etc/mysql/my.cnf', use_sudo=True)
 
     # Restart database server
     sudo('service mysql restart')
 
-    # Create the database
-    sudo('echo "CREATE DATABASE IF NOT EXISTS sps;" | mysql -h127.0.0.1 -uroot -proot')
+    # Create the database (totally insecure)
+    sql = """
+    CREATE DATABASE IF NOT EXISTS sps;
+    CREATE USER 'root'@'%' IDENTIFIED BY 'root';
+    GRANT ALL ON sps.* TO 'root'@'%';
+    """
+    sudo('echo "%s" | mysql -h127.0.0.1 -uroot -proot' % sql)
 
     with cd('/srv/directedstudies/'):
         #use rob's local fabfile to deal with setting up the tables
@@ -144,6 +190,7 @@ def update_code():
     with cd('/srv/directedstudies'):
         sudo('git pull')
 
+
 @roles('transaction')
 def restart_transaction_server():
     """ Restarts the transaction server """
@@ -160,4 +207,12 @@ def restart_db():
     """ Restarts the database server """
     sudo('service mysql restart')
 
+
+def _machine_num(servername):
+    """
+    Translates a server DNS name (a01) to an IP address on the internal
+    network
+    """
+    hostname = servername.split(':')[0]
+    return int(re.search('\d+', hostname).group(0))
 

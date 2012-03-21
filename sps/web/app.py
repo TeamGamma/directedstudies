@@ -2,15 +2,23 @@ from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
 import logging
 import sys
-from sps.config import config
+from os.path import dirname, abspath, join, normpath, exists
+from sps.config import config, read_config_file
+
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger('web')
+
+# Load optional config file
+config_file = join(abspath(dirname(__file__)), '..', '..', 'config.py')
+if exists(config_file):
+    log.info('Using config file "%s"', normpath(config_file))
+    read_config_file(config_file)
 
 import transaction_interface
 import command_forms
 
 app = Flask(__name__)
-
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger('web')
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():

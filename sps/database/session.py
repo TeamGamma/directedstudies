@@ -1,3 +1,5 @@
+import eventlet.patcher
+eventlet.patcher.monkey_patch()
 import MySQLdb
 from eventlet.db_pool import ConnectionPool
 from sqlalchemy.engine.url import URL
