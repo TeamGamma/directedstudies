@@ -72,7 +72,7 @@ class SELL():
     inputs = (
         _username_input,
         _stock_symbol_input,
-        _quantity_input,
+        _money_value_input,
     )
 
 class COMMIT_SELL():

@@ -262,7 +262,7 @@ class SELLCommand(CommandHandler):
     Sell the specified dollar amount of the stock currently held by the
     specified user at the current price.
     """
-    def run(self, username, stock_symbol, amount):
+    def run(self, username, stock_symbol, money_amount):
         
         # see if user exists
         session = get_session()
@@ -280,8 +280,8 @@ class SELLCommand(CommandHandler):
         quoted_stock_value = quote_client.get_quote(stock_symbol, username) 
 
         # Work out quantity of stock to sell, fail if not enough for one stock
-        amount = Money.from_string(amount)
-        quantity_to_sell = amount_to_quantity(quoted_stock_value, amount)
+        money_amount = Money.from_string(money_amount)
+        quantity_to_sell = amount_to_quantity(quoted_stock_value, money_amount)
         if quantity_to_sell == 0:
             raise InsufficientFundsError()
 
@@ -295,9 +295,9 @@ class SELLCommand(CommandHandler):
                     username, len(records))
         if len(records) != 1 or records[0].quantity < quantity_to_sell:
             raise InsufficientStockError()
-
-        price = quantity_to_sell*quoted_stock_value
-
+        
+        price = quoted_stock_value * quantity_to_sell
+        
         # make transaction
         self.trans = Transaction(username=user.username, 
                 stock_symbol=stock_symbol, operation='SELL', committed=False, 

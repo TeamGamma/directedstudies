@@ -159,7 +159,7 @@ class TestSELLCommand(DatabaseTest):
         """ Should return quoted stock value, quantity to be purchased, and
         total price """
         retval = self.command.run(username='rich_user', stock_symbol='ABAB',
-                amount='2')
+                money_amount='50')
         self.assertIsInstance(retval, xml.QuoteResponse)
         self.assertEqual(retval.quantity, 2)
         self.assertEqual(retval.price, Money(46, 90))
@@ -168,14 +168,14 @@ class TestSELLCommand(DatabaseTest):
     def test_too_little_stock_to_sell(self):
         """ tests to see if returns error when requested to sell too much"""
         self.assertRaises(commands.InsufficientStockError, self.command.run,
-                username='rich_user', stock_symbol='ABAB', amount='100000')
+                username='rich_user', stock_symbol='ABAB', money_amount='100000')
         self.assertRaises(commands.InsufficientStockError, self.command.run,
-                username='poor_user', stock_symbol='ABAB', amount='100000')
+                username='poor_user', stock_symbol='ABAB', money_amount='100000')
 
     def test_wrong_user_id(self):
         """ tests to see if we have the wrong user id """
         self.assertRaises(commands.UserNotFoundError, self.command.run,
-                username='garbage', stock_symbol='ABAB', amount='5')
+                username='garbage', stock_symbol='ABAB', money_amount='50')
 
     def test_multiple_sell_transaction(self):
         """ Should return an error message if an uncommitted sell transaction
@@ -188,7 +188,7 @@ class TestSELLCommand(DatabaseTest):
         )
         self.assertRaises(commands.SellTransactionActiveError,
                 self.command.run, username='rich_user', stock_symbol='ABAB',
-                amount='5')
+                money_amount='50')
 
     def test_no_multiple_sell_transaction(self):
         """ Should not return an error message if an committed sell transaction
@@ -200,17 +200,17 @@ class TestSELLCommand(DatabaseTest):
                 creation_time=datetime.now() - timedelta(seconds=30)),
         )
         self.command.run(username='rich_user', stock_symbol='ABAB',
-                amount='5')
+                money_amount='50')
 
     def test_postcondition_sell(self):
         """ Uncommitted Transaction is created """
         self.command.run(username='rich_user', stock_symbol='ABAB',
-                amount='5')
+                money_amount='50')
         transaction = self.session.query(Transaction).filter_by(
                 username='rich_user',
                 stock_symbol='ABAB', 
                 committed=False,
-                quantity=5,
+                quantity=2,
                 operation='SELL').one()
         self.assertNotEqual(transaction, None)
 
