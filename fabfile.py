@@ -9,7 +9,7 @@ To run a command, run `fab [command]`
 """
 
 from fabric.api import env
-from fabric.context_managers import runs_once
+from fabric.decorators import runs_once
 from deployment.fabfile import * # NOQA
 
 env.hosts = []
