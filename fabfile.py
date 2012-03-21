@@ -8,18 +8,13 @@ To run a command, run `fab [command]`
 
 """
 
-from fabric.api import env, hosts
-from os import path
-import sys
+from fabric.api import env
+from fabric.context_managers import runs_once
+from deployment.fabfile import * # NOQA
 
-# Cluster servers will go here
 env.hosts = []
 
-# Add top-level package(s) to Python path
-lib_path = path.abspath(path.dirname(__file__))
-sys.path.insert(0, lib_path)
-
-# TODO: run from separate script files so that we can execute on the server
+@runs_once
 def create_tables():
     """ Creates all database tables. Will fail if tables already exist. """
     from sps.database.session import get_session
@@ -28,6 +23,7 @@ def create_tables():
     Base.metadata.create_all(bind=session.connection(), checkfirst=False)
 
 
+@runs_once
 def drop_tables():
     """ Drops all database tables. Will fail if tables don't exist. """
     from sps.database.session import get_session
@@ -44,6 +40,7 @@ def drop_tables():
     Base.metadata.drop_all(bind=session.connection(), checkfirst=False)
 
 
+@runs_once
 def setup_database():
     """
     Recreates all tables and installs some example fixtures in the database
@@ -57,17 +54,4 @@ def setup_database():
     fixtures.buy_transaction_and_user(session)
     fixtures.sell_transaction_and_user(session)
 
-
-def shell():
-    """ Starts an IPython shell with a session and models imported """
-    from sps.database.session import get_session
-    from sps.database.models import (
-        Base, Money, User, Query, StockPurchase, Transaction, Trigger
-    )
-    from sps.database import models
-    from sps.database import fixtures
-    session = get_session()
-    Base.metadata.create_all(bind=session.connection(), checkfirst=True)
-    from IPython import embed
-    embed()
 
