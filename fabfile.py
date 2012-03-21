@@ -16,7 +16,7 @@ env.hosts = []
 
 @runs_once
 def create_tables():
-    """ Creates all database tables. Will fail if tables already exist. """
+    """ LOCAL: Creates all database tables. Will fail if tables already exist. """
     from sps.database.session import get_session
     from sps.database.models import Base
     session = get_session()
@@ -25,7 +25,7 @@ def create_tables():
 
 @runs_once
 def drop_tables():
-    """ Drops all database tables. Will fail if tables don't exist. """
+    """ LOCAL: Drops all database tables. Will fail if tables don't exist. """
     from sps.database.session import get_session
     from sps.database.models import Base
     session = get_session()
@@ -43,7 +43,7 @@ def drop_tables():
 @runs_once
 def setup_database():
     """
-    Recreates all tables and installs some example fixtures in the database
+    LOCAL: Recreates all tables and installs some example fixtures in the database
     """
     from sps.database import fixtures
     session = fixtures.get_session()

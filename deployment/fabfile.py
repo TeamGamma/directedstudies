@@ -13,7 +13,7 @@ from fabric.api import env, settings, execute
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists, upload_template
-from deploy_utils import default_roles as roles
+from deploy_utils import default_roles as _roles
 from os import path
 import re
 
@@ -34,7 +34,7 @@ env.password = 'direct'
 # Prevents errors with some terminal commands (service)
 env.always_use_pty = False
 
-@roles('transaction', 'web', 'db')
+@_roles('transaction', 'web', 'db')
 def update_network():
     """
     Updates /etc/network/interfaces and brings up the network interfaces.
@@ -51,7 +51,7 @@ def update_network():
         sudo('ifup %s' % interface)
 
 
-@roles('transaction', 'web', 'db')
+@_roles('transaction', 'web', 'db')
 def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
     """
     Updates the remote config file with the local one
@@ -86,7 +86,7 @@ def update():
     execute(restart_web_server)
 
 
-@roles('web', 'db', 'transaction')
+@_roles('web', 'db', 'transaction')
 def deploy_base():
     """
     Deploys the code and installs the base libraries for all server types
@@ -119,7 +119,7 @@ def deploy_base():
     update_config_file()
 
 
-@roles('web')
+@_roles('web')
 def deploy_web():
     """ Deploys the web server """
     deploy_base()
@@ -143,7 +143,7 @@ def deploy_web():
     print result
 
 
-@roles('db')
+@_roles('db')
 def deploy_db():
     """ Deploys the database server """
     deploy_base()
@@ -172,7 +172,7 @@ def deploy_db():
         sudo('fab setup_database')
 
 
-@roles('transaction')
+@_roles('transaction')
 def deploy_transaction():
     """ Deploys the transaction server """
     deploy_base()
@@ -184,25 +184,25 @@ def deploy_transaction():
             run('supervisorctl restart tserver')
 
 
-@roles('transaction', 'web', 'db')
+@_roles('transaction', 'web', 'db')
 def update_code():
     """ Updates the code on all servers from GitHub """
     with cd('/srv/directedstudies'):
         sudo('git pull')
 
 
-@roles('transaction')
+@_roles('transaction')
 def restart_transaction_server():
     """ Restarts the transaction server """
     with cd('/srv/directedstudies'):
         run('supervisorctl restart tserver')
 
-@roles('web')
+@_roles('web')
 def restart_web_server():
     """ Restarts the web server """
     sudo('service apache2 restart')
 
-@roles('db')
+@_roles('db')
 def restart_db():
     """ Restarts the database server """
     sudo('service mysql restart')
