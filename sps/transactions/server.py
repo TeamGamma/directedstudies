@@ -58,7 +58,12 @@ class TransactionServer(object):
 
         try:
             handler = CommandHandler.get_handler(command)
-            response = handler.run(*args)
+            try:
+                response = handler.run(*args)
+            finally:
+                # Make sure database sessions are closed no matter what
+                if hasattr(handler, 'session'):
+                    handler.session.close()
         except CommandError, e:
             log.error(e)
             response = xml.ErrorResponse(e)
@@ -67,7 +72,7 @@ class TransactionServer(object):
             response = xml.ErrorResponse(
                 TypeError('Incorrect arguments for command "%s"' % command))
         except Exception, e:
-            log.error('Unexpected error: %s' % e)
+            log.error('Unexpected error: %s - %s' % (type(e), e))
             response = xml.ErrorResponse(CommandError(e))
 
         return str(response)

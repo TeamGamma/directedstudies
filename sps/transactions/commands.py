@@ -110,14 +110,14 @@ class ADDCommand(CommandHandler):
     Add the given amount of money to the user's account
     """
     def run(self, username, amount):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             xml.log_error('ADD', 'invalid username')
             raise UserNotFoundError(username)
         amount = Money.from_string(amount)
         user.account_balance += amount
-        session.commit()
+        self.session.commit()
 
         #log event
         xml.log_event('ADD', username, amount=str(amount)) 
@@ -129,16 +129,16 @@ class QUOTECommand(CommandHandler):
     """
     Get the current quote for the stock for the specified user
     """
-    def run(self, username, stock_symbol):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
-        if not user:
-            raise UserNotFoundError(username)
-            xml.log_error('QUOTE', 'username not found')
+    def run(self, username='', stock_symbol=''):
+
+        if not stock_symbol:
+            xml.log_error('QUOTE', 'No stock symbol given')
+            raise InvalidInputError('No stock symbol given')
+
         if len(stock_symbol) > 4:
+            xml.log_error('QUOTE', 'stock symbol too long')
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
-            xml.log_error('QUOTE', 'stock symbol too long')
 
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
@@ -155,13 +155,13 @@ class BUYCommand(CommandHandler):
     price.
     """
     def run(self, username, stock_symbol, amount):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
             xml.log_error('BUY', 'username not found')
         # Check for existing uncommitted transaction
-        if session.query(Transaction).filter_by(
+        if self.session.query(Transaction).filter_by(
                 user=user, operation='BUY', committed=False).count() > 0:
             raise BuyTransactionActiveError()
             xml.log_error('BUY', 'Outstanding Buy Exists')
@@ -182,11 +182,11 @@ class BUYCommand(CommandHandler):
 
         transaction = Transaction(user=user, quantity=quantity, operation='BUY', 
                 stock_symbol=stock_symbol, stock_value=quote, committed=False)
-        session.add(transaction)
-        session.commit()
+
+        self.session.add(transaction)
+        self.session.commit()
 
         xml.log_transaction('BUY', transaction) 
-
         return xml.QuoteResponse(quantity=quantity, price=price)
 
 
@@ -195,12 +195,12 @@ class COMMIT_BUYCommand(CommandHandler):
     Commits the most recently executed BUY command
     """
     def run(self, username):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             xml.log_error('COMMIT_BUY', 'username not found')
             raise UserNotFoundError(username)
-        transaction = session.query(Transaction).filter_by(
+        transaction = self.session.query(Transaction).filter_by(
             username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
@@ -208,8 +208,8 @@ class COMMIT_BUYCommand(CommandHandler):
             raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            session.delete(transaction)
-            session.commit()
+            self.session.delete(transaction)
+            self.session.commit()
             raise ExpiredBuyTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
@@ -218,7 +218,7 @@ class COMMIT_BUYCommand(CommandHandler):
         transaction.committed = True
 
         # create or update the StockPurchase for this stock symbol
-        stock = session.query(StockPurchase).filter_by(
+        stock = self.session.query(StockPurchase).filter_by(
             user=user, stock_symbol=transaction.stock_symbol
         ).first()
         if not stock:
@@ -228,7 +228,7 @@ class COMMIT_BUYCommand(CommandHandler):
         else:
             stock.quantity = stock.quantity + transaction.quantity
 
-        session.commit()
+        self.session.commit()
         xml.log_transaction('COMMIT_BUY', transaction, status_message='success')
 
         return xml.ResultResponse('success')
@@ -239,19 +239,19 @@ class CANCEL_BUYCommand(CommandHandler):
     Cancels the most recently executed BUY Command
     """
     def run(self, username):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             xml.log_error('CANCEL_BUY', 'username not found')
             raise UserNotFoundError(username)
-        transaction = session.query(Transaction).filter_by(
+        transaction = self.session.query(Transaction).filter_by(
             username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
             raise NoBuyTransactionError(username)
 
-        session.delete(transaction)
-        session.commit()
+        self.session.delete(transaction)
+        self.session.commit()
 
         xml.log_transaction('CANCEL_BUY', transaction, status_message='success')
         return xml.ResultResponse('success')
@@ -265,13 +265,13 @@ class SELLCommand(CommandHandler):
     def run(self, username, stock_symbol, money_amount):
 
         # see if user exists
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         # Check for existing uncommitted transaction
-        if session.query(Transaction).filter_by(
+        if self.session.query(Transaction).filter_by(
                 user=user, operation='SELL', committed=False).count() > 0:
             raise SellTransactionActiveError()
 
@@ -287,7 +287,7 @@ class SELLCommand(CommandHandler):
 
 
         # see if the user owns the requested stock and has enough for request
-        records = session.query(StockPurchase).filter_by(
+        records = self.session.query(StockPurchase).filter_by(
                 username=user.username, stock_symbol=stock_symbol).all()
 
         if(len(records) > 1):
@@ -304,8 +304,8 @@ class SELLCommand(CommandHandler):
                 quantity=quantity_to_sell, stock_value=quoted_stock_value)
 
         # commit transaction after all actions for atomicity
-        session.add(self.trans)
-        session.commit()
+        self.session.add(self.trans)
+        self.session.commit()
 
 
         xml.log_transaction('SELL', self.trans, status_message='success')
@@ -317,19 +317,19 @@ class COMMIT_SELLCommand(CommandHandler):
     Commits the most recently executed SELL command
     """
     def run(self, username):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-        transaction = session.query(Transaction).filter_by(
+        transaction = self.session.query(Transaction).filter_by(
             username=user.username, operation='SELL', committed=False
         ).first()
         if not transaction:
             raise NoSellTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
-            session.delete(transaction)
-            session.commit()
+            self.session.delete(transaction)
+            self.session.commit()
             raise ExpiredSellTransactionError(username)
 
         price = transaction.stock_value * transaction.quantity
@@ -337,13 +337,13 @@ class COMMIT_SELLCommand(CommandHandler):
         user.account_balance += price
 
         # update the StockPurchase for this stock symbol
-        stock = session.query(StockPurchase).filter_by(
+        stock = self.session.query(StockPurchase).filter_by(
             user=user, stock_symbol=transaction.stock_symbol
         ).one()
         stock.quantity = stock.quantity - transaction.quantity
 
         transaction.committed = True
-        session.commit()
+        self.session.commit()
 
 
         xml.log_transaction('COMMIT_SELL', transaction, status_message='success')
@@ -355,19 +355,19 @@ class CANCEL_SELLCommand(CommandHandler):
     Cancels the most recently executed SELL Command
     """
     def run(self, username):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
-        transaction = session.query(Transaction).filter_by(
+        transaction = self.session.query(Transaction).filter_by(
             username=user.username, operation='SELL', committed=False
         ).first()
         if not transaction:
             raise NoSellTransactionError(username)
 
-        session.delete(transaction)
-        session.commit()
+        self.session.delete(transaction)
+        self.session.commit()
 
 
         xml.log_transaction('CANCEL_SELL', transaction, status_message='success')
@@ -380,8 +380,8 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
     price is less than or equal to the BUY_TRIGGER
     """
     def run(self, username, stock_symbol, amount):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
@@ -393,12 +393,12 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
         # Create inactive Trigger
         set_transaction = Trigger(user=user, amount=amount,
                 operation='BUY', stock_symbol=stock_symbol, state=Trigger.State.INACTIVE)
-        session.add(set_transaction)
+        self.session.add(set_transaction)
 
         user.account_balance = user.account_balance - amount
         user.reserve_balance += amount
 
-        session.commit()
+        self.session.commit()
 
         xml.log_trigger('SET_BUY_AMOUNT', set_transaction, status_message='success')
 
@@ -412,15 +412,15 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
     price is equal or greater than the sell trigger point
     """
     def run(self, username, stock_symbol, quantity):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         quantity = int(quantity)
 
         # see if the user owns the requested stock and has enough for request
-        records = session.query(StockPurchase).filter_by(
+        records = self.session.query(StockPurchase).filter_by(
                 username=user.username, stock_symbol=stock_symbol).all()
 
         if(len(records) > 1):
@@ -432,9 +432,9 @@ class SET_SELL_AMOUNTCommand(CommandHandler):
         # Create inactive Trigger
         set_transaction = Trigger(user=user, quantity=quantity,
                 operation='SELL', stock_symbol=stock_symbol, state=Trigger.State.INACTIVE)
-        session.add(set_transaction)
+        self.session.add(set_transaction)
 
-        session.commit()
+        self.session.commit()
 
         xml.log_trigger('SET_SELL_AMOUNT', set_transaction, status_message='success')
 
@@ -446,12 +446,12 @@ class CANCEL_SET_BUYCommand(CommandHandler):
     Cancels a SET_BUY command issued for the given stock
     """
     def run(self, username, stock_symbol):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
-        trigger = session.query(Trigger).filter_by(
+        trigger = self.session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
         ).filter(
             Trigger.state != Trigger.State.CANCELLED,
@@ -460,7 +460,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
             raise NoTriggerError(username, stock_symbol)
 
         trigger.state = Trigger.State.CANCELLED
-        session.commit()
+        self.session.commit()
 
 
         xml.log_trigger('CANCEL_SET_BUY', trigger, status_message='success')
@@ -474,14 +474,14 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
     will execute.
     """
     def run(self, username, stock_symbol, amount):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         amount = Money.from_string(amount)
 
-        trigger = session.query(Trigger).filter_by(
+        trigger = self.session.query(Trigger).filter_by(
             username=user.username, operation='BUY', stock_symbol=stock_symbol,
             state=Trigger.State.INACTIVE
         ).first()
@@ -490,47 +490,51 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
 
         trigger.state = Trigger.State.RUNNING
         trigger.trigger_value = amount
-        session.commit()
+        self.session.commit()
 
         eventlet.spawn(self.check_trigger, trigger.id)
-        session.close()
+        self.session.close()
 
         xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='trigger set')
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger_id):
         while True:
-            session = get_session()
+            try:
+                self.session = get_session()
 
-            # Refresh trigger from new session
-            trigger = session.query(Trigger).filter_by(id=trigger_id).first()
+                # Refresh trigger from new self.session
+                trigger = self.session.query(Trigger).filter_by(id=trigger_id).first()
 
-            log.debug('Trigger %d checking for stock %s < %s',
-                    trigger.id, trigger.stock_symbol, trigger.trigger_value)
+                log.debug('Trigger %d checking for stock %s < %s',
+                        trigger.id, trigger.stock_symbol, trigger.trigger_value)
 
-            if trigger.state == Trigger.State.CANCELLED:
-                log.debug('Trigger %d cancelled!', trigger.id)
-                return
+                if trigger.state == Trigger.State.CANCELLED:
+                    log.debug('Trigger %d cancelled!', trigger.id)
+                    return
 
-            # Get a new quote for the stock
-            quote_client = get_quote_client()
-            quote = quote_client.get_quote(trigger.stock_symbol, 
-                    trigger.username)
-            log.debug('Trigger %d: %s => %s', 
-                    trigger.id, trigger.stock_symbol, quote)
+                # Get a new quote for the stock
+                quote_client = get_quote_client()
+                quote = quote_client.get_quote(trigger.stock_symbol, 
+                        trigger.username)
+                log.debug('Trigger %d: %s => %s', 
+                        trigger.id, trigger.stock_symbol, quote)
 
-            # If quote is less than trigger value, buy stock and remove trigger
-            if quote < trigger.trigger_value:
-                # buy the stock and update reserve balance
-                log.debug("Trigger %d activated: %s < %s", 
-                        trigger.id, quote, trigger.trigger_value)
+                # If quote is less than trigger value, buy stock and remove trigger
+                if quote < trigger.trigger_value:
+                    # buy the stock and update reserve balance
+                    log.debug("Trigger %d activated: %s < %s", 
+                            trigger.id, quote, trigger.trigger_value)
 
-                return self.process_transaction(session, quote, trigger)
+                    return self.process_transaction(quote, trigger)
 
-            session.close()
+            finally:
+                # Make sure session is always closed, even when exceptions thrown
+                self.session.close()
+
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, session, quote, trigger):
+    def process_transaction(self, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         quantity = amount_to_quantity(quote, trigger.amount)
@@ -548,7 +552,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         user.account_balance += extra
 
         # create or update the StockPurchase for this stock symbol
-        stock = session.query(StockPurchase).filter_by(
+        stock = self.session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).first()
         if not stock:
@@ -558,9 +562,9 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         else:
             stock.quantity = stock.quantity + quantity
 
-        session.delete(trigger)
+        self.session.delete(trigger)
 
-        session.commit()
+        self.session.commit()
 
         xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='Trigger item bought')
 
@@ -572,14 +576,14 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
     associated with the given stock and user
     """
     def run(self, username, stock_symbol, amount):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         amount = Money.from_string(amount)
 
-        trigger = session.query(Trigger).filter_by(
+        trigger = self.session.query(Trigger).filter_by(
             username=user.username, operation='SELL', stock_symbol=stock_symbol,
             state=Trigger.State.INACTIVE
         ).first()
@@ -588,46 +592,50 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
 
         trigger.state = Trigger.State.RUNNING
         trigger.trigger_value = amount
-        session.commit()
+        self.session.commit()
 
         eventlet.spawn(self.check_trigger, trigger.id)
 
         xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='trigger set')
-        session.close()
+        self.session.close()
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger_id):
         while True:
-            session = get_session()
+            try:
+                self.session = get_session()
 
-            # Refresh trigger from new session
-            trigger = session.query(Trigger).filter_by(id=trigger_id).first()
+                # Refresh trigger from new self.session
+                trigger = self.session.query(Trigger).filter_by(id=trigger_id).first()
 
-            log.debug('Trigger %d checking for stock %s > %s',
-                    trigger.id, trigger.stock_symbol, trigger.trigger_value)
+                log.debug('Trigger %d checking for stock %s > %s',
+                        trigger.id, trigger.stock_symbol, trigger.trigger_value)
 
-            if trigger.state == Trigger.State.CANCELLED:
-                log.debug('Trigger %d cancelled!', trigger.id)
-                return
+                if trigger.state == Trigger.State.CANCELLED:
+                    log.debug('Trigger %d cancelled!', trigger.id)
+                    return
 
-            # Get a new quote for the stock
-            quote_client = get_quote_client()
-            quote = quote_client.get_quote(trigger.stock_symbol, 
-                    trigger.username)
-            log.debug('Trigger %d: %s => %s', 
-                    trigger.id, trigger.stock_symbol, quote)
+                # Get a new quote for the stock
+                quote_client = get_quote_client()
+                quote = quote_client.get_quote(trigger.stock_symbol, 
+                        trigger.username)
+                log.debug('Trigger %d: %s => %s', 
+                        trigger.id, trigger.stock_symbol, quote)
 
-            # If quote is greater than trigger value, buy stock and remove trigger
-            if quote > trigger.trigger_value:
-                # buy the stock and update reserve balance
-                log.debug("Trigger %d activated: %s > %s", 
-                        trigger.id, quote, trigger.trigger_value)
-                return self.process_transaction(session, quote, trigger)
+                # If quote is greater than trigger value, buy stock and remove trigger
+                if quote > trigger.trigger_value:
+                    # buy the stock and update reserve balance
+                    log.debug("Trigger %d activated: %s > %s", 
+                            trigger.id, quote, trigger.trigger_value)
+                    return self.process_transaction(quote, trigger)
 
-            session.close()
+            finally:
+                # Make sure session is always closed, even when exceptions thrown
+                self.session.close()
+
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, session, quote, trigger):
+    def process_transaction(self, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         price = quote * trigger.quantity
@@ -638,14 +646,14 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         user.account_balance += price
 
         # update the StockPurchase for this stock symbol
-        stock = session.query(StockPurchase).filter_by(
+        stock = self.session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).one()
         stock.quantity = stock.quantity - trigger.quantity
 
-        session.delete(trigger)
+        self.session.delete(trigger)
 
-        session.commit()
+        self.session.commit()
 
         xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='Trigger item sold')
 
@@ -654,12 +662,12 @@ class CANCEL_SET_SELLCommand(CommandHandler):
     Cancels the SET_SELL associated with the given stock and user
     """
     def run(self, username, stock_symbol):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
-        trigger = session.query(Trigger).filter_by(
+        trigger = self.session.query(Trigger).filter_by(
             username=user.username, operation='SELL', stock_symbol=stock_symbol,
         ).filter(
             Trigger.state != Trigger.State.CANCELLED,
@@ -669,7 +677,7 @@ class CANCEL_SET_SELLCommand(CommandHandler):
             raise NoTriggerError(username, stock_symbol)
 
         trigger.state = Trigger.State.CANCELLED
-        session.commit()
+        self.session.commit()
 
         xml.log_trigger('CANCEL_SET_SELL', trigger, status_message='success')
         return xml.ResultResponse('trigger cancelled')
@@ -693,16 +701,16 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
     triggers and their parameters
     """
     def run(self, username):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         # Get this users transactions
-        transactions = session.query(Transaction).filter_by(user=user).all()
+        transactions = self.session.query(Transaction).filter_by(user=user).all()
 
         # Get this users triggers
-        triggers = session.query(Trigger).filter_by(user=user).all()
+        triggers = self.session.query(Trigger).filter_by(user=user).all()
 
 
         xml.log_event('DISPLAY_SUMMARY', username)
@@ -729,13 +737,13 @@ class DUMPLOGCommand(CommandHandler):
             raise TypeError('Incorrect arguments for command DUMPLOG')
 
     def dumplog_user(self, username, filename):
-        session = get_session()
-        user = session.query(User).filter_by(username=username).first()
+        self.session = get_session()
+        user = self.session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
 
         # Get this users transactions
-        transactions = session.query(Transaction).filter_by(user=user).all()
+        transactions = self.session.query(Transaction).filter_by(user=user).all()
 
         # Note: this is not secure against directory traversal
         full_path = path.join(config.DUMPLOG_DIR, filename)
@@ -750,8 +758,8 @@ class DUMPLOGCommand(CommandHandler):
     def dumplog_admin(self, filename):
         # TODO: implement security for admin dumplog
 
-        session = get_session()
-        transactions = session.query(Transaction).all()
+        self.session = get_session()
+        transactions = self.session.query(Transaction).all()
 
         # Note: this is not secure against directory traversal
         full_path = path.join(config.DUMPLOG_DIR, filename)

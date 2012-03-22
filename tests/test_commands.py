@@ -226,11 +226,6 @@ class TestQUOTECommand(DatabaseTest):
         retval = self.command.run(username='poor_user', stock_symbol='ABAB')
         self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]')
 
-    def test_nonexistent_user(self):
-        """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError, 
-                self.command.run, username='unicorn', stock_symbol='FOO')
-
     def test_validates_stock_symbol_len(self):
         """ Should return an error if the stock symbol is too long """
         self.assertRaises(commands.InvalidInputError, 

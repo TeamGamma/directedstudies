@@ -6,25 +6,28 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sps.config import config
+import logging
 
+_URL = None
 _SESSION_MAKER = None
+_POOL = None
 
+log = logging.getLogger('DB_SESSION')
 
 def setup_database(engine=None):
-    global _SESSION_MAKER, _URL
+    global _SESSION_MAKER, _URL, _POOL
 
     _URL = URL(**config.DATABASE_CONNECTION_ARGS)
 
     if not engine:
         # TODO: determine optimal pool size
-        pool = ConnectionPool(MySQLdb, host=_URL.host,
+        _POOL = ConnectionPool(MySQLdb, host=_URL.host,
                 user=_URL.username, passwd=_URL.password, db=_URL.database)
 
         engine = create_engine(_URL,
-            creator=pool.create,
-            pool_size=pool.max_size,
-            **config.DATABASE_ENGINE_ARGS
-        )
+            creator=_POOL.create,
+            pool_size=_POOL.max_size,
+            **config.DATABASE_ENGINE_ARGS)
     else:
         engine = engine
 
@@ -45,3 +48,4 @@ def get_session():
     session.connection()
 
     return session
+
