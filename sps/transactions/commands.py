@@ -499,12 +499,14 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger_id):
+        session = None
+
         while True:
             try:
-                self.session = get_session()
+                session = get_session()
 
-                # Refresh trigger from new self.session
-                trigger = self.session.query(Trigger).filter_by(id=trigger_id).first()
+                # Refresh trigger from new session
+                trigger = session.query(Trigger).filter_by(id=trigger_id).first()
 
                 log.debug('Trigger %d checking for stock %s < %s',
                         trigger.id, trigger.stock_symbol, trigger.trigger_value)
@@ -526,15 +528,17 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
                     log.debug("Trigger %d activated: %s < %s", 
                             trigger.id, quote, trigger.trigger_value)
 
-                    return self.process_transaction(quote, trigger)
-
+                    return self.process_transaction(session, quote, trigger)
+            except Exception, e:
+                log.error('Trigger %d: %s : %s', trigger_id, type(e), e)
             finally:
                 # Make sure session is always closed, even when exceptions thrown
-                self.session.close()
+                if session:
+                    session.close()
 
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, quote, trigger):
+    def process_transaction(self, session, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         quantity = amount_to_quantity(quote, trigger.amount)
@@ -552,7 +556,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         user.account_balance += extra
 
         # create or update the StockPurchase for this stock symbol
-        stock = self.session.query(StockPurchase).filter_by(
+        stock = session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).first()
         if not stock:
@@ -562,9 +566,9 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         else:
             stock.quantity = stock.quantity + quantity
 
-        self.session.delete(trigger)
+        session.delete(trigger)
 
-        self.session.commit()
+        session.commit()
 
         xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='Trigger item bought')
 
@@ -601,12 +605,14 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         return xml.ResultResponse('trigger activated')
 
     def check_trigger(self, trigger_id):
+        session = None
+
         while True:
             try:
-                self.session = get_session()
+                session = get_session()
 
-                # Refresh trigger from new self.session
-                trigger = self.session.query(Trigger).filter_by(id=trigger_id).first()
+                # Refresh trigger from new session
+                trigger = session.query(Trigger).filter_by(id=trigger_id).first()
 
                 log.debug('Trigger %d checking for stock %s > %s',
                         trigger.id, trigger.stock_symbol, trigger.trigger_value)
@@ -629,13 +635,16 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
                             trigger.id, quote, trigger.trigger_value)
                     return self.process_transaction(quote, trigger)
 
+            except Exception, e:
+                log.error('Trigger %d: %s : %s', trigger_id, type(e), e)
             finally:
                 # Make sure session is always closed, even when exceptions thrown
-                self.session.close()
+                if session:
+                    session.close()
 
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, quote, trigger):
+    def process_transaction(self, session, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         price = quote * trigger.quantity
@@ -646,14 +655,14 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         user.account_balance += price
 
         # update the StockPurchase for this stock symbol
-        stock = self.session.query(StockPurchase).filter_by(
+        stock = session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).one()
         stock.quantity = stock.quantity - trigger.quantity
 
-        self.session.delete(trigger)
+        session.delete(trigger)
 
-        self.session.commit()
+        session.commit()
 
         xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='Trigger item sold')
 
