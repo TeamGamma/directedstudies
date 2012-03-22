@@ -118,10 +118,10 @@ class ADDCommand(CommandHandler):
         amount = Money.from_string(amount)
         user.account_balance += amount
         session.commit()
-        
+
         #log event
         xml.log_event('ADD', username, amount=str(amount)) 
-        
+
         return xml.ResultResponse('success')
 
 
@@ -134,11 +134,11 @@ class QUOTECommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-            xml.log_error('QUOTE','username not found')
+            xml.log_error('QUOTE', 'username not found')
         if len(stock_symbol) > 4:
             raise InvalidInputError('stock symbol too long: %d' % \
                     len(stock_symbol))
-            xml.log_error('QUOTE','stock symbol too long')
+            xml.log_error('QUOTE', 'stock symbol too long')
 
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
@@ -159,13 +159,13 @@ class BUYCommand(CommandHandler):
         user = session.query(User).filter_by(username=username).first()
         if not user:
             raise UserNotFoundError(username)
-            xml.log_error('BUY','username not found')
+            xml.log_error('BUY', 'username not found')
         # Check for existing uncommitted transaction
         if session.query(Transaction).filter_by(
                 user=user, operation='BUY', committed=False).count() > 0:
             raise BuyTransactionActiveError()
-            xml.log_error('BUY','Outstanding Buy Exists')
-            
+            xml.log_error('BUY', 'Outstanding Buy Exists')
+
         # Getting stock quote
         quote_client = get_quote_client()
         quote = quote_client.get_quote(stock_symbol, username)
@@ -198,13 +198,13 @@ class COMMIT_BUYCommand(CommandHandler):
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
         if not user:
-            xml.log_error('COMMIT_BUY','username not found')
+            xml.log_error('COMMIT_BUY', 'username not found')
             raise UserNotFoundError(username)
         transaction = session.query(Transaction).filter_by(
             username=user.username, operation='BUY', committed=False
         ).first()
         if not transaction:
-            xml.log_error('COMMIT_BUY','no buy tranaction found')
+            xml.log_error('COMMIT_BUY', 'no buy tranaction found')
             raise NoBuyTransactionError(username)
 
         if (datetime.now() - transaction.creation_time) > config.TRANSACTION_TIMEOUT:
@@ -263,7 +263,7 @@ class SELLCommand(CommandHandler):
     specified user at the current price.
     """
     def run(self, username, stock_symbol, money_amount):
-        
+
         # see if user exists
         session = get_session()
         user = session.query(User).filter_by(username=username).first()
@@ -295,9 +295,9 @@ class SELLCommand(CommandHandler):
                     username, len(records))
         if len(records) != 1 or records[0].quantity < quantity_to_sell:
             raise InsufficientStockError()
-        
+
         price = quoted_stock_value * quantity_to_sell
-        
+
         # make transaction
         self.trans = Transaction(username=user.username, 
                 stock_symbol=stock_symbol, operation='SELL', committed=False, 
@@ -307,7 +307,7 @@ class SELLCommand(CommandHandler):
         session.add(self.trans)
         session.commit()
 
-        
+
         xml.log_transaction('SELL', self.trans, status_message='success')
         return xml.QuoteResponse(quantity=quantity_to_sell, price=price)
 
@@ -345,7 +345,7 @@ class COMMIT_SELLCommand(CommandHandler):
         transaction.committed = True
         session.commit()
 
-        
+
         xml.log_transaction('COMMIT_SELL', transaction, status_message='success')
         return xml.ResultResponse('success')
 
@@ -369,7 +369,7 @@ class CANCEL_SELLCommand(CommandHandler):
         session.delete(transaction)
         session.commit()
 
-        
+
         xml.log_transaction('CANCEL_SELL', transaction, status_message='success')
         return xml.ResultResponse('success')
 
@@ -399,7 +399,7 @@ class SET_BUY_AMOUNTCommand(CommandHandler):
         user.reserve_balance += amount
 
         session.commit()
-        
+
         xml.log_trigger('SET_BUY_AMOUNT', set_transaction, status_message='success')
 
         return xml.ResultResponse('success')
@@ -462,7 +462,7 @@ class CANCEL_SET_BUYCommand(CommandHandler):
         trigger.state = Trigger.State.CANCELLED
         session.commit()
 
-        
+
         xml.log_trigger('CANCEL_SET_BUY', trigger, status_message='success')
         return xml.ResultResponse('trigger cancelled')
 
@@ -492,21 +492,21 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         trigger.trigger_value = amount
         session.commit()
 
-        self.session = session
-        eventlet.spawn(self.check_trigger, trigger)
-
+        eventlet.spawn(self.check_trigger, trigger.id)
+        session.close()
 
         xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='trigger set')
         return xml.ResultResponse('trigger activated')
 
-    def check_trigger(self, trigger):
+    def check_trigger(self, trigger_id):
         while True:
+            session = get_session()
+
+            # Refresh trigger from new session
+            trigger = session.query(Trigger).filter_by(id=trigger_id).first()
+
             log.debug('Trigger %d checking for stock %s < %s',
                     trigger.id, trigger.stock_symbol, trigger.trigger_value)
-
-            # TODO: why is commit required here just to refresh an attribute?
-            self.session.refresh(trigger)
-            self.session.commit()
 
             if trigger.state == Trigger.State.CANCELLED:
                 log.debug('Trigger %d cancelled!', trigger.id)
@@ -525,11 +525,12 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
                 log.debug("Trigger %d activated: %s < %s", 
                         trigger.id, quote, trigger.trigger_value)
 
-                return self.process_transaction(quote, trigger)
+                return self.process_transaction(session, quote, trigger)
 
+            session.close()
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, quote, trigger):
+    def process_transaction(self, session, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         quantity = amount_to_quantity(quote, trigger.amount)
@@ -547,7 +548,7 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         user.account_balance += extra
 
         # create or update the StockPurchase for this stock symbol
-        stock = self.session.query(StockPurchase).filter_by(
+        stock = session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).first()
         if not stock:
@@ -557,9 +558,9 @@ class SET_BUY_TRIGGERCommand(CommandHandler):
         else:
             stock.quantity = stock.quantity + quantity
 
-        self.session.delete(trigger)
+        session.delete(trigger)
 
-        self.session.commit()
+        session.commit()
 
         xml.log_trigger('SET_BUY_TRIGGER', trigger, status_message='Trigger item bought')
 
@@ -589,20 +590,21 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         trigger.trigger_value = amount
         session.commit()
 
-        self.session = session
-        eventlet.spawn(self.check_trigger, trigger)
+        eventlet.spawn(self.check_trigger, trigger.id)
 
         xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='trigger set')
+        session.close()
         return xml.ResultResponse('trigger activated')
 
-    def check_trigger(self, trigger):
+    def check_trigger(self, trigger_id):
         while True:
+            session = get_session()
+
+            # Refresh trigger from new session
+            trigger = session.query(Trigger).filter_by(id=trigger_id).first()
+
             log.debug('Trigger %d checking for stock %s > %s',
                     trigger.id, trigger.stock_symbol, trigger.trigger_value)
-
-            # TODO: why is commit required here just to refresh an attribute?
-            self.session.refresh(trigger)
-            self.session.commit()
 
             if trigger.state == Trigger.State.CANCELLED:
                 log.debug('Trigger %d cancelled!', trigger.id)
@@ -620,11 +622,12 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
                 # buy the stock and update reserve balance
                 log.debug("Trigger %d activated: %s > %s", 
                         trigger.id, quote, trigger.trigger_value)
-                return self.process_transaction(quote, trigger)
+                return self.process_transaction(session, quote, trigger)
 
+            session.close()
             eventlet.sleep(config.TRIGGER_INTERVAL)
 
-    def process_transaction(self, quote, trigger):
+    def process_transaction(self, session, quote, trigger):
         # Calculate real price of stock purchase based on current quote
         user = trigger.user
         price = quote * trigger.quantity
@@ -635,14 +638,14 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
         user.account_balance += price
 
         # update the StockPurchase for this stock symbol
-        stock = self.session.query(StockPurchase).filter_by(
+        stock = session.query(StockPurchase).filter_by(
             user=user, stock_symbol=trigger.stock_symbol
         ).one()
         stock.quantity = stock.quantity - trigger.quantity
 
-        self.session.delete(trigger)
+        session.delete(trigger)
 
-        self.session.commit()
+        session.commit()
 
         xml.log_trigger('SET_SELL_TRIGGER', trigger, status_message='Trigger item sold')
 
@@ -679,7 +682,7 @@ class DUMPLOG_USERCommand(CommandHandler):
     Print out the history of the users transactions to the user specified file
     """
     def run(self, username, filename):
-        xml.log_event('DUMPLOG_USER', username, status_message= 'to file %s' % filename)
+        xml.log_event('DUMPLOG_USER', username, status_message='to file %s' % filename)
         return xml.ResultResponse('success')
 
 
@@ -701,7 +704,7 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
         # Get this users triggers
         triggers = session.query(Trigger).filter_by(user=user).all()
 
-        
+
         xml.log_event('DISPLAY_SUMMARY', username)
         return xml.SummaryResponse(
             transactions=transactions, triggers=triggers,
@@ -756,7 +759,7 @@ class DUMPLOGCommand(CommandHandler):
             res = xml.DumplogResponse(transactions)
             f.write(str(res))
 
-        
+
         xml.log_event('DUMPLOG', username='Admin', status_message='to file %s' % filename)
         return xml.ResultResponse('Wrote transactions to "%s"' % full_path)
 

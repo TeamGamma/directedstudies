@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-import re
-import time
 import eventlet
 import eventlet.patcher
 eventlet.patcher.monkey_patch()
 import logging
+import re
 
 from sps.transactions.commands import CommandHandler, CommandError
 from sps.transactions import xml
@@ -31,10 +30,11 @@ class TransactionServer(object):
         """
 
         log.info('New client: %s', address)
+        client_in = client.makefile()
 
         # Read multiple lines from client and parse commands
         while True:
-            line = client.recv(1000)
+            line = client_in.readline()
 
             if not line:
                 log.info('Client disconnected')
@@ -44,7 +44,10 @@ class TransactionServer(object):
             response = self.handle_line(line)
 
             log.debug('Response: %s' % repr(response))
-            client.sendall(response + '\n')
+            try:
+                client.sendall(response + '\n')
+            except Exception, e:
+                log.error(e)
 
     @staticmethod
     def handle_line(line):
