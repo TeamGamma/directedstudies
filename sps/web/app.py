@@ -137,7 +137,7 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
 
     elif action == 'CANCEL_SET_BUY':
         if len(username) != 0 and len(stock_symbol) != 0:
-            return 'CANCEL_SET_BUY,' + username + stock_symbol
+            return 'CANCEL_SET_BUY,' + username + ',' + stock_symbol
         else:
             return False
 
@@ -162,14 +162,14 @@ def checkentry(username, action, money_value, stock_quantity, stock_symbol, file
 
     elif action == 'CANCEL_SET_SELL':
         if len(username) != 0 and len(stock_symbol) != 0:
-            return 'CANCEL_SET_SELL,' + username + stock_symbol
+            return 'CANCEL_SET_SELL,' + username + ',' + stock_symbol
         else:
             return False
 
 
     elif action == 'DUMPLOG_USER':
         if len(username) != 0 and len(filename) != 0:
-            return 'DUMPLOG,' + username + filename
+            return 'DUMPLOG,' + username + ',' + filename
         else:
             return False
 
