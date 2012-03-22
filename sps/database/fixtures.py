@@ -17,6 +17,8 @@ def users(session=None):
         session = get_session()
 
     users = [
+        User(username='tsung', password='tsung',
+            account_balance=Money(0, 0), reserve_balance=Money(0, 0)),
         User(username='poor_user', password='password'),
         User(username='rich_user', password='password',
             account_balance=Money(1000, 50), reserve_balance=Money(0, 0)),
