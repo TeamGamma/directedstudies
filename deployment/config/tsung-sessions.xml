@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/opt/local/share/tsung/tsung-1.0.dtd">
+<tsung loglevel="notice" version="1.0">
+
+    <!-- Client side setup -->
+    <clients>
+        <client host="localhost" use_controller_vm="true"/>
+    </clients>
+
+    <!-- Server side setup -->
+    <servers>
+        <server host="localhost" port="5000" type="tcp"></server>
+    </servers>
+
+    <load>
+        <!-- several arrival phases can be set: for each phase, you can set the mean inter-arrival time between new clients and the phase duration -->
+        <arrivalphase phase="1" duration="10" unit="second">
+            <users maxnumber="10" arrivalrate="1" unit="second"></users>
+        </arrivalphase>
+    </load>
+
+    <sessions>
+
+        <!-- Adds money to their account and checks the balance -->
+        <session name="db_only" probability="20" type="ts_http">
+            <setdynvars sourcetype="random_string" length="10">
+                <var name="username"/>
+            </setdynvars>
+
+            <request> <http url="/" method="GET" version="1.1"></http> </request>
+
+            <for from="1" to="3" var="i">
+                <!-- Add money to account -->
+                <request subst="true">
+                    <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                </request>
+                <thinktime value="5" random="true"></thinktime>
+
+                <!-- Display summary of account -->
+                <request subst="true">
+                    <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                </request>
+                <thinktime value="10" random="true"></thinktime>
+
+            </for>
+        </session>
+
+        <!-- Just makes quote requests -->
+        <session name="quote_only" probability="20" type="ts_http">
+            <request> <http url="/" method="GET" version="1.1"></http> </request>
+            
+            <for from="1" to="6" incr="1" var="counter">
+                <setdynvars sourcetype="random_string" length="4">
+                    <var name="stock_symbol"/>
+                </setdynvars>
+
+                <!-- Get quote -->
+                <request subst="true">
+                    <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
+                </request>
+                <thinktime value="5" random="true"></thinktime>
+            </for>
+        </session>
+
+        <!-- A simple realistic user that only buys and sells, no triggers -->
+        <session name="basic" probability="20" type="ts_http">
+            <setdynvars sourcetype="random_string" length="10">
+                <var name="username"/>
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="4">
+                <var name="stock_symbol"/>
+            </setdynvars>
+
+            <request> <http url="/" method="GET" version="1.1"></http> </request>
+
+            <!-- Add money to account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Buy some stock -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Commit the buy -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=COMMIT_BUY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Display summary of account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+
+            <!-- User holds on to stock for a while -->
+            <thinktime value="20" random="true"></thinktime>
+
+            <!-- Sell the stock -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Commit the sell -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=COMMIT_SELL&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Display summary of account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+        </session>
+
+        <!-- A user that starts a BUY trigger -->
+        <session name="triggers" probability="20" type="ts_http">
+            <setdynvars sourcetype="random_string" length="10">
+                <var name="username"/>
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="4">
+                <var name="stock_symbol"/>
+            </setdynvars>
+
+            <request> <http url="/" method="GET" version="1.1"></http> </request>
+
+            <!-- Add money to account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Create a reserve account for a trigger -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Start the trigger -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=20.50&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Display summary of account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+            <thinktime value="60" random="true"></thinktime>
+
+            <!-- Cancel the trigger if it's still active -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=CANCEL_SET_BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Display summary of account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+        </session>
+
+        <!-- A user that starts a BUY trigger which runs indefinitely -->
+        <session name="crazy_triggers" probability="20" type="ts_http">
+            <setdynvars sourcetype="random_string" length="10">
+                <var name="username"/>
+            </setdynvars>
+            <setdynvars sourcetype="random_string" length="4">
+                <var name="stock_symbol"/>
+            </setdynvars>
+
+            <request> <http url="/" method="GET" version="1.1"></http> </request>
+
+            <!-- Add money to account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Create a reserve account for a trigger -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Start the trigger with a trigger value that will never be reached -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=0.01&amp;submit="></http>
+            </request>
+            <thinktime value="5" random="true"></thinktime>
+
+            <!-- Never stop the trigger! -->
+
+            <!-- Display summary of account -->
+            <request subst="true">
+                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+            </request>
+        </session>
+    </sessions>
+</tsung>
