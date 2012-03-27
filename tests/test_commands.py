@@ -18,9 +18,12 @@ class TestADDCommand(DatabaseTest):
         self.assertEqual(retval.message, "success")
 
     def test_nonexistent_user(self):
-        """ Should return an error message if the user does not exist """
-        self.assertRaises(commands.UserNotFoundError,
-                self.command.run, username='unicorn', amount='100')
+        """ Should create the user if they don't exist """
+        self.command.run(username='unicorn', amount='100')
+        user = self.session.query(User) \
+            .filter_by(username='unicorn').first()
+        self.assertNotEqual(user, None)
+        self.assertEqual(user.account_balance, Money(100, 0))
 
     def test_postcondition_add(self):
         self.command.run(username='poor_user', amount='100.60')

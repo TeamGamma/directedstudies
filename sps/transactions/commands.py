@@ -113,8 +113,11 @@ class ADDCommand(CommandHandler):
         self.session = get_session()
         user = self.session.query(User).filter_by(username=username).first()
         if not user:
-            xml.log_error('ADD', 'invalid username')
-            raise UserNotFoundError(username)
+            log.info('User does not exist, creating one first...')
+            user = User(username=username, password='',
+                account_balance=Money(0, 0), reserve_balance=Money(0, 0))
+            self.session.add(user)
+
         amount = Money.from_string(amount)
         user.account_balance += amount
         self.session.commit()
