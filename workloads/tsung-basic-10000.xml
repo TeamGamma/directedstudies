@@ -13,13 +13,13 @@
 
     <!-- Server side setup -->
     <servers>
-        <server host="192.168.251.11" port="5000" type="tcp"></server>
+        <server host="192.168.251.4" port="80" type="tcp"></server>
     </servers>
 
-    <load loop="100">
+    <load>
         <!-- several arrival phases can be set: for each phase, you can set the mean inter-arrival time between new clients and the phase duration -->
-        <arrivalphase phase="1" duration="10" unit="minute">
-            <users maxnumber="10000" arrivalrate="1" unit="second"></users>
+        <arrivalphase phase="1" duration="60" unit="minute">
+            <users maxnumber="10000" arrivalrate="3" unit="second"></users>
         </arrivalphase>
     </load>
 
