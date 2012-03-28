@@ -35,6 +35,7 @@ class ConfigObject():
     }
 
     QUOTE_CLIENT = 'sps.quotes.client.RandomQuoteClient'
+    QUOTE_CLIENT_ARGS = dict(quote_min=1, quote_max=200, delay_scale=1, delay_shape=4)
 
     TRANSACTION_TIMEOUT = timedelta(seconds=60)
 

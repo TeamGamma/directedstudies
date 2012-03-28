@@ -1,6 +1,7 @@
-from random import randrange
-from sps.database.models import Money
+import eventlet
 from eventlet.green import socket
+from random import randrange, paretovariate
+from sps.database.models import Money
 from datetime import datetime
 
 _QUOTE_CLIENT = None
@@ -14,7 +15,7 @@ def get_quote_client():
     if not _QUOTE_CLIENT:
         from sps.config import config, get_class_by_name
         if isinstance(config.QUOTE_CLIENT, str):
-            _QUOTE_CLIENT = get_class_by_name(config.QUOTE_CLIENT)()
+            _QUOTE_CLIENT = get_class_by_name(config.QUOTE_CLIENT)(**config.QUOTE_CLIENT_ARGS)
         else:
             _QUOTE_CLIENT = config.QUOTE_CLIENT
 
@@ -22,11 +23,21 @@ def get_quote_client():
 
 
 class RandomQuoteClient(object):
-    def __init__(self, quote_min=0, quote_max=100):
+    def __init__(self, delay_scale, delay_shape, quote_min, quote_max):
+        self.delay_scale = delay_scale
+        self.delay_shape = delay_shape
         self.qmin = quote_min
         self.qmax = quote_max
 
+    def _quote_delay(self):
+        return self.delay_scale * paretovariate(self.delay_shape) 
+
     def get_quote(self, symbol, username):
+        delay = self._quote_delay()
+
+        # Sleep for delay seconds to simulate legacy server
+        eventlet.sleep(delay)
+
         dollars, cents = randrange(self.qmin, self.qmax), randrange(0, 100)
         return Money(dollars, cents)
 
