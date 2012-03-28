@@ -19,8 +19,6 @@ DATABASE_TABLE_ARGS = {
     'mysql_engine': 'InnoDB',
 }
 
-QUOTE_CLIENT = '{{ quote_client }}'
-
 TRANSACTION_TIMEOUT = timedelta(seconds=60)
 
 TEST_WITH_SQLITE = True
