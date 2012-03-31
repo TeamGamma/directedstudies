@@ -71,7 +71,6 @@ def update_network():
     sudo('echo "10" > /proc/sys/net/ipv4/tcp_fin_timeout')
     sudo('echo "65536" > /proc/sys/net/core/somaxconn')
     sudo('echo "65536" > /proc/sys/net/ipv4/tcp_max_syn_backlog')  
-    sudo('echo "262144" > /proc/sys/net/netfilter/nf_conntrack_max')
 
     for interface in ['eth0', 'eth1', 'eth3']:
         sudo('ifdown %s' % interface)
