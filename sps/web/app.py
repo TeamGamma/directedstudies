@@ -48,22 +48,7 @@ def hello():
 
             log.info('Received from transaction server: %s', repr(response))
 
-            return  (""" 
-                            Hi                      %s ! <br><br>
-                            Method:                 %s <br><br>
-                            Input monetary value:   %s <br>
-                            Stock quantity:         %s <br>
-                            Stock symbol:           %s <br>
-                            Filename:                %s <br>
-                            Response: %s <br>""" % (
-                            request.form.get('username', ''),
-                            request.form.get('action', ''),
-                            request.form.get('amount', ''),
-                            request.form.get('quantity', ''),
-                            request.form.get('stock_symbol', ''),
-                            request.form.get('filename', ''),
-                            response
-                            ))
+            return response
 
         else:
             return ('You fudged it up, big boy <br><br> Go back and try again', 400)
