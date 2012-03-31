@@ -40,6 +40,28 @@ class TestADDCommand(DatabaseTest):
         self.assertEqual(user.account_balance.cents, 92)
 
 
+class TestQUOTECommand(DatabaseTest):
+    def setUp(self):
+        DatabaseTest.setUp(self)
+        self._user_fixture()
+        self.command = commands.QUOTECommand()
+
+        # Set the quote client to a dummy that returns predictable results
+        client._QUOTE_CLIENT = client.DummyQuoteClient({'ABAB': Money(23, 45)})
+
+    def test_validates_stock_symbol_len(self):
+        """ Should return an error if the stock symbol is too long """
+        self.assertRaises(commands.InvalidInputError, 
+                self.command.run, username='poor_user', stock_symbol='A' * 5)
+
+    def test_return_value(self):
+        """ Should return quoted stock value, quantity to be purchased, and
+        total price """
+        retval = self.command.run(username='poor_user', stock_symbol='ABAB')
+        self.assertIsInstance(retval, xml.QuoteResponse)
+        self.assertEqual(retval.quantity, 1)
+        self.assertEqual(retval.price, Money(23, 45))
+
 class TestBUYCommand(DatabaseTest):
     def setUp(self):
         DatabaseTest.setUp(self)
@@ -217,22 +239,6 @@ class TestSELLCommand(DatabaseTest):
                 operation='SELL').one()
         self.assertNotEqual(transaction, None)
 
-
-class TestQUOTECommand(DatabaseTest):
-    def setUp(self):
-        DatabaseTest.setUp(self)
-        self._user_fixture()
-        self.command = commands.QUOTECommand()
-
-    def test_return_value(self):
-        """ Should return a decimal value for the stock price """
-        retval = self.command.run(username='poor_user', stock_symbol='ABAB')
-        self.assertRegexpMatches(retval, '[0-9]+\.[0-9][0-9]')
-
-    def test_validates_stock_symbol_len(self):
-        """ Should return an error if the stock symbol is too long """
-        self.assertRaises(commands.InvalidInputError, 
-                self.command.run, username='poor_user', stock_symbol='A' * 5)
 
 
 class _TransactionCommandTest(object):

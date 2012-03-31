@@ -54,6 +54,7 @@ def update():
 def update_network():
     """
     Updates /etc/network/interfaces and brings up the network interfaces.
+    Also changes some Linux kernel settings to increase server performance.
     """
     name = env.host
     machine_number = int(name[1:])
@@ -62,6 +63,16 @@ def update_network():
         use_jinja=True, use_sudo=True, backup=True, 
         context=dict(machine_number=machine_number))
     run('cat /etc/network/interfaces')
+
+    # Network settings for server performance
+    sudo('echo "2048 64512" > /proc/sys/net/ipv4/ip_local_port_range')
+    sudo('echo "1" > /proc/sys/net/ipv4/tcp_tw_recycle')
+    sudo('echo "1" > /proc/sys/net/ipv4/tcp_tw_reuse')
+    sudo('echo "10" > /proc/sys/net/ipv4/tcp_fin_timeout')
+    sudo('echo "65536" > /proc/sys/net/core/somaxconn')
+    sudo('echo "65536" > /proc/sys/net/ipv4/tcp_max_syn_backlog')  
+    sudo('echo "262144" > /proc/sys/net/netfilter/nf_conntrack_max')
+
     for interface in ['eth0', 'eth1', 'eth3']:
         sudo('ifdown %s' % interface)
         sudo('ifup %s' % interface)

@@ -149,7 +149,7 @@ class QUOTECommand(CommandHandler):
         #create log
         xml.log_event('QUOTE', username, stock_symbol)
 
-        return str(quote)
+        return xml.QuoteResponse(quantity=1, price=quote)
 
 
 class BUYCommand(CommandHandler):
