@@ -31,7 +31,11 @@ env.roledefs = {
     'transaction': ['a03'],
     'tsung': ['a10', 'a11', 'a09'],
     'vm': ['vagrant@127.0.0.1:2222'],
-    'master': ['a09']
+    'master': ['a09'],
+    'all': [
+        'a01', 'a02', 'a03', 'a04', 'a05', 'a06', 'a07', 'a08', 'a09', 'a10',
+        'a11', 'a12', 'a13', 'a14'
+    ]
 }
 
 # password auth
@@ -50,7 +54,7 @@ def update():
     execute(restart_db)
 
 
-@_roles('transaction', 'web', 'db', 'tsung')
+@_roles('all')
 def update_network():
     """
     Updates /etc/network/interfaces and brings up the network interfaces.
@@ -94,9 +98,11 @@ def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
 
     run('cat /srv/directedstudies/config.py')
 
+
+@_roles('all')
 def blank():
     """ Used for testing fabric configuration """
-    pass
+    run('whoami')
 
 
 def deploy_all():
