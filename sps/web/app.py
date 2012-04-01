@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 import logging
 from os.path import dirname, abspath, join, normpath, exists
 from sps.config import config, read_config_file
+from lxml import objectify
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)
@@ -48,7 +49,21 @@ def hello():
 
             log.info('Received from transaction server: %s', repr(response))
 
-            return response
+            # Try to parse XML response and determine HTTP code
+            try:
+                tree = objectify.fromstring(response)
+                if tree.get('contents') == 'error':
+                    if 'System error' in str(tree.error):
+                        # Something went wrong in the system
+                        return response, 500
+
+                    # The user screwed up somehow
+                    return response, 400
+            except:
+                # Couldn't parse, just return server error
+                return response, 500
+
+            return response, 200
 
         else:
             return ('You fudged it up, big boy <br><br> Go back and try again', 400)
