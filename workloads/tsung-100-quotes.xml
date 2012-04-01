@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/share/tsung/tsung-1.0.dtd">
+<tsung loglevel="notice" version="1.0">
+
+<!-- Quote throughput requirement -->
+<!-- 100 users, 100 quotes per second-->
+
+    <!-- Client side setup -->
+    <clients>
+        <client host="localhost" use_controller_vm="true"/>
+    </clients>
+
+    <!-- Server side setup -->
+    <servers>
+        <server host="192.168.251.4" port="80" type="tcp"></server>
+    </servers>
+
+    <load>
+        <!-- 100 clients in total, one arriving every second -->
+        <arrivalphase phase="1" duration="100" unit="second">
+            <users maxnumber="100" arrivalrate="1" unit="second"></users>
+        </arrivalphase>
+    </load>
+
+    <sessions>
+
+        <!-- Makes one quote request per second for 200 seconds -->
+        <session name="quote_only" probability="20" type="ts_http">
+            <for from="1" to="200" incr="1" var="counter">
+                <setdynvars sourcetype="random_string" length="4">
+                    <var name="stock_symbol"/>
+                </setdynvars>
+
+                <!-- Get quote -->
+                <request subst="true">
+                    <match do="log" when="match" skip_headers="http">response contents="error"</match>
+                    <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
+                </request>
+                <thinktime value="1" random="false"></thinktime>
+            </for>
+        </session>
+
+    </sessions>
+</tsung>
