@@ -67,6 +67,8 @@ do
   # Move other log files to report directory and delete original
   mv $OUTPUT_FOLDER/* $REPORT_FOLDER/
   rm -r $OUTPUT_FOLDER
+
+  echo "Finished ${TEST_NAME} at `date`"
 done
 
 echo "Saving to remote folder $REMOTE_FOLDER..."

@@ -36,12 +36,14 @@
             <for from="1" to="3" var="i">
                 <!-- Add money to account -->
                 <request subst="true">
+                    <match do="log" when="match" skip_headers="http">response contents="error"</match>
                     <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
                 <!-- Display summary of account -->
                 <request subst="true">
+                    <match do="log" when="match" skip_headers="http">response contents="error"</match>
                     <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
                 </request>
                 <thinktime value="10" random="true"></thinktime>
@@ -52,7 +54,7 @@
         <!-- Just makes quote requests -->
         <session name="quote_only" probability="20" type="ts_http">
             <request> <http url="/" method="GET" version="1.1"></http> </request>
-            
+
             <for from="1" to="6" incr="1" var="counter">
                 <setdynvars sourcetype="random_string" length="4">
                     <var name="stock_symbol"/>
@@ -60,6 +62,7 @@
 
                 <!-- Get quote -->
                 <request subst="true">
+                    <match do="log" when="match" skip_headers="http">response contents="error"</match>
                     <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
@@ -79,24 +82,28 @@
 
             <!-- Add money to account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Buy some stock -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Commit the buy -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=COMMIT_BUY&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
 
@@ -105,18 +112,21 @@
 
             <!-- Sell the stock -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Commit the sell -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=COMMIT_SELL&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
@@ -134,36 +144,42 @@
 
             <!-- Add money to account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Create a reserve account for a trigger -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Start the trigger -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=20.50&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="60" random="true"></thinktime>
 
             <!-- Cancel the trigger if it's still active -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=CANCEL_SET_BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
@@ -181,18 +197,21 @@
 
             <!-- Add money to account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Create a reserve account for a trigger -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Start the trigger with a trigger value that will never be reached -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=0.01&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
@@ -201,6 +220,7 @@
 
             <!-- Display summary of account -->
             <request subst="true">
+                <match do="log" when="match" skip_headers="http">response contents="error"</match>
                 <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
