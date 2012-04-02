@@ -33,6 +33,8 @@
             font-size: 1.5em;
             font-weight: bold;
             color: #AAA;
+            text-align: right;
+            padding-top: 1em;
         }
         .help-block {
             color: #888;
@@ -40,6 +42,7 @@
     </style>
 
     <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/icanhaz.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.js"></script>
     <script src="/static/bootstrap/js/bootstrap-tab.js"></script>
     <script>
@@ -66,8 +69,10 @@
 
     <!-- Header bar -->
     <div id="header-row" class="row">
-        <div class="span12">
+        <div class="span8">
             <h1>Stock Paper Scissors</h1>
+        </div>
+        <div class="span4">
             <p>Client Interface</p>
         </div>
     </div>
@@ -116,9 +121,7 @@
 
                 {% for command in form.COMMANDS %}
                 <div class="tab-pane" id="{{ command }}">
-                    <form method="post" action="/" class="form-horizontal">
-                    <input type="hidden" name="action" value="{{ command }}"/>
-
+                    <form method="post" action="/{{ command }}" class="form-horizontal">
                     <fieldset>
                         <legend>{{ form[command].description }}</legend>
                         {% for input in form[command].inputs %}

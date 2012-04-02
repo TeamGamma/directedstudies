@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template 
+from flask import Flask, request, render_template, abort
 import logging
 from os.path import dirname, abspath, join, normpath, exists
 from sps.config import config, read_config_file
@@ -19,212 +19,178 @@ import command_forms
 
 app = Flask(__name__)
 
-@app.route("/", methods=['GET', 'POST'])
-def hello():
+@app.route("/")
+def home():
     log.debug('Request for /: %s', repr(dict(request.form)))
+    return render_template('form.html', form=command_forms)
 
-    if request.method == "POST":
 
-        try:
-            trans_server_message = checkentry( 
-                        request.form.get('username', ''),
-                        request.form.get('action', ''),
-                        request.form.get('amount', ''),
-                        request.form.get('quantity', ''),
-                        request.form.get('stock_symbol', ''),
-                        request.form.get('filename', ''))
-        except Exception as e:
-            log.error(e)
-            # Wrap exception to prevent stupid default Flask behaviour (400)
-            raise Exception(e)
+def send_to_transactions(message):
+    log.info('Sending to transaction server: %s', repr(message))
 
-        if trans_server_message != False:
+    response = transaction_interface.send(
+            config.TRANSACTION_SERVER_HOST, 
+            config.TRANSACTION_SERVER_PORT, 
+            message)
 
-            log.info('Sending to transaction server: %s', repr(trans_server_message))
+    if response is None:
+        # Resend to backup server
+        response = transaction_interface.send(
+                config.BACKUP_TRANSACTION_SERVER_HOST, 
+                config.TRANSACTION_SERVER_PORT, 
+                message)
 
-            response = transaction_interface.send(
-                    config.TRANSACTION_SERVER_HOST, 
-                    config.TRANSACTION_SERVER_PORT, 
-                    trans_server_message)
+    if response is None:
+        return 'Service unavailable', 502
 
-            if response is None:
-                #resend to backup server
+    log.info('Received from transaction server: %s', repr(response))
 
-                response = transaction_interface.send(
-                        config.BACKUP_TRANSACTION_SERVER_HOST, 
-                        config.TRANSACTION_SERVER_PORT, 
-                        trans_server_message)
-
-            if response is None:
-                return 'Service unavailable', 502
-
-            log.info('Received from transaction server: %s', repr(response))
-
-            # Try to parse XML response and determine HTTP code
-            try:
-                tree = objectify.fromstring(response)
-                if tree.get('contents') == 'error':
-                    if 'System error' in str(tree.error):
-                        # Something went wrong in the system
-                        return response, 500
-
-                    # The user screwed up somehow
-                    return response, 400
-            except:
-                # Couldn't parse, just return server error
+    # Try to parse XML response and determine HTTP code
+    try:
+        tree = objectify.fromstring(response)
+        if tree.get('contents') == 'error':
+            if 'System error' in str(tree.error):
+                # Something went wrong in the system
                 return response, 500
 
-            return response, 200
+            # The user screwed up somehow
+            return response, 400
+    except:
+        # Couldn't parse, just return server error
+        return response, 500
 
-        else:
-            return ('You fudged it up, big boy <br><br> Go back and try again', 400)
-
-
-    else:
-        return render_template('form.html', form=command_forms)
-
-
-def checkentry(username, action, money_value, stock_quantity, stock_symbol, filename):
-
-    # Check username for validity
-    if len(username) == 0:
-        return False
-    
-    # Check each action for constraints
-    if action == 'ADD':
-        if  len(money_value) == 0:
-            return False
-        
-        #Check to see if they entered a number
-        try:
-            if float(money_value) > 0:
-                return 'ADD,' + username + ',' + money_value 
-            else:
-                return False
-        except ValueError:
-            return False          
-        
-    elif action == 'QUOTE':
-        if len(stock_symbol) != 0: 
-            return 'QUOTE,' + username + ',' + stock_symbol 
-        else:
-            return False
-
-    elif action == 'BUY':
-        try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "BUY," + username + ',' + stock_symbol + ',' + money_value 
-            else:
-                return False
-        except ValueError:
-            return False
-
-    elif action == 'SELL':
-        try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "SELL," + username + ',' + stock_symbol + ',' + money_value
-            else:
-                return False
-        except ValueError:
-            return False
-    
-    elif action == 'SET_BUY_AMOUNT':
-        try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "SET_BUY_AMOUNT," + username + ',' + stock_symbol + ',' + money_value
-            else:
-                return False
-        except ValueError:
-            return False
-
-    elif action == 'SET_BUY_TRIGGER':
-        try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "SET_BUY_TRIGGER," + username + ',' + stock_symbol + ',' + money_value
-            else:
-                return False
-        except ValueError:
-            return False
-
-    elif action == 'CANCEL_SET_BUY':
-        if len(username) != 0 and len(stock_symbol) != 0:
-            return 'CANCEL_SET_BUY,' + username + ',' + stock_symbol
-        else:
-            return False
+    return response, 200
 
 
-    elif action == 'SET_SELL_AMOUNT':
-        try:
-            if len(stock_symbol) != 0 and float(stock_quantity) > 0 and len(username)!=0:
-                return "SET_SELL_AMOUNT," + username + ',' + stock_symbol + ',' + stock_quantity
-            else:
-                return False
-        except ValueError:
-            return False
+# Custom URL handlers for each command - makes validation and logging easier
 
-    elif action == 'SET_SELL_TRIGGER':
-        try:
-            if len(stock_symbol) != 0 and float(money_value) > 0 and len(username)!=0:
-                return "SET_SELL_TRIGGER," + username + ',' + stock_symbol + ',' + money_value
-            else:
-                return False
-        except ValueError:
-            return False
+# Check each action for constraints
+@app.route('/ADD', methods=['POST'])
+def handle_ADD():
+    log.debug('ADD Request: %s', repr(dict(request.form)))
 
-    elif action == 'CANCEL_SET_SELL':
-        if len(username) != 0 and len(stock_symbol) != 0:
-            return 'CANCEL_SET_SELL,' + username + ',' + stock_symbol
-        else:
-            return False
+    username, amount = validate('username', ('amount', float))
+    return send_to_transactions('ADD,' + username + ',' + amount)
 
+@app.route('/QUOTE', methods=['POST'])
+def handle_QUOTE():
+    username, stock_symbol = validate('username', 'stock_symbol')
+    return send_to_transactions('QUOTE,' + username + ',' + stock_symbol)
 
-    elif action == 'DUMPLOG_USER':
-        if len(username) != 0 and len(filename) != 0:
-            return 'DUMPLOG,' + username + ',' + filename
-        else:
-            return False
+@app.route('/BUY', methods=['POST'])
+def handle_BUY():
+    username, stock_symbol, amount = validate('username', 'stock_symbol', ('amount', float))
+    return send_to_transactions("BUY," + username + ',' + stock_symbol + ',' + amount)
 
-    elif action == 'DUMPLOG':
-        if len(filename) != 0:
-            return 'DUMPLOG,' + filename
-        else:
-            return False
+@app.route('/SELL', methods=['POST'])
+def handle_SELL():
+    username, stock_symbol, amount = validate('username', 'stock_symbol', ('amount', float))
+    return send_to_transactions("SELL," + username + ',' + stock_symbol + ',' + amount)
 
-    elif action == 'DISPLAY_SUMMARY':
-        if len(username) != 0:
-            return 'DISPLAY_SUMMARY,' + username
-        else:
-            return False
+@app.route('/SET_BUY_AMOUNT', methods=['POST'])
+def handle_SET_BUY_AMOUNT():
+    username, stock_symbol, amount = validate('username', 'stock_symbol', ('amount', float))
+    return send_to_transactions("SET_BUY_AMOUNT," + username + ',' + stock_symbol + ',' + amount)
 
-    elif action == 'CANCEL_BUY':
-        if len(username) != 0:
-            return 'CANCEL_BUY,' + username
-        else:
-            return False
+@app.route('/SET_BUY_TRIGGER', methods=['POST'])
+def handle_SET_BUY_TRIGGER():
+    username, stock_symbol, amount = validate('username', 'stock_symbol', ('amount', float))
+    return send_to_transactions("SET_BUY_TRIGGER," + username + ',' + stock_symbol + ',' + amount)
 
-    elif action == 'CANCEL_SELL':
-        if len(username) != 0:
-            return 'CANCEL_SELL,' + username
-        else:
-            return False
+@app.route('/CANCEL_SET_BUY', methods=['POST'])
+def handle_CANCEL_SET_BUY():
+    username, stock_symbol = validate('username', 'stock_symbol')
+    return send_to_transactions('CANCEL_SET_BUY,' + username + ',' + stock_symbol)
 
-    elif action == 'COMMIT_BUY':
-        if len(username) != 0:
-            return 'COMMIT_BUY,' + username
-        else:
-            return False
+@app.route('/SET_SELL_AMOUNT', methods=['POST'])
+def handle_SET_SELL_AMOUNT():
+    username, stock_symbol, quantity = validate('username', 'stock_symbol', ('quantity', int))
+    return send_to_transactions("SET_SELL_AMOUNT," + username + ',' + stock_symbol + ',' + quantity)
 
-    elif action == 'COMMIT_SELL':
-        if len(username) != 0:
-            return 'COMMIT_SELL,' + username
+@app.route('/SET_SELL_TRIGGER', methods=['POST'])
+def handle_SET_SELL_TRIGGER():
+    username, stock_symbol, amount = validate('username', 'stock_symbol', ('amount', float))
+    return send_to_transactions("SET_SELL_TRIGGER," + username + ',' + stock_symbol + ',' + amount)
 
-    else:
-        return False
+@app.route('/CANCEL_SET_SELL', methods=['POST'])
+def handle_CANCEL_SET_SELL():
+    username, stock_symbol = validate('username', 'stock_symbol')
+    return send_to_transactions('CANCEL_SET_SELL,' + username + ',' + stock_symbol)
+
+@app.route('/CANCEL_BUY', methods=['POST'])
+def handle_CANCEL_BUY():
+    username = validate('username')
+    return send_to_transactions('CANCEL_BUY,' + username)
+
+@app.route('/CANCEL_SELL', methods=['POST'])
+def handle_CANCEL_SELL():
+    username = validate('username')
+    return send_to_transactions('CANCEL_SELL,' + username)
+
+@app.route('/COMMIT_BUY', methods=['POST'])
+def handle_COMMIT_BUY():
+    username = validate('username')
+    return send_to_transactions('COMMIT_BUY,' + username)
+
+@app.route('/COMMIT_SELL', methods=['POST'])
+def handle_COMMIT_SELL():
+    username = validate('username')
+    return send_to_transactions('COMMIT_SELL,' + username)
+
+@app.route('/DUMPLOG_USER', methods=['POST'])
+def handle_DUMPLOG_USER():
+    username, filename = validate('username', 'filename')
+    return send_to_transactions('DUMPLOG,' + username + ',' + filename)
+
+@app.route('/DUMPLOG', methods=['POST'])
+def handle_DUMPLOG():
+    filename = validate('filename')
+    return send_to_transactions('DUMPLOG,' + filename)
+
+@app.route('/DISPLAY_SUMMARY', methods=['POST'])
+def handle_DISPLAY_SUMMARY():
+    username = validate('username')
+    return send_to_transactions('DISPLAY_SUMMARY,' + username)
 
 
 @app.route("/favicon.ico")
 def favicon():
     return ""
+
+
+def validate(*names):
+    """ Checks for a list of form names with optional validator functions """
+    values = []
+    for item in names:
+        validator = None
+
+        # Check if argument is a tuple of (name, validator function)
+        if isinstance(item, tuple):
+            name, validator = item
+        else:
+            # argument is just a string
+            name = item
+
+        # Get from form
+        value = request.form[name]
+
+        # Check that it's not empty
+        if len(name) == 0:
+            abort(400)
+
+        if validator is not None:
+            # Validator function will raise ValueError if validation fails
+            try:
+                validator(value)
+            except ValueError:
+                abort(400)
+        values.append(value)
+
+    # Return single value if only one input was requested
+    if len(values) == 1:
+        return values[0]
+    return values
+
 
 
 if __name__ == "__main__":
