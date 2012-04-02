@@ -47,7 +47,7 @@ def hello():
                     config.TRANSACTION_SERVER_PORT, 
                     trans_server_message)
 
-            if response == False:
+            if response is None:
                 #resend to backup server
 
                 response = transaction_interface.send(
@@ -55,7 +55,8 @@ def hello():
                         config.TRANSACTION_SERVER_PORT, 
                         trans_server_message)
 
-
+            if response is None:
+                return 'Service unavailable', 502
 
             log.info('Received from transaction server: %s', repr(response))
 

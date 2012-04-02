@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 TRANSACTION_SERVER_HOST = '192.168.252.{{ transaction_server }}'
+BACKUP_TRANSACTION_SERVER_HOST = '192.168.252.{{ backup_transaction_server }}'
 TRANSACTION_SERVER_PORT = 6000
 
 DATABASE_CONNECTION_ARGS = {

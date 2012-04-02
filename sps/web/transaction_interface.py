@@ -11,7 +11,7 @@ def send(HOST, PORT, message):
         
         s.sendall(message + '\n')
     except socket.error:
-        return False
+        return None
         
 
 
