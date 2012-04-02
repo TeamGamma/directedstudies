@@ -12,7 +12,7 @@ from __future__ import with_statement
 from fabric.api import env, settings
 from fabric.operations import sudo, run, put
 from fabric.context_managers import cd, hide
-from fabric.contrib.files import exists, upload_template
+from fabric.contrib.files import exists, upload_template, append
 from deploy_utils import default_roles as _roles
 from os import path
 import re
@@ -75,6 +75,9 @@ def update_network():
     sudo('echo "10" > /proc/sys/net/ipv4/tcp_fin_timeout')
     sudo('echo "65536" > /proc/sys/net/core/somaxconn')
     sudo('echo "65536" > /proc/sys/net/ipv4/tcp_max_syn_backlog')  
+
+    append('/etc/security/limits.conf', 
+        ["* hard nofile 10240", "* soft nofile 10240"], use_sudo=True)
 
     for interface in ['eth0', 'eth1', 'eth3']:
         sudo('ifdown %s' % interface)
@@ -223,7 +226,7 @@ def deploy_tsung():
     run('wget http://tsung.erlang-projects.org/dist/ubuntu/lucid/tsung_1.4.1-1_all.deb')
     sudo('dpkg -i tsung_1.4.1-1_all.deb')
 
-    put(path.join(fabdir, 'config/tsung.xml'), '/home/direct/tsung.xml')
+    #put(path.join(fabdir, 'config/tsung.xml'), '/home/direct/tsung.xml')
 
 
 @_roles('transaction', 'web', 'db')
@@ -253,6 +256,9 @@ def restart_db():
         # Wipe the DB and start afresh
         sudo('fab setup_database')
 
+@_roles('all')
+def add_hostnames():
+    append('/etc/hosts', ["192.168.250.9 master"], use_sudo=True)
 
 def _machine_num(servername):
     """
