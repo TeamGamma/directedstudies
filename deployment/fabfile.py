@@ -28,7 +28,7 @@ fabdir = path.abspath(path.dirname(__file__))
 env.roledefs = {
     'db': ['a01'],
     'web': ['a02', 'a04', 'a06'],
-    'transaction': ['a03'],
+    'transaction': ['a03', 'a05'],
     'tsung': ['a10', 'a11', 'a09'],
     'vm': ['vagrant@127.0.0.1:2222'],
     'master': ['a09'],
@@ -89,9 +89,14 @@ def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
     """
     Updates the remote config file with the local one
     """
+
+    trans_serv_index = env.roledefs['web'].index(env.host) % len(env.roledefs['transaction'])  
+    backup_trans_serv_index = (env.roledefs['web'].index(env.host)+1) %len(env.roledefs['transaction'])  
+
     # Use fabfile's predefined server names
     context = {
-        "transaction_server": _machine_num(env.roledefs['transaction'][0]),
+        "transaction_server": _machine_num(env.roledefs['transaction'][trans_serv_index]),
+        "backup_transaction_server": _machine_num(env.roledefs['transaction'][backup_trans_serv_index]),
         "database_server": _machine_num(env.roledefs['db'][0]),
         "quote_client": quote_client,
     }
