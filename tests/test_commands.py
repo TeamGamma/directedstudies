@@ -701,6 +701,8 @@ class TestDISPLAY_SUMMARY(DatabaseTest):
                     operation='BUY', stock_symbol='AAAA', state=Trigger.State.INACTIVE),
             Trigger(user=self.user, amount=Money(10, 54),
                     operation='BUY', stock_symbol='AAAA', state=Trigger.State.RUNNING),
+            StockPurchase(user=self.user, stock_symbol='ABAB', quantity=10),
+            StockPurchase(user=self.user, stock_symbol='CDCD', quantity=20),
         )
 
     def test_nonexistent_user(self):
@@ -717,6 +719,7 @@ class TestDISPLAY_SUMMARY(DatabaseTest):
         self.assertIsInstance(res, xml.SummaryResponse)
         self.assertEqual(len(res.transactions), 2)
         self.assertEqual(len(res.triggers), 2)
+        self.assertEqual(len(res.stocks), 2)
         self.assertEqual(res.account_balance, self.user.account_balance)
         self.assertEqual(res.reserve_balance, self.user.reserve_balance)
 

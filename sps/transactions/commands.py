@@ -724,10 +724,12 @@ class DISPLAY_SUMMARYCommand(CommandHandler):
         # Get this users triggers
         triggers = self.session.query(Trigger).filter_by(user=user).all()
 
+        # Get this users stocks
+        stocks = self.session.query(StockPurchase).filter_by(user=user).all()
 
         xml.log_event('DISPLAY_SUMMARY', username)
         return xml.SummaryResponse(
-            transactions=transactions, triggers=triggers,
+            transactions=transactions, triggers=triggers, stocks=stocks,
             account_balance=user.account_balance,
             reserve_balance=user.reserve_balance)
 

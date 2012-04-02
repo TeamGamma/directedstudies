@@ -12,6 +12,8 @@ Transactions = ElementMaker.transactions
 Transaction = ElementMaker.transaction
 Triggers = ElementMaker.triggers
 Trigger = ElementMaker.trigger
+Stocks = ElementMaker.stocks
+Stock = ElementMaker.stock
 AccountBalance = ElementMaker.account_balance
 ReserveAccount = ElementMaker.reserve_account
 Log = ElementMaker.log
@@ -60,10 +62,11 @@ class DumplogResponse():
 
 
 class SummaryResponse():
-    def __init__(self, transactions, triggers,
+    def __init__(self, transactions, triggers, stocks,
             account_balance, reserve_balance):
         self.transactions = transactions
         self.triggers = triggers
+        self.stocks = stocks
         self.account_balance = account_balance
         self.reserve_balance = reserve_balance
 
@@ -74,6 +77,9 @@ class SummaryResponse():
             ),
             Triggers(
                 *[trigger_element(t) for t in self.triggers]
+            ),
+            Stocks(
+                *[stock_element(s) for s in self.stocks]
             ),
             AccountBalance(str(self.account_balance)),
             ReserveAccount(str(self.reserve_balance))
@@ -91,8 +97,7 @@ def transaction_element(t):
         quantity=str(t.quantity),
         stock_value=str(t.stock_value),
         committed=str(t.committed),
-        creation_time=str(t.creation_time)
-    )
+        creation_time=str(t.creation_time))
 
 def trigger_element(t):
     """ Converts a Trigger to an XML element class """
@@ -104,8 +109,15 @@ def trigger_element(t):
         amount=str(t.amount),
         quantity=str(t.quantity),
         state=str(t.state),
-        operation=t.operation,
-    )
+        operation=t.operation)
+
+def stock_element(s):
+    """ Converts a StockPurchase to an XML element class """
+    return Stock(
+        username=s.username,
+        stock_symbol=s.stock_symbol,
+        quantity=str(s.quantity))
+
 
 def log_transaction(transaction_type, db_transaction, status_message=None):
     if status_message == None:
