@@ -636,7 +636,7 @@ class SET_SELL_TRIGGERCommand(CommandHandler):
                     # buy the stock and update reserve balance
                     log.debug("Trigger %d activated: %s > %s", 
                             trigger.id, quote, trigger.trigger_value)
-                    return self.process_transaction(quote, trigger)
+                    return self.process_transaction(session, quote, trigger)
 
             except Exception, e:
                 log.error('Trigger %d: %s : %s', trigger_id, type(e), e)

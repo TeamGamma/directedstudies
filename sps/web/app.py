@@ -47,6 +47,16 @@ def hello():
                     config.TRANSACTION_SERVER_PORT, 
                     trans_server_message)
 
+            if response == False:
+                #resend to backup server
+
+                response = transaction_interface.send(
+                        config.BACKUP_TRANSACTION_SERVER_HOST, 
+                        config.TRANSACTION_SERVER_PORT, 
+                        trans_server_message)
+
+
+
             log.info('Received from transaction server: %s', repr(response))
 
             # Try to parse XML response and determine HTTP code
