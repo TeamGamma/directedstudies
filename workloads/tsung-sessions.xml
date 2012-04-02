@@ -4,12 +4,12 @@
 
     <!-- Client side setup -->
     <clients>
-        <client host="localhost" use_controller_vm="true"/>
+        <client host="master" use_controller_vm="true"/>
     </clients>
 
     <!-- Server side setup -->
     <servers>
-        <server host="localhost" port="5000" type="tcp"></server>
+        <server host="192.168.251.9" port="5000" type="tcp"></server>
     </servers>
 
     <load>

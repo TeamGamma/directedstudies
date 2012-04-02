@@ -43,8 +43,8 @@ fi
 for i in $(seq 1 $NUM_RUNS)
 do
   TEST_NAME=${LABEL}${i}
-  echo Running load test $TEST_NAME in 10s, press ^C to cancel
-  sleep 10
+  echo Running load test $TEST_NAME in 2, press ^C to cancel
+  sleep 2
 
   echo "Restarting system..."
   fab update &>/dev/null

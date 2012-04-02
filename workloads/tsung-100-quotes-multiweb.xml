@@ -3,6 +3,7 @@
 <tsung loglevel="notice" version="1.0">
 
 <!-- Quote throughput requirement -->
+<!-- System can handle 100 stock quotes per second for a period of 1 minute without failure -->
 <!-- 100 users, 100 quotes per second-->
 
     <!-- Client side setup -->
@@ -12,10 +13,26 @@
 
     <!-- Server side setup -->
     <servers>
-        <server host="192.168.251.4" port="80" type="tcp"></server>
+        <server host="web1" port="80" type="tcp"></server>
+        <server host="web2" port="80" type="tcp"></server>
+        <server host="web3" port="80" type="tcp"></server>
     </servers>
 
-    <load>
+    <monitoring>
+        <!-- Monitor 3 web servers over eth1 -->
+        <monitor host="monitorweb1" type="erlang"></monitor>
+        <monitor host="monitorweb2" type="erlang"></monitor>
+        <monitor host="monitorweb3" type="erlang"></monitor>
+
+        <!-- Monitor transaction server -->
+        <monitor host="monitorts" type="erlang"></monitor>
+
+        <!-- Monitor database -->
+        <monitor host="monitordb" type="erlang"></monitor>
+    </monitoring>
+
+    <!-- Maximum duration of entire session is 400 seconds -->
+    <load duration="400" unit="second">
         <!-- 100 clients in total, one arriving every second -->
         <arrivalphase phase="1" duration="120" unit="second">
             <users maxnumber="100" arrivalrate="1" unit="second"></users>
@@ -33,7 +50,7 @@
 
                 <!-- Get quote -->
                 <request subst="true">
-                    <match do="log" when="match" skip_headers="http">response contents="error"</match>
+                    <match do="log" when="match" skip_headers="http">response contents="quote"</match>
                     <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
                 </request>
                 <thinktime value="1" random="false"></thinktime>
@@ -42,3 +59,4 @@
 
     </sessions>
 </tsung>
+

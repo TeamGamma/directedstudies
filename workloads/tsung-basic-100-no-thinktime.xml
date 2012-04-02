@@ -8,7 +8,7 @@
 
     <!-- Client side setup -->
     <clients>
-        <client host="localhost" use_controller_vm="true"/>
+        <client host="master" use_controller_vm="true"/>
     </clients>
 
     <!-- Server side setup -->
