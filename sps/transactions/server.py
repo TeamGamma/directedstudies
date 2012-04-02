@@ -15,7 +15,7 @@ class TransactionServer(object):
     def __init__(self, address):
         self.address = address
 
-        self.server = eventlet.listen(address)
+        self.server = eventlet.listen(address, backlog=1000)
         log.debug('Listening on %s', address)
 
         self.pool = eventlet.GreenPool()
