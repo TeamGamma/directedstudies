@@ -1,0 +1,19 @@
+<div class="tab-pane" id="{{ command }}">
+    <form method="post" action="/{{ command }}" class="form-horizontal">
+    <fieldset>
+        <legend>{{ form[command].description }}</legend>
+        {% for input in form[command].inputs %}
+        <div class="control-group">
+            <label class="control-label" for="{{ input.name }}">{{ input.label }}:</label>
+            <div class="controls">
+                <input type="text" class="input-xlarge" name="{{ input.name }}">
+                {% if input.help %}
+                <p class="help-block">{{ input.help }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    <button class="btn btn-large" type="submit" name="submit">{{ form[command].label }}</button>
+    </form>
+</div>

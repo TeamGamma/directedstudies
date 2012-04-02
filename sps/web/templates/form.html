@@ -1,162 +1,141 @@
-<!doctype html>
+{% extends "base.html" %}
 
-<head>
+{% block content %}
+<!-- Command tab sections-->
+<div class="row">
 
-<meta charset="utf-8">
-
-    <meta charset="utf-8">
-    <title>Stock Paper Scissors - Client Input Form</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <link rel="shortcut icon" href="/static/img/favicon.ico">
-    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
-
-    <style>
-        #header-row {
-            margin-bottom: 20px;
-        }
-        #header-row h1 {
-            padding-bottom: 8px;
-            padding-top: 8px;
-            font-size: 3em;
-        }
-        #header-row p {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #AAA;
-            text-align: right;
-            padding-top: 1em;
-        }
-        .help-block {
-            color: #888;
-        }
-    </style>
-
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/icanhaz.min.js"></script>
-    <script src="/static/bootstrap/js/bootstrap.js"></script>
-    <script src="/static/bootstrap/js/bootstrap-tab.js"></script>
-    <script>
-        $(function() {
-            // Activate tabs
-            $('#command-tabs a')
-            .on('shown', function (e) {
-                window.element = e.target;
-                if(e.relatedTarget) {
-                    $(e.relatedTarget.getAttribute('href')).find('.btn').removeClass('btn-primary');
-                }
-                if(e.target) {
-                    $(e.target.getAttribute('href')).find('.btn').addClass('btn-primary');
-                }
-            })
-            .first().tab('show');
-        });
-    </script>
-</head>
-
-<body>
-
-<div class="container">
-
-    <!-- Header bar -->
-    <div id="header-row" class="row">
-        <div class="span8">
-            <h1>Stock Paper Scissors</h1>
-        </div>
-        <div class="span4">
-            <p>Client Interface</p>
+    <div class="span4">
+        <div class="well" style="padding: 8px 0">
+            {% include 'tab_bar.html' %}
         </div>
     </div>
 
-    <!-- Command tab sections-->
-    <div id="command-row" class="row">
-        <div class="span4">
-            <div class="well" style="padding: 8px 0">
-                <ul id="command-tabs" class="nav nav-list">
-                    <li class="nav-header">Add Funds</li>
-                    <li><a href="#ADD" data-toggle="tab">{{ form.ADD.label }}</a></li>
+    <div class="span8">
 
-                    <li class="nav-header">Get Stock Quotes</li>
-                    <li><a href="#QUOTE" data-toggle="tab">{{ form.QUOTE.label }}</a></li>
-
-                    <li class="nav-header">Buy Stocks</li>
-                    <li><a href="#BUY" data-toggle="tab">{{ form.BUY.label }}</a></li>
-                    <li><a href="#COMMIT_BUY" data-toggle="tab">{{ form.COMMIT_BUY.label }}</a></li>
-                    <li><a href="#CANCEL_BUY" data-toggle="tab">{{ form.CANCEL_BUY.label }}</a></li>
-
-                    <li class="nav-header">Sell Stocks</li>
-                    <li><a href="#SELL" data-toggle="tab">{{ form.SELL.label }}</a></li>
-                    <li><a href="#COMMIT_SELL" data-toggle="tab">{{ form.COMMIT_SELL.label }}</a></li>
-                    <li><a href="#CANCEL_SELL" data-toggle="tab">{{ form.CANCEL_SELL.label }}</a></li>
-
-                    <li class="nav-header">Automatically Buy Stocks</li>
-                    <li><a href="#SET_BUY_AMOUNT" data-toggle="tab">{{ form.SET_BUY_AMOUNT.label }}</a></li>
-                    <li><a href="#SET_BUY_TRIGGER" data-toggle="tab">{{ form.SET_BUY_TRIGGER.label }}</a></li>
-                    <li><a href="#CANCEL_SET_BUY" data-toggle="tab">{{ form.CANCEL_SET_BUY.label }}</a></li>
-
-                    <li class="nav-header">Automatically Sell Stocks</li>
-                    <li><a href="#SET_SELL_AMOUNT" data-toggle="tab">{{ form.SET_SELL_AMOUNT.label }}</a></li>
-                    <li><a href="#SET_SELL_TRIGGER" data-toggle="tab">{{ form.SET_SELL_TRIGGER.label }}</a></li>
-                    <li><a href="#CANCEL_SET_SELL" data-toggle="tab">{{ form.CANCEL_SET_SELL.label }}</a></li>
-
-                    <li class="nav-header">Log Information</li>
-                    <li><a href="#DUMPLOG_USER" data-toggle="tab">{{ form.DUMPLOG_USER.label }}</a></li>
-                    <li><a href="#DUMPLOG" data-toggle="tab">{{ form.DUMPLOG.label }}</a></li>
-                    <li><a href="#DISPLAY_SUMMARY" data-toggle="tab">{{ form.DISPLAY_SUMMARY.label }}</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="span8">
-            <div class="well tab-content">
-
-
-                {% for command in form.COMMANDS %}
-                <div class="tab-pane" id="{{ command }}">
-                    <form method="post" action="/{{ command }}" class="form-horizontal">
-                    <fieldset>
-                        <legend>{{ form[command].description }}</legend>
-                        {% for input in form[command].inputs %}
-                        <div class="control-group">
-                            <label class="control-label" for="{{ input.name }}">{{ input.label }}:</label>
-                            <div class="controls">
-                                <input type="text" class="input-xlarge" name="{{ input.name }}">
-                                {% if input.help %}
-                                <p class="help-block">{{ input.help }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </fieldset>
-                    <button class="btn btn-large" type="submit" name="submit">{{ form[command].label }}</button>
-                    </form>
+        <!-- Box holding the command forms -->
+        <div class="row">
+            <div class="span8">
+                <div class="well tab-content">
+                    {% for command in form.COMMANDS %}
+                    {% include "single_command_form.html" %}
+                    {% endfor %}
                 </div>
-                {% endfor %}
-
-
-
-
-
             </div>
         </div>
+
+        <!-- Box holding the user summary table -->
+        <div class="row">
+            <div class="span8">
+                <div class="well">
+
+                    <h3>Account</h3>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Account Balance</th>
+                                <th>Reserve Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>rob</td>
+                                <td>
+                                    <code>45.50</code>
+                                </td>
+                                <td>
+                                    <code>27.85</code>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Transactions</h3>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Operation</th>
+                                <th>Stock Symbol</th>
+                                <th>Stock Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SELL</td>
+                                <td>GOOG</td>
+                                <td><code>250.22</code></td>
+                                <td><i class="icon-time"></i></td>
+                            </tr>
+                            <tr class="muted">
+                                <td>BUY</td>
+                                <td>GOOG</td>
+                                <td><code>280.57</code></td>
+                                <td><i class="icon-ok"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Stocks</h3>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Stock Symbol</th>
+                                <th>Stock Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GOOG</td>
+                                <td>47</td>
+                            </tr>
+                            <tr>
+                                <td>APPL</td>
+                                <td>22</td>
+                            </tr>
+                            <tr>
+                                <td>MSFT</td>
+                                <td>800</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                    <h3>Triggers</h3>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Operation</th>
+                                <th>Stock Symbol</th>
+                                <th>Stock Value</th>
+                                <th>Trigger Value</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>BUY</td>
+                                <td>GOOG</td>
+                                <td><code>250.22</code></td>
+                                <td><code>40.00</code></td>
+                                <td></td>
+                                <td><i class="icon-repeat"></i></td>
+                            </tr>
+                            <tr class="muted">
+                                <td>BUY</td>
+                                <td>GOOG</td>
+                                <td><code>250.22</code></td>
+                                <td><code>40.00</code></td>
+                                <td>6</td>
+                                <td><i class="icon-ok"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <hr>
-
-    <footer>
-    <p>&copy; Team Gamma 2012</p>
-    </footer>
-
 </div>
-
-
-</body>
-
+{% endblock %}

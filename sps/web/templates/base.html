@@ -1,0 +1,89 @@
+<!doctype html>
+
+<head>
+
+<meta charset="utf-8">
+
+    <meta charset="utf-8">
+    <title>{% block title %}Stock Paper Scissors - Client Input Form{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+
+    <style>
+        #header-row {
+            margin-bottom: 20px;
+        }
+        #header-row h1 {
+            padding-bottom: 8px;
+            padding-top: 8px;
+            font-size: 3em;
+        }
+        #header-row p {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #AAA;
+            text-align: right;
+            padding-top: 1em;
+        }
+        .help-block {
+            color: #888;
+        }
+        button[type=submit] {
+            display: block;
+            margin: 0 auto;
+            width: 150px;
+        }
+    </style>
+
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/icanhaz.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.js"></script>
+    <script src="/static/bootstrap/js/bootstrap-tab.js"></script>
+    <script>
+        $(function() {
+            // Activate tabs
+            $('#command-tabs a').first().tab('show');
+        });
+    </script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header bar -->
+    <div id="header-row" class="row">
+        <div class="span8">
+            <h1>Stock Paper Scissors</h1>
+        </div>
+        <div class="span4">
+            <p>Client Interface</p>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+</div>
+    </div>
+
+    <footer>
+        <hr>
+        <p>&copy; Team Gamma 2012</p>
+    </footer>
+
+</div>
+
+
+</body>
+
