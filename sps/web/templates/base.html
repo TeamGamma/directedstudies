@@ -56,6 +56,9 @@
             $('#command-tabs a').first().tab('show');
         });
     </script>
+
+    {% block templates %}
+    {% endblock %}
 </head>
 
 <body>
@@ -74,13 +77,11 @@
 
     {% block content %}{% endblock %}
 
-</div>
-    </div>
-
     <footer>
         <hr>
         <p>&copy; Team Gamma 2012</p>
     </footer>
+
 
 </div>
 

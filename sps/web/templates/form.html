@@ -1,5 +1,34 @@
 {% extends "base.html" %}
 
+{% block templates %}
+{% raw %}
+<script id="transaction" type="text/html">
+<tr>
+    <td>{{ operation }}</td>
+    <td>{{ stock_symbol }}</td>
+    <td><code>{{ stock_value }}</code></td>
+    <td><i class="{{ status_icon }}"></i></td>
+</tr>
+</script>
+<script id="stock" type="text/html">
+<tr>
+    <td>{{ stock_symbol }}</td>
+    <td>{{ quantity }}</td>
+</tr>
+</script>
+<script id="trigger" type="text/html">
+<tr>
+    <td>{{ operation }}</td>
+    <td>{{ stock_symbol }}</td>
+    <td><code>{{ stock_value }}</code></td>
+    <td><code>{{ trigger_value }}</code></td>
+    <td>{{ quantity }}</td>
+    <td><i class="{{ status_icon }}"></i></td>
+</tr>
+</script>
+{% endraw %}
+{% endblock %}
+
 {% block content %}
 <!-- Command tab sections-->
 <div class="row">
@@ -133,6 +162,7 @@
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
 
