@@ -87,8 +87,9 @@ def update_config_file(quote_client='sps.quotes.client.RandomQuoteClient'):
     Updates the remote config file with the local one
     """
 
-    trans_serv_index = env.roledefs['web'].index(env.host) % len(env.roledefs['transaction'])  
-    backup_trans_serv_index = (env.roledefs['web'].index(env.host)+1) %len(env.roledefs['transaction'])  
+    num_transactions = len(env.roledefs['transaction'])
+    trans_serv_index = web_server_num(env.host) % num_transactions
+    backup_trans_serv_index = (web_server_num(env.host) + 1) % num_transactions
 
     # Use fabfile's predefined server names
     context = {
@@ -266,4 +267,10 @@ def _machine_num(servername):
     """
     hostname = servername.split(':')[0]
     return int(re.search('\d+', hostname).group(0))
+
+def web_server_num(servername):
+    try:
+        return env.roledefs['web'].index(servername)
+    except ValueError:
+        return 0
 
