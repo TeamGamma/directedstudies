@@ -6,7 +6,7 @@
 
     <!-- Client side setup -->
     <clients>
-        <client host="localhost" use_controller_vm="true" maxusers="100"/>
+        <client host="master" use_controller_vm="true" maxusers="100"/>
     </clients>
 
     <!-- Server side setup -->
