@@ -86,7 +86,11 @@ def send_to_transactions(message):
 
 # Custom URL handlers for each command - makes validation and logging easier
 
-# Check each action for constraints
+@app.route('/KILL', methods=['POST'])
+def handle_KILL():
+    log.debug('KILL Request: %s', repr(dict(request.form)))
+    return send_to_transactions('KILL')
+
 @app.route('/ADD', methods=['POST'])
 def handle_ADD():
     log.debug('ADD Request: %s', repr(dict(request.form)))
