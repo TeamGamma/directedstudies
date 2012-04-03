@@ -36,13 +36,13 @@
             <for from="1" to="3" var="i">
                 <!-- Add money to account -->
                 <request subst="true">
-                    <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                    <http url="/ADD" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
                 <!-- Display summary of account -->
                 <request subst="true">
-                    <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                    <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
                 </request>
                 <thinktime value="10" random="true"></thinktime>
 
@@ -60,7 +60,7 @@
 
                 <!-- Get quote -->
                 <request subst="true">
-                    <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
+                    <http url="/QUOTE" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
             </for>
@@ -79,25 +79,25 @@
 
             <!-- Add money to account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                <http url="/ADD" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Buy some stock -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                <http url="/BUY" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Commit the buy -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=COMMIT_BUY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/COMMIT_BUY" method="POST" version="1.1" contents="action=COMMIT_BUY&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
 
             <!-- User holds on to stock for a while -->
@@ -105,19 +105,19 @@
 
             <!-- Sell the stock -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                <http url="/SELL" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Commit the sell -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=COMMIT_SELL&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/COMMIT_SELL" method="POST" version="1.1" contents="action=COMMIT_SELL&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
 
@@ -134,37 +134,37 @@
 
             <!-- Add money to account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                <http url="/ADD" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Create a reserve account for a trigger -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                <http url="/SET_BUY_AMOUNT" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Start the trigger -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=20.50&amp;submit="></http>
+                <http url="/SET_BUY_TRIGGER" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=20.50&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
             <thinktime value="60" random="true"></thinktime>
 
             <!-- Cancel the trigger if it's still active -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=CANCEL_SET_BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;submit="></http>
+                <http url="/CANCEL_SET_BUY" method="POST" version="1.1" contents="action=CANCEL_SET_BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Display summary of account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
 
@@ -181,19 +181,19 @@
 
             <!-- Add money to account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                <http url="/ADD" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Create a reserve account for a trigger -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                <http url="/SET_BUY_AMOUNT" method="POST" version="1.1" contents="action=SET_BUY_AMOUNT&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
             <!-- Start the trigger with a trigger value that will never be reached -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=0.01&amp;submit="></http>
+                <http url="/SET_BUY_TRIGGER" method="POST" version="1.1" contents="action=SET_BUY_TRIGGER&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=0.01&amp;submit="></http>
             </request>
             <thinktime value="5" random="true"></thinktime>
 
@@ -201,7 +201,7 @@
 
             <!-- Display summary of account -->
             <request subst="true">
-                <http url="/" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
             </request>
         </session>
     </sessions>

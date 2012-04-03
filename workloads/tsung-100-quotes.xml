@@ -34,7 +34,7 @@
                 <!-- Get quote -->
                 <request subst="true">
                     <match do="log" when="match" skip_headers="http">response contents="error"</match>
-                    <http url="/" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
+                    <http url="/QUOTE" method="POST" version="1.1" contents="action=QUOTE&amp;stock_symbol=%%_stock_symbol%%&amp;username=tsung&amp;submit="></http>
                 </request>
                 <thinktime value="1" random="false"></thinktime>
             </for>
