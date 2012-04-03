@@ -29,7 +29,7 @@ $(function() {
       console.log(data);
       result = data;
       var type = $(data.firstChild).attr('contents');
-      var message = data.firstChild.firstChild;
+      var message = data.firstChild;
 
       // Set modal content to XML for now
       var text = new XMLSerializer().serializeToString(message);
