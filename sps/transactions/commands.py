@@ -9,6 +9,7 @@ from sps.config import config
 from datetime import datetime
 import eventlet
 from os import path
+import sys
 
 from logging import getLogger
 log = getLogger(__name__)
@@ -103,6 +104,15 @@ class UppercaseCommand(CommandHandler):
         return message.upper()
 
 CommandHandler.register_command('UPPER', UppercaseCommand)
+
+
+class KILLCommand(CommandHandler):
+    """
+    Kills the transaction server immediately. Exits with a nonzero return code so
+    supervisor will restart it.
+    """
+    def run(self):
+        sys.exit(1)
 
 
 class ADDCommand(CommandHandler):
@@ -800,6 +810,7 @@ def amount_to_quantity(price, amount):
     return q
 
 
+CommandHandler.register_command('KILL', KILLCommand)
 CommandHandler.register_command('ADD', ADDCommand)
 CommandHandler.register_command('QUOTE', QUOTECommand)
 CommandHandler.register_command('BUY', BUYCommand)

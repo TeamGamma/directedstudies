@@ -72,17 +72,17 @@ class SummaryResponse():
 
     def __str__(self):
         xml = Response(
+            AccountBalance(str(self.account_balance)),
+            ReserveBalance(str(self.reserve_balance)),
             Transactions(
                 *[transaction_element(t) for t in self.transactions]
-            ),
-            Triggers(
-                *[trigger_element(t) for t in self.triggers]
             ),
             Stocks(
                 *[stock_element(s) for s in self.stocks]
             ),
-            AccountBalance(str(self.account_balance)),
-            ReserveBalance(str(self.reserve_balance)),
+            Triggers(
+                *[trigger_element(t) for t in self.triggers]
+            ),
             contents='summary'
         )
         return etree.tostring(xml)

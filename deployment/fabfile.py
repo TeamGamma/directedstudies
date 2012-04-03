@@ -217,6 +217,7 @@ def deploy_transaction():
 
     with cd('/srv/directedstudies/'):
         with settings(warn_only=True): 
+            run('supervisorctl shutdown')
             run('supervisord -c supervisord.conf')
             run('supervisorctl restart tserver')
 

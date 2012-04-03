@@ -59,12 +59,12 @@ $(function() {
     modal.modal('hide');
   });
 
-  var showResults = function(type, text) {
+  var showResults = function(type, content) {
     // Set modal title to content type of message
     modal.find('h3').text(type[0].toUpperCase() + type.slice(1));
 
     // Set text content of modal
-    modal.find('.modal-body').text(text);
+    modal.find('.modal-body').html(content);
 
     modal.modal('show');
   };
@@ -146,13 +146,23 @@ var prettyPrintResponse = function(response) {
 var _prettyPrintTree = function(dom, indent) {
   var output = indent;
   if(dom.nodeType === document.TEXT_NODE) {
+    // Text node
     output += dom.nodeValue + '\n';
-  } else {
-    output += dom.nodeName + '\n';
-    $.each(attributeMap(dom), function(key, value) {
-      output += indent + "    " + key + ': ' + value + '\n';
-    });
+    return output;
+  } else if(dom.childNodes.length === 1 &&
+            dom.firstChild.nodeType == document.TEXT_NODE &&
+            dom.attributes.length === 0) {
+    // Element node containing single text node
+    output += '<strong>' + dom.nodeName + '</strong>';
+    output += ' = ' + dom.firstChild.nodeValue + '\n';
+    return output;
   }
+
+  // Element node
+  output += '<strong>' + dom.nodeName + '</strong>\n';
+  $.each(attributeMap(dom), function(key, value) {
+    output += indent + "    <em>" + key + '</em>: ' + value + '\n';
+  });
 
   Array.prototype.forEach.call(dom.childNodes, function(child) {
     output += _prettyPrintTree(child, indent + "    ");
