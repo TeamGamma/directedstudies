@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 LOG_FOLDER=$(dirname $0)/../workloads/logs
 #TSUNG_COMMAND=$(dirname $0)/fake_tsung
 TSUNG_COMMAND=tsung
@@ -47,7 +49,7 @@ do
   sleep 2
 
   echo "Restarting system..."
-  fab update &>/dev/null
+  fab update
 
   $TSUNG_COMMAND -l ${LOG_FOLDER}/${TEST_NAME}.log -f $TSUNG_CONFIGURATION -w 1 start
 
