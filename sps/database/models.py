@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, E
 from sqlalchemy import func
 from sqlalchemy.orm import relationship, backref, composite
 from collections import namedtuple
+from datetime import datetime
 from sps.database.utils import InitMixin, ReprMixin
 from sps.config import config
 
@@ -143,7 +144,7 @@ class Query(InitMixin, ReprMixin, Base):
     crypto_key = Column(String(50), nullable=False)
 
     # Auto-set timestamp when created
-    query_time = Column(DateTime, default=func.now())
+    query_time = Column(DateTime, default=datetime.now)
 
 
 
@@ -167,7 +168,7 @@ class Transaction(InitMixin, ReprMixin, Base):
     committed = Column(Boolean, nullable=False, default=False)
 
     # Auto-set timestamp when created
-    creation_time = Column(DateTime, default=func.now())
+    creation_time = Column(DateTime, default=datetime.now)
 
 
 
@@ -211,7 +212,7 @@ class Trigger(InitMixin, ReprMixin, Base):
     state = Column(Enum(State.INACTIVE, State.RUNNING, State.CANCELLED), nullable=False)
 
     # Auto-set timestamp when created
-    creation_time = Column(DateTime, default=func.now())
+    creation_time = Column(DateTime, default=datetime.now)
 
 
 class StockPurchase(InitMixin, ReprMixin, Base):
@@ -228,5 +229,5 @@ class StockPurchase(InitMixin, ReprMixin, Base):
     quantity = Column(Integer, nullable=False)
 
     # Auto-set timestamp when created
-    query_time = Column(DateTime, default=func.now())
+    query_time = Column(DateTime, default=datetime.now)
 
