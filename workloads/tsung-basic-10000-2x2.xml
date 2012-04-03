@@ -56,25 +56,25 @@
 
                 <!-- Add money to account -->
                 <request subst="true">
-                    <http url="/ADD" method="POST" version="1.1" contents="action=ADD&amp;username=%%_username%%&amp;amount=1000&amp;submit="></http>
+                    <http url="/ADD" method="POST" version="1.1" contents="username=%%_username%%&amp;amount=10000"></http>
                 </request>
                 <thinktime value="10" random="true"></thinktime>
 
                 <!-- Buy some stock -->
                 <request subst="true">
-                    <http url="/BUY" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                    <http url="/BUY" method="POST" version="1.1" contents="username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=1000"></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
                 <!-- Commit the buy -->
                 <request subst="true">
-                    <http url="/COMMIT_BUY" method="POST" version="1.1" contents="action=COMMIT_BUY&amp;username=%%_username%%&amp;submit="></http>
+                    <http url="/COMMIT_BUY" method="POST" version="1.1" contents="username=%%_username%%"></http>
                 </request>
                 <thinktime value="10" random="true"></thinktime>
 
                 <!-- Display summary of account -->
                 <request subst="true">
-                    <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                    <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="username=%%_username%%"></http>
                 </request>
 
                 <!-- User holds on to stock for a while -->
@@ -82,19 +82,19 @@
 
                 <!-- Sell the stock -->
                 <request subst="true">
-                    <http url="/SELL" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                    <http url="/SELL" method="POST" version="1.1" contents="username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=200"></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
                 <!-- Commit the sell -->
                 <request subst="true">
-                    <http url="/COMMIT_SELL" method="POST" version="1.1" contents="action=COMMIT_SELL&amp;username=%%_username%%&amp;submit="></http>
+                    <http url="/COMMIT_SELL" method="POST" version="1.1" contents="username=%%_username%%"></http>
                 </request>
                 <thinktime value="10" random="true"></thinktime>
 
                 <!-- Display summary of account -->
                 <request subst="true">
-                    <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="action=DISPLAY_SUMMARY&amp;username=%%_username%%&amp;submit="></http>
+                    <http url="/DISPLAY_SUMMARY" method="POST" version="1.1" contents="username=%%_username%%"></http>
                 </request>
                 <thinktime value="20" random="true"></thinktime>
 
