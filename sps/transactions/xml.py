@@ -46,7 +46,7 @@ class ResultResponse():
         self.message = message
 
     def __str__(self):
-        xml = Response(Result(self.message), contents='results')
+        xml = Response(Result(self.message), contents='result')
         return etree.tostring(xml)
 
 
@@ -57,7 +57,7 @@ class DumplogResponse():
     def __str__(self):
         xml = Response(Transactions(
             *[transaction_element(t) for t in self.transactions]
-        ))
+        ), contents='dumplog')
         return etree.tostring(xml)
 
 
@@ -82,7 +82,8 @@ class SummaryResponse():
                 *[stock_element(s) for s in self.stocks]
             ),
             AccountBalance(str(self.account_balance)),
-            ReserveAccount(str(self.reserve_balance))
+            ReserveAccount(str(self.reserve_balance)),
+            contents='summary'
         )
         return etree.tostring(xml)
 
