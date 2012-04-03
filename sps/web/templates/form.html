@@ -1,32 +1,10 @@
 {% extends "base.html" %}
 
-{% block templates %}
-{% raw %}
-<script id="transaction" type="text/html">
-<tr>
-    <td>{{ operation }}</td>
-    <td>{{ stock_symbol }}</td>
-    <td><code>{{ stock_value }}</code></td>
-    <td><i class="{{ status_icon }}"></i></td>
-</tr>
-</script>
-<script id="stock" type="text/html">
-<tr>
-    <td>{{ stock_symbol }}</td>
-    <td>{{ quantity }}</td>
-</tr>
-</script>
-<script id="trigger" type="text/html">
-<tr>
-    <td>{{ operation }}</td>
-    <td>{{ stock_symbol }}</td>
-    <td><code>{{ stock_value }}</code></td>
-    <td><code>{{ trigger_value }}</code></td>
-    <td>{{ quantity }}</td>
-    <td><i class="{{ status_icon }}"></i></td>
-</tr>
-</script>
-{% endraw %}
+
+{% block status %} ({{ user }}){% endblock %}
+
+{% block scripts %}
+<script src="/static/js/form.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -168,4 +146,48 @@
 
     </div>
 </div>
+
 {% endblock %}
+
+{% block templates %}
+{% raw %}
+<script id="transaction" type="text/html">
+<tr>
+    <td>{{ operation }}</td>
+    <td>{{ stock_symbol }}</td>
+    <td><code>{{ stock_value }}</code></td>
+    <td><i class="{{ status_icon }}"></i></td>
+</tr>
+</script>
+<script id="stock" type="text/html">
+<tr>
+    <td>{{ stock_symbol }}</td>
+    <td>{{ quantity }}</td>
+</tr>
+</script>
+<script id="trigger" type="text/html">
+<tr>
+    <td>{{ operation }}</td>
+    <td>{{ stock_symbol }}</td>
+    <td><code>{{ stock_value }}</code></td>
+    <td><code>{{ trigger_value }}</code></td>
+    <td>{{ quantity }}</td>
+    <td><i class="{{ status_icon }}"></i></td>
+</tr>
+</script>
+{% endraw %}
+
+<div class="modal hide" id="command-output-modal">
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal">×</a>
+    <h3>Stuff</h3>
+  </div>
+  <div class="modal-body">
+    <p>One fine body…</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn">Close</a>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, abort
+from flask import Flask, request, render_template, abort, session, redirect, url_for
 import logging
 from os.path import dirname, abspath, join, normpath, exists
 from sps.config import config, read_config_file
@@ -18,11 +18,33 @@ import transaction_interface
 import command_forms
 
 app = Flask(__name__)
+app.secret_key = '\x1dO\xdf\xf8\x82)\xe3\t\xf8ZmXD\xff\xbck\xa4\xfaH\xa7\x80EM\xfa'
 
 @app.route("/")
 def home():
-    log.debug('Request for /: %s', repr(dict(request.form)))
-    return render_template('form.html', form=command_forms)
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    return render_template('form.html', form=command_forms, user=session['username'])
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Require a username of at least one character
+        if not len(request.form['username']):
+            abort(400)
+
+        # Log in user
+        session['username'] = request.form['username']
+        return redirect(url_for('home'))
+    else:
+        return render_template('login.html', form=command_forms)
+
+@app.route("/logout")
+def logout():
+    # Log out user
+    del session['username']
+    return redirect(url_for('login'))
 
 
 def send_to_transactions(message):

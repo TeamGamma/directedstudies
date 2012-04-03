@@ -39,7 +39,7 @@
         .help-block {
             color: #888;
         }
-        button[type=submit] {
+        .command-button-submit {
             display: block;
             margin: 0 auto;
             width: 150px;
@@ -50,15 +50,12 @@
     <script src="/static/js/icanhaz.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.js"></script>
     <script src="/static/bootstrap/js/bootstrap-tab.js"></script>
-    <script>
-        $(function() {
-            // Activate tabs
-            $('#command-tabs a').first().tab('show');
-        });
-    </script>
+    <script src="/static/bootstrap/js/bootstrap-modal.js"></script>
 
     {% block templates %}
     {% endblock %}
+
+    {% block scripts %}{% endblock %}
 </head>
 
 <body>
@@ -71,7 +68,7 @@
             <h1>Stock Paper Scissors</h1>
         </div>
         <div class="span4">
-            <p>Client Interface</p>
+            <p>Client Interface{% block status %}{% endblock %}</p>
         </div>
     </div>
 

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<!-- Command tab sections-->
+<div class="row">
+
+    <div class="span6 offset3">
+        <form method="post" class="well form-horizontal">
+            <fieldset>
+
+                <legend>Log In</legend>
+
+                <div class="input-prepend input-append" style="margin-top: 20px">
+                    <span class="add-on">Username:</span><input class="span3" type="text" name="username"/><button id="submit" type="submit" class="btn btn-info"><i class="icon-arrow-right"></i> Log In!</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
