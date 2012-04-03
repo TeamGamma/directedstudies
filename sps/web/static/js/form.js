@@ -1,5 +1,3 @@
-var result = null;
-
 $(function() {
   console.log('Initializing forms');
 
@@ -31,13 +29,10 @@ $(function() {
     $.post(url, data, function(data) {
       console.log(data);
       var type = $(data.firstChild).attr('contents');
-      var message = data.firstChild;
-      result = message;
-
-      // Set modal content to XML for now
-      var text = new XMLSerializer().serializeToString(message);
+      var text = prettyPrintResponse(data.firstChild);
 
       showResults(type, text);
+      refresh();
 
     }, 'xml').error(function(xhr, status, textResponse) {
       var data, type, text;
@@ -69,7 +64,7 @@ $(function() {
     modal.find('h3').text(type[0].toUpperCase() + type.slice(1));
 
     // Set text content of modal
-    modal.find('.modal-body p').text(text);
+    modal.find('.modal-body').text(text);
 
     modal.modal('show');
   };
@@ -139,5 +134,30 @@ var attributeMap = function(element) {
     attrMap[attr.name] = attr.value;
   }
   return attrMap;
+};
+
+var prettyPrintResponse = function(response) {
+  var output = "";
+  Array.prototype.forEach.call(response.childNodes, function(element) {
+    output += _prettyPrintTree(element, "");
+  });
+  return output;
+};
+var _prettyPrintTree = function(dom, indent) {
+  var output = indent;
+  if(dom.nodeType === document.TEXT_NODE) {
+    output += dom.nodeValue + '\n';
+  } else {
+    output += dom.nodeName + '\n';
+    $.each(attributeMap(dom), function(key, value) {
+      output += indent + "    " + key + ': ' + value + '\n';
+    });
+  }
+
+  Array.prototype.forEach.call(dom.childNodes, function(child) {
+    output += _prettyPrintTree(child, indent + "    ");
+  });
+ 
+  return output;
 };
 
