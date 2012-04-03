@@ -15,7 +15,7 @@ Trigger = ElementMaker.trigger
 Stocks = ElementMaker.stocks
 Stock = ElementMaker.stock
 AccountBalance = ElementMaker.account_balance
-ReserveAccount = ElementMaker.reserve_account
+ReserveBalance = ElementMaker.reserve_balance
 Log = ElementMaker.log
 Event = ElementMaker.event
 
@@ -82,7 +82,7 @@ class SummaryResponse():
                 *[stock_element(s) for s in self.stocks]
             ),
             AccountBalance(str(self.account_balance)),
-            ReserveAccount(str(self.reserve_balance)),
+            ReserveBalance(str(self.reserve_balance)),
             contents='summary'
         )
         return etree.tostring(xml)

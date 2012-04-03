@@ -3,6 +3,9 @@ var result = null;
 $(function() {
   console.log('Initializing forms');
 
+  // Activate tabs
+  $('#command-tabs a').first().tab('show');
+
   var modal = $('#command-output-modal');
 
   // Submit command form
@@ -27,9 +30,9 @@ $(function() {
 
     $.post(url, data, function(data) {
       console.log(data);
-      result = data;
       var type = $(data.firstChild).attr('contents');
       var message = data.firstChild;
+      result = message;
 
       // Set modal content to XML for now
       var text = new XMLSerializer().serializeToString(message);
@@ -56,9 +59,6 @@ $(function() {
     return false;
   });
 
-  // Activate tabs
-  $('#command-tabs a').first().tab('show');
-
   // Hide modal window with close button
   modal.click(function() {
     modal.modal('hide');
@@ -73,13 +73,71 @@ $(function() {
 
     modal.modal('show');
   };
+
+  var refreshbtn = $('#refresh-button');
+  var refresh = function() {
+    refreshbtn.addClass('disabled');
+
+    setTimeout(function() { refreshbtn.removeClass('disabled'); }, 1000);
+
+    // Get data from DISPLAY_SUMMARY form
+    var data = $('.command-form[action="/DISPLAY_SUMMARY"]').serialize();
+    $.post('/DISPLAY_SUMMARY', data, function(data) {
+      var response = data.firstChild;
+      window.response = response;
+      console.log(response);
+
+      // Set account balance and reserve balance
+      $('#account-balance').text($(response).find('account_balance').text());
+      $('#reserve-balance').text($(response).find('reserve_balance').text());
+
+      // Empty out transactions, stocks, and triggers
+      $('#transaction-table tbody tr').remove();
+      $('#stock-table tbody tr').remove();
+      $('#trigger-table tbody >tr').remove();
+
+      // Add transactions
+      $(response).find('transaction').each(function() {
+        var attr = attributeMap(this);
+        attr.status_icon = {True: 'icon-ok', False: 'icon-time'}[attr.committed];
+        var tr = ich.transaction(attr);
+        $('#transaction-table tbody').append(tr);
+      });
+
+      // Add stocks
+      $(response).find('stock').each(function() {
+        var attr = attributeMap(this);
+        var tr = ich.stock(attr);
+        $('#stock-table tbody').append(tr);
+      });
+
+      // Add triggers
+      $(response).find('trigger').each(function() {
+        var attr = attributeMap(this);
+        attr.amount = ('amount' in attr)? attr.amount : '...';
+        attr.quantity = ('quantity' in attr)? attr.quantity : '...';
+        attr.status_icon = {INACTIVE: 'icon-ok', RUNNING: 'icon-repeat', CANCELLED: 'icon-remove'}[attr.state];
+        var tr = ich.trigger(attr);
+        $('#trigger-table tbody').append(tr);
+      });
+
+      refreshbtn.removeClass('disabled');
+    }, 'xml');
+
+    return false;
+  };
+  refreshbtn.click(refresh);
+  refresh();
+
 });
 
-function htmlEscape(str) {
-    return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-}
+var attributeMap = function(element) {
+  var attributes = element.attributes;
+  var attrMap = {};
+  for(var i=0; i<attributes.length; i++) {
+    var attr = attributes[i];
+    attrMap[attr.name] = attr.value;
+  }
+  return attrMap;
+};
+

@@ -35,8 +35,10 @@
             <div class="span8">
                 <div class="well">
 
+                    <a id="refresh-button" class="btn" href="#"><i class="icon-refresh"></i> Refresh</a>
+
                     <h3>Account</h3>
-                    <table class="table table-bordered table-striped">
+                    <table id="account-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>Username</th>
@@ -46,19 +48,19 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>rob</td>
+                                <td>{{ user }}</td>
                                 <td>
-                                    <code>45.50</code>
+                                    <code id="account-balance">...</code>
                                 </td>
                                 <td>
-                                    <code>27.85</code>
+                                    <code id="reserve-balance">...</code>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
 
                     <h3>Transactions</h3>
-                    <table class="table table-bordered table-striped">
+                    <table id="transaction-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>Operation</th>
@@ -67,49 +69,23 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>SELL</td>
-                                <td>GOOG</td>
-                                <td><code>250.22</code></td>
-                                <td><i class="icon-time"></i></td>
-                            </tr>
-                            <tr class="muted">
-                                <td>BUY</td>
-                                <td>GOOG</td>
-                                <td><code>280.57</code></td>
-                                <td><i class="icon-ok"></i></td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
 
                     <h3>Stocks</h3>
-                    <table class="table table-bordered table-striped">
+                    <table id="stock-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>Stock Symbol</th>
                                 <th>Stock Quantity</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>GOOG</td>
-                                <td>47</td>
-                            </tr>
-                            <tr>
-                                <td>APPL</td>
-                                <td>22</td>
-                            </tr>
-                            <tr>
-                                <td>MSFT</td>
-                                <td>800</td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
 
 
                     <h3>Triggers</h3>
-                    <table class="table table-bordered table-striped">
+                    <table id="trigger-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>Operation</th>
@@ -120,24 +96,7 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>BUY</td>
-                                <td>GOOG</td>
-                                <td><code>250.22</code></td>
-                                <td><code>40.00</code></td>
-                                <td></td>
-                                <td><i class="icon-repeat"></i></td>
-                            </tr>
-                            <tr class="muted">
-                                <td>BUY</td>
-                                <td>GOOG</td>
-                                <td><code>250.22</code></td>
-                                <td><code>40.00</code></td>
-                                <td>6</td>
-                                <td><i class="icon-ok"></i></td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
 
@@ -169,7 +128,7 @@
 <tr>
     <td>{{ operation }}</td>
     <td>{{ stock_symbol }}</td>
-    <td><code>{{ stock_value }}</code></td>
+    <td><code>{{ amount }}</code></td>
     <td><code>{{ trigger_value }}</code></td>
     <td>{{ quantity }}</td>
     <td><i class="{{ status_icon }}"></i></td>
