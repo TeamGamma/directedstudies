@@ -63,7 +63,7 @@
 
                 <!-- Buy some stock -->
                 <request subst="true">
-                    <http url="/BUY" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                    <http url="/BUY" method="POST" version="1.1" contents="action=BUY&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=1000&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
@@ -83,7 +83,7 @@
 
                 <!-- Sell the stock -->
                 <request subst="true">
-                    <http url="/SELL" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=100&amp;submit="></http>
+                    <http url="/SELL" method="POST" version="1.1" contents="action=SELL&amp;username=%%_username%%&amp;stock_symbol=%%_stock_symbol%%&amp;amount=500&amp;submit="></http>
                 </request>
                 <thinktime value="5" random="true"></thinktime>
 
