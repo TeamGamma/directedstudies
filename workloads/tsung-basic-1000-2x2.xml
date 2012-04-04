@@ -17,34 +17,27 @@
     </servers>
 
     <monitoring>
-        <!-- Monitor 2 web servers over eth1 -->
+        <!-- Monitor 3 web servers over eth1 -->
         <monitor host="monitorweb1" type="erlang"></monitor>
         <monitor host="monitorweb2" type="erlang"></monitor>
 
-        <!-- Monitor 2 transaction servers -->
-        <monitor host="monitorts1" type="erlang"></monitor>
-        <monitor host="monitorts2" type="erlang"></monitor>
+        <!-- Monitor transaction server -->
+        <monitor host="monitorts" type="erlang"></monitor>
 
         <!-- Monitor database -->
         <monitor host="monitordb" type="erlang"></monitor>
     </monitoring>
 
-    <!-- Maximum duration of entire session is 30 seconds -->
-    <load duration="30" unit="second">
+    <!-- Maximum duration of entire session is 1500 seconds -->
+    <load duration="1500" unit="second">
         <!-- 1000 clients in total, one arriving every second -->
-        <arrivalphase phase="1" duration="50" unit="second">
-            <users maxnumber="1000" arrivalrate="100" unit="second"></users>
+        <arrivalphase phase="1" duration="1200" unit="second">
+            <users maxnumber="1000" arrivalrate="1" unit="second"></users>
         </arrivalphase>
     </load>
 
     <sessions>
-        <!-- This is simulating failure of transaction server -->
-        <session name="killtransaction" probability="0" type="ts_http">
-                <request subst="true">
-                    <http url="/KILL" method="POST" version="1.1" contents=""></http>
-                </request>
 
-        </session>
         <!-- A simple realistic user that only buys and sells, no triggers -->
         <session name="basic" probability="100" type="ts_http">
             <!-- Just repeat indefinitely -->

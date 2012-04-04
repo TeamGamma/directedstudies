@@ -3,3 +3,4 @@ Vagrantfile
 *.pyc
 *.egg-info
 config.py
+workloads/logs
