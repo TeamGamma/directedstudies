@@ -91,6 +91,13 @@ def handle_KILL():
     log.debug('KILL Request: %s', repr(dict(request.form)))
     return send_to_transactions('KILL')
 
+@app.route('/ECHO', methods=['POST'])
+def handle_ECHO():
+    log.debug('ECHO Request: %s', repr(dict(request.form)))
+
+    message = validate('message')
+    return send_to_transactions('ECHO,' + message)
+
 @app.route('/ADD', methods=['POST'])
 def handle_ADD():
     log.debug('ADD Request: %s', repr(dict(request.form)))
