@@ -26,11 +26,11 @@
         <monitor host="monitordb" type="erlang"></monitor>
     </monitoring>
 
-    <!-- Maximum duration of entire session is 1500 seconds -->
-    <load duration="1500" unit="second">
-        <!-- 1000 clients in total, one arriving every second -->
-        <arrivalphase phase="1" duration="1200" unit="second">
-            <users maxnumber="1000" arrivalrate="1" unit="second"></users>
+    <!-- Maximum duration of entire session is 200 seconds -->
+    <load duration="200" unit="second">
+        <!-- 1000 clients in total, 100 arriving every second for 10s -->
+        <arrivalphase phase="1" duration="12" unit="second">
+            <users maxnumber="1000" arrivalrate="100" unit="second"></users>
         </arrivalphase>
     </load>
 
