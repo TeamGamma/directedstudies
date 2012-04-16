@@ -31,15 +31,15 @@ if [ $(echo $OLDFILES | wc -l) -gt 0 ]
 then
   echo "Older runs with this label:"
   echo $OLDFILES | tr " " "\n"
-  read -p "Delete older runs? " -n 1
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]
-  then
-    echo Deleting...
-    rm -rf $OLDFILES
-  else
-    echo Leaving old runs in $LOG_FOLDER.
-  fi
+  #read -p "Delete older runs? " -n 1
+  #echo
+  #if [[ $REPLY =~ ^[Yy]$ ]]
+  #then
+    #echo Deleting...
+    #rm -rf $OLDFILES
+  #else
+    #echo Leaving old runs in $LOG_FOLDER.
+  #fi
 fi
 
 for i in $(seq 1 $NUM_RUNS)
