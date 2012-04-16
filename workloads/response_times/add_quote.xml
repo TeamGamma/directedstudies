@@ -4,7 +4,7 @@
 
     <!-- Client side setup -->
     <clients>
-        <client host="localhost" use_controller_vm="true" maxusers="10000" />
+        <client host="master" use_controller_vm="true" maxusers="10000" />
     </clients>
 
     <!-- Server side setup -->
@@ -13,10 +13,21 @@
         <server host="web2" port="80" type="tcp"></server>
     </servers>
 
+    <monitoring>
+        <!-- Monitor 3 web servers over eth1 -->
+        <monitor host="monitorweb1" type="erlang"></monitor>
+        <monitor host="monitorweb2" type="erlang"></monitor>
+
+        <!-- Monitor transaction server -->
+        <monitor host="monitorts" type="erlang"></monitor>
+
+        <!-- Monitor database -->
+        <monitor host="monitordb" type="erlang"></monitor>
+    </monitoring>
 
     <!-- Maximum duration of entire session is 200 seconds -->
-    <load duration="200" unit="second">
-        <!-- 1000 clients in total, 100 arriving every second for ~10s -->
+    <load duration="30" unit="minute">
+        <!-- 1000 clients in total, 100 arriving every second for 10s -->
         <arrivalphase phase="1" duration="30" unit="second">
             <users maxnumber="1000" arrivalrate="100" unit="second"></users>
         </arrivalphase>
@@ -24,16 +35,19 @@
 
     <sessions>
 
-        <session name="quote" probability="100" type="ts_http">
+        <session name="add" probability="100" type="ts_http">
             <!-- Just repeat indefinitely -->
             <for from="1" to="10000" var="i">
 
                 <setdynvars sourcetype="random_string" length="10">
                     <var name="username"/>
                 </setdynvars>
-                <setdynvars sourcetype="random_string" length="4">
-                    <var name="stock_symbol"/>
-                </setdynvars>
+
+                <!-- ADD request -->
+                <request subst="true">
+                    <http url="/ADD" method="POST" version="1.1" contents="username=%%_username%%&amp;amount=1000"></http>
+                </request>
+                <thinktime value="1" random="true"></thinktime>
 
                 <!-- QUOTE request -->
                 <request subst="true">
@@ -47,6 +61,7 @@
 
     </sessions>
 </tsung>
+
 
 
 
